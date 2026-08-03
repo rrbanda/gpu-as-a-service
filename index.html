@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPU as a Service — Architecture Deep Dive</title>
+<meta name="description" content="An interactive whiteboard session exploring GPU-as-a-Service architecture on Red Hat OpenShift AI — from idle GPU diagnosis to a production-grade platform.">
+<meta name="author" content="Red Hat AI Engineering">
+
+<!-- OpenGraph -->
+<meta property="og:title" content="GPU as a Service — Architecture Deep Dive">
+<meta property="og:description" content="Interactive whiteboard: why enterprise GPUs sit 30-50% idle and the five-layer architecture that fixes it.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rrbanda.github.io/gpu-as-a-service/">
+<meta property="og:image" content="https://rrbanda.github.io/gpu-as-a-service/images/og-preview.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GPU as a Service — Architecture Deep Dive">
+<meta name="twitter:description" content="Interactive whiteboard: why enterprise GPUs sit 30-50% idle and the five-layer architecture that fixes it.">
+<meta name="twitter:image" content="https://rrbanda.github.io/gpu-as-a-service/images/og-preview.png">
+
+<!-- Favicon (inline SVG GPU chip icon) -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='20' y='20' width='60' height='60' rx='8' fill='%2306b6d4' opacity='0.9'/><rect x='32' y='32' width='16' height='16' rx='2' fill='%23080b14'/><rect x='52' y='32' width='16' height='16' rx='2' fill='%23080b14'/><rect x='32' y='52' width='16' height='16' rx='2' fill='%23080b14'/><rect x='52' y='52' width='16' height='16' rx='2' fill='%23080b14'/><rect x='35' y='10' width='6' height='14' rx='2' fill='%2306b6d4'/><rect x='50' y='10' width='6' height='14' rx='2' fill='%2306b6d4'/><rect x='35' y='76' width='6' height='14' rx='2' fill='%2306b6d4'/><rect x='50' y='76' width='6' height='14' rx='2' fill='%2306b6d4'/><rect x='10' y='35' width='14' height='6' rx='2' fill='%2306b6d4'/><rect x='10' y='50' width='14' height='6' rx='2' fill='%2306b6d4'/><rect x='76' y='35' width='14' height='6' rx='2' fill='%2306b6d4'/><rect x='76' y='50' width='14' height='6' rx='2' fill='%2306b6d4'/></svg>">
+
+<!-- Stylesheets -->
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/navigation.css">
+<link rel="stylesheet" href="css/hero.css">
+<link rel="stylesheet" href="css/cards.css">
+<link rel="stylesheet" href="css/visualizations.css">
+<link rel="stylesheet" href="css/interactive.css">
+<link rel="stylesheet" href="css/roadmap.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav id="side-nav">
+  <a href="#hero" data-label="Opening" class="active"></a>
+  <a href="#vocab" data-label="Key Concepts"></a>
+  <a href="#problems" data-label="Three Problems"></a>
+  <a href="#discovery" data-label="The Environment"></a>
+  <a href="#challenges" data-label="AI Challenges"></a>
+  <a href="#layers" data-label="Five Layers"></a>
+  <a href="#loops" data-label="Control Loops"></a>
+  <a href="#mechanisms" data-label="GPU Mechanisms"></a>
+  <a href="#governance" data-label="Governance"></a>
+  <a href="#finops" data-label="GPU FinOps"></a>
+  <a href="#patterns" data-label="Patterns"></a>
+  <a href="#decision" data-label="Your Pattern"></a>
+  <a href="#results" data-label="Results"></a>
+  <a href="#stack" data-label="Tech Stack"></a>
+  <a href="#usecases" data-label="Use Cases"></a>
+  <a href="#personas" data-label="Personas"></a>
+  <a href="#nextsteps" data-label="Solution Roadmap"></a>
+</nav>
+
+<main>
+
+<!-- HERO + AGENDA — SINGLE LANDING SCREEN -->
+<section id="hero" class="section visible">
+  <p class="hook-question">Let&rsquo;s start with one question&hellip;</p>
+  <div class="hook-stat">30&ndash;50% idle</div>
+  <p class="hook-followup">That&rsquo;s the GPU utilization rate in most enterprise AI fleets. You&rsquo;re paying for GPUs that sit empty &mdash; not because demand is low, but because the abstraction layer doesn&rsquo;t exist yet.</p>
+  <h1 style="margin-top:20px;">GPU as a Service</h1>
+  <p class="subtitle" style="opacity:0;animation:fadeSlideUp 1s 1.2s forwards;">An interactive whiteboard session &mdash; from &ldquo;why are our GPUs idle?&rdquo; to a production architecture</p>
+
+  <!-- EMBEDDED AGENDA -->
+  <div id="agenda" class="hero-agenda">
+    <div class="agenda-header">
+      <span class="section-label" style="margin-bottom:0;">Session Roadmap</span>
+    </div>
+
+    <div class="agenda-timeline">
+      <div class="agenda-step">
+        <div class="agenda-dot"></div>
+        <div class="agenda-num">01</div>
+        <a href="#vocab" style="text-decoration:none;"><div class="agenda-title">Vocabulary</div></a>
+        <div class="agenda-time">Key concepts</div>
+      </div>
+      <div class="agenda-step">
+        <div class="agenda-dot"></div>
+        <div class="agenda-num">02</div>
+        <a href="#problems" style="text-decoration:none;"><div class="agenda-title">Problem + Environment</div></a>
+        <div class="agenda-time">Why GPUs sit idle &amp; what we see</div>
+      </div>
+      <div class="agenda-step">
+        <div class="agenda-dot"></div>
+        <div class="agenda-num">03</div>
+        <a href="#layers" style="text-decoration:none;"><div class="agenda-title">The Architecture</div></a>
+        <div class="agenda-time">Five layers + three loops</div>
+      </div>
+      <div class="agenda-step">
+        <div class="agenda-dot"></div>
+        <div class="agenda-num">04</div>
+        <a href="#decision" style="text-decoration:none;"><div class="agenda-title">Your Pattern</div></a>
+        <div class="agenda-time">Decision tree + deep dives</div>
+      </div>
+      <div class="agenda-step">
+        <div class="agenda-dot"></div>
+        <div class="agenda-num">05</div>
+        <a href="#nextsteps" style="text-decoration:none;"><div class="agenda-title">Solution Roadmap</div></a>
+        <div class="agenda-time">10 steps: problem &rarr; solution &rarr; order</div>
+      </div>
+    </div>
+  </div>
+
+  <a href="#vocab" class="scroll-indicator" title="Start the session">&#8595;</a>
+</section>
+
+<!-- FLASH CARDS — VOCABULARY -->
+<section id="vocab" class="section">
+  <span class="section-label">Before We Begin</span>
+  <h2>Key Concepts &mdash; Tap to Flip</h2>
+  <p style="margin-bottom:4px;">Six terms you&rsquo;ll hear throughout. Tap any card to see the definition.</p>
+
+  <div class="flashcard-grid">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l2-mechanisms);">
+          <h4>MIG</h4>
+          <div class="flashcard-hint">Multi-Instance GPU</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l2-mechanisms);">
+          <p>Hardware-level GPU partitioning. Carves one A100 into up to 7 isolated slices, each with dedicated compute, memory, and cache. No driver sharing, no noisy neighbors.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l2-mechanisms);">
+          <h4>DRA</h4>
+          <div class="flashcard-hint">Dynamic Resource Allocation</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l2-mechanisms);">
+          <p>Kubernetes API that replaces <code>nvidia.com/gpu: 1</code> with rich, declarative GPU claims &mdash; specify GPU type, memory, MIG profile, and topology in a single resource request.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l3-governance);">
+          <h4>Kueue</h4>
+          <div class="flashcard-hint">Kubernetes-native job queueing</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l3-governance);">
+          <p>Fair-share GPU scheduler. Manages quotas, borrowing, preemption, and priority across teams. Prevents training from starving inference. Normalizes GPU types into fungible &ldquo;credits.&rdquo;</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l4-ai-aware);">
+          <h4>llm-d</h4>
+          <div class="flashcard-hint">Distributed inference middleware</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
+          <p>CNCF project (Red Hat, Google, IBM, NVIDIA) that adds KV-cache-aware routing, disaggregated prefill/decode, and prefix caching on top of vLLM. Turns LLM serving into a stateful routing problem.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l4-ai-aware);">
+          <h4>KServe</h4>
+          <div class="flashcard-hint">Model serving framework</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
+          <p>CNCF Graduated project for model lifecycle &mdash; deploy, version, scale, and monitor models. Provides scale-to-zero: idle models release GPUs entirely and cold-start on demand.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l5-self-service);">
+          <h4>GPU Credits</h4>
+          <div class="flashcard-hint">Normalized cost abstraction</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l5-self-service);">
+          <p>A unit that normalizes different GPU types into a common currency. H100 = 100 credits, A100 = 60, MIG slice = 10. Teams get credit budgets, not GPU counts &mdash; enabling flexible multi-GPU procurement.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l4-ai-aware);">
+          <h4>WVA</h4>
+          <div class="flashcard-hint">Workload Variant Autoscaler</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
+          <p>llm-d&rsquo;s inference-aware autoscaler. Scales replicas based on queue depth, KV-cache pressure, and token throughput &mdash; not generic CPU/memory. Supports <code>minReplicas: 0</code> for scale-to-zero and cost-optimized variant selection.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l4-ai-aware);">
+          <h4>EPP</h4>
+          <div class="flashcard-hint">Endpoint Picker</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
+          <p>llm-d&rsquo;s routing brain. For each incoming request, EPP checks the KV-Cache Indexer to find which replica already has the most relevant context loaded &mdash; then routes there. Avoids redundant prompt recomputation.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l4-ai-aware);">
+          <h4>KEDA</h4>
+          <div class="flashcard-hint">Event-Driven Autoscaling</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
+          <p>Kubernetes autoscaler that scales on external metrics &mdash; queue depth, custom Prometheus queries, or WVA&rsquo;s <code>wva_desired_replicas</code> metric. Bridges the gap between &ldquo;no demand&rdquo; and &ldquo;full auto-scale.&rdquo;</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l5-self-service);">
+          <h4>Compute Profiles</h4>
+          <div class="flashcard-hint">Self-service GPU abstraction</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l5-self-service);">
+          <p>Admin-defined GPU &ldquo;t-shirt sizes&rdquo; that data scientists select from a dropdown. Instead of writing YAML, users pick &ldquo;Small GPU&rdquo; or &ldquo;Large Inference&rdquo; &mdash; the platform maps this to the right GPU type, MIG profile, and Kueue queue.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l1-fleet);">
+          <h4>KubeRay</h4>
+          <div class="flashcard-hint">Kubernetes operator for Ray</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l1-fleet);">
+          <p>Manages Ray clusters on Kubernetes for distributed training, fine-tuning, hyperparameter search, and Ray Serve inference. Handles multi-node GPU jobs, auto-scaling worker pools, and fault-tolerant checkpointing.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a href="#problems" class="section-arrow" title="Next: The Problem">&#8595;</a>
+</section>
+
+<!-- THREE PROBLEMS -->
+<section id="problems" class="section">
+  <span class="section-label">Why GPUaaS for AI Is Different</span>
+  <h2>The Three Problems</h2>
+
+  <div class="grid-3" style="margin-top:24px;">
+    <div class="card">
+      <h3>Problem 1: Memory Claimed &#8800; Demand Served</h3>
+      <p>Serving frameworks claim GPU memory upfront by configuration, regardless of how much work is arriving. A model reporting 90% GPU memory utilization may be serving zero requests. &ldquo;The GPUs are full&rdquo; is usually a setting, not a measure of demand. Enterprise GPU fleets show 30&ndash;50% idle rates. Overprovisioning by 300% is common.</p>
+
+      <div class="gpu-bars" id="gpu-bars">
+        <div class="gpu-bar-row">
+          <span class="gpu-bar-label">Model A</span>
+          <div class="gpu-bar-track">
+            <div class="gpu-bar-mem" data-w="90"></div>
+            <div class="gpu-bar-req" data-w="5"></div>
+          </div>
+          <span class="gpu-bar-pct">90/5%</span>
+        </div>
+        <div class="gpu-bar-row">
+          <span class="gpu-bar-label">Model B</span>
+          <div class="gpu-bar-track">
+            <div class="gpu-bar-mem" data-w="80"></div>
+            <div class="gpu-bar-req" data-w="40"></div>
+          </div>
+          <span class="gpu-bar-pct">80/40%</span>
+        </div>
+        <div class="gpu-bar-row">
+          <span class="gpu-bar-label">Model C</span>
+          <div class="gpu-bar-track">
+            <div class="gpu-bar-mem" data-w="100"></div>
+            <div class="gpu-bar-req" data-w="70"></div>
+          </div>
+          <span class="gpu-bar-pct">100/70%</span>
+        </div>
+        <div class="gpu-bar-row">
+          <span class="gpu-bar-label">Guard Rail</span>
+          <div class="gpu-bar-track">
+            <div class="gpu-bar-mem" data-w="100"></div>
+            <div class="gpu-bar-req" data-w="2"></div>
+          </div>
+          <span class="gpu-bar-pct">100/2%</span>
+        </div>
+        <div class="gpu-bar-row">
+          <span class="gpu-bar-label">Notebook</span>
+          <div class="gpu-bar-track">
+            <div class="gpu-bar-mem" data-w="60"></div>
+            <div class="gpu-bar-req" data-w="0"></div>
+          </div>
+          <span class="gpu-bar-pct">60/0%</span>
+        </div>
+        <div class="gpu-bar-row">
+          <span class="gpu-bar-label">Embeddings</span>
+          <div class="gpu-bar-track">
+            <div class="gpu-bar-mem" data-w="100"></div>
+            <div class="gpu-bar-req" data-w="15"></div>
+          </div>
+          <span class="gpu-bar-pct">100/15%</span>
+        </div>
+      </div>
+      <div class="bar-legend">
+        <span><span class="dot red"></span> Memory claimed</span>
+        <span><span class="dot green"></span> Actual request load</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Problem 2: Multi-Tenant GPU Sharing Is Unsolved</h3>
+      <p>Traditional Kubernetes treats GPUs as opaque integer counters &mdash; <code>nvidia.com/gpu: 1</code>. The scheduler has no awareness of GPU type, memory size, MIG capability, or current utilization. Four teams sharing a cluster have no mechanism for fair-share allocation, quota enforcement, or cost attribution.</p>
+    </div>
+
+    <div class="card">
+      <h3>Problem 3: Regulated Industries Add Hard Constraints</h3>
+      <p>Air-gapped deployment, audit trails, multi-vendor GPU procurement policies, FIPS compliance, and disconnected operation are non-negotiable for financial services. Many AI infrastructure tools assume cloud connectivity.</p>
+      <div style="margin-top:16px;padding:12px;background:rgba(139,92,246,0.08);border-radius:8px;border:1px solid rgba(139,92,246,0.2);">
+        <p style="font-size:0.8rem;font-weight:600;color:var(--l3-governance);margin-bottom:8px;">How the Platform Addresses This:</p>
+        <ul style="font-size:0.78rem;margin:0;padding-left:16px;color:var(--text-secondary);">
+          <li><strong>FIPS 140-2 validated cryptography</strong> &mdash; all TLS, certificate, and key management uses FIPS-validated modules</li>
+          <li><strong>Signed OCI artifacts</strong> &mdash; every container image, Helm chart, and operator bundle is signed with cosign and verified at deploy time</li>
+          <li><strong>Supply chain integrity</strong> &mdash; SLSA provenance for all Red Hat-built images; SBOM generation for audit</li>
+          <li><strong>Disconnected / air-gapped operation</strong> &mdash; full mirror registry support; no outbound network required post-install</li>
+          <li><strong>FedRAMP-capable architecture</strong> &mdash; OpenShift has achieved FedRAMP High authorization; AI services inherit the control plane</li>
+          <li><strong>Dedicated Product Security team</strong> &mdash; vulnerability scanning, CVE response SLAs, and proactive security advisories</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <a href="#discovery" class="section-arrow" title="Next: The Environment">&#8595;</a>
+</section>
+
+<!-- THE ENTERPRISE ENVIRONMENT -->
+<section id="discovery" class="section">
+  <span class="section-label">The Starting Point</span>
+  <h2>A Typical Enterprise GPU Environment</h2>
+  <p style="margin-bottom:24px;">This is what we typically see when we walk into a large enterprise running AI workloads. The names change. The patterns don&rsquo;t.</p>
+
+  <!-- GPU FLEET OVERVIEW -->
+  <h3>The Fleet</h3>
+  <div class="grid-3" style="margin-top:12px;margin-bottom:24px;">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;font-weight:800;color:var(--l1-fleet);">256</div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);">Total GPUs across 3 clusters</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Production &middot; Staging &middot; Dev/Experiment</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;font-weight:800;color:var(--amber);">3 types</div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);">Heterogeneous GPU mix</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">64x H100 SXM &middot; 128x A100 80GB &middot; 64x A10G</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;font-weight:800;color:var(--red);">~38%</div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);">Average GPU compute utilization</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Despite &ldquo;no GPUs available&rdquo; in ticket queue</div>
+    </div>
+  </div>
+
+  <!-- TEAMS AND WORKLOADS -->
+  <h3>The Teams</h3>
+  <div class="grid-2" style="margin-top:12px;margin-bottom:24px;">
+    <div class="card">
+      <h3 style="font-size:0.9rem;color:var(--l4-ai-aware);">LLM Serving Team</h3>
+      <p style="font-size:0.8rem;">Runs 5 production models: a 70B flagship model (4 GPUs per replica, 3 replicas for HA), two 13B domain models, and two 7B models. Statically provisioned 48 H100s. Traffic is 90% daytime U.S. hours; at night, 36 GPUs sit idle but reserved.</p>
+      <div style="margin-top:8px;">
+        <span class="signal-tag">48 H100s reserved</span>
+        <span class="signal-tag">~75% idle overnight</span>
+        <span class="signal-tag">no scale-to-zero</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:0.9rem;color:var(--l4-ai-aware);">GenAI Platform Team</h3>
+      <p style="font-size:0.8rem;">Exposes models as APIs to 12 internal applications. Traffic is bursty &mdash; 3x spikes during market open, near-zero on weekends. Provisioned for peak at all times: 16 A100s dedicated, using 4 on average. Each API consumer gets a full GPU regardless of load.</p>
+      <div style="margin-top:8px;">
+        <span class="signal-tag">16 A100s reserved</span>
+        <span class="signal-tag">~25% avg utilization</span>
+        <span class="signal-tag">provisioned for peak</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:0.9rem;color:var(--l2-mechanisms);">Content Safety Team</h3>
+      <p style="font-size:0.8rem;">Deploys 14 guard models &mdash; toxicity filters, PII detectors, prompt injection classifiers. Each model is 1&ndash;3GB but runs on a full A100 (80GB) because Kubernetes only supports <code>nvidia.com/gpu: 1</code>. 14 GPUs, 2.5% VRAM utilization each.</p>
+      <div style="margin-top:8px;">
+        <span class="signal-tag">14 A100s for 14 tiny models</span>
+        <span class="signal-tag">2.5% VRAM per model</span>
+        <span class="signal-tag">no MIG, no fractional allocation</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:0.9rem;color:var(--l5-self-service);">Data Science &amp; Experimentation</h3>
+      <p style="font-size:0.8rem;">40 data scientists with Jupyter notebooks. Each notebook requests 1 GPU on launch. On a typical Tuesday: 30 notebooks running, 8 are active experiments, 12 are idle (user in meetings), 10 haven&rsquo;t been touched since last week. No culling configured. No visibility into who&rsquo;s using what.</p>
+      <div style="margin-top:8px;">
+        <span class="signal-tag">30 A10G GPUs held</span>
+        <span class="signal-tag">~27% actively computing</span>
+        <span class="signal-tag">no idle timeout</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW GPUS ARE MANAGED TODAY -->
+  <h3>How GPUs Are Managed Today</h3>
+  <div class="card" style="margin-top:12px;margin-bottom:24px;">
+    <div class="grid-2" style="gap:16px;">
+      <div>
+        <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Current State</p>
+        <ul style="font-size:0.78rem;color:var(--text-secondary);padding-left:16px;">
+          <li>Static namespace quotas — each team gets a fixed GPU count at the start of quarter</li>
+          <li>No borrowing — if Team A has 10 idle GPUs and Team B is queued, Team B waits</li>
+          <li>GPU allocation via ServiceNow ticket — 3&ndash;5 day turnaround</li>
+          <li><code>nvidia.com/gpu: 1</code> is the only resource request — no GPU type, no memory, no MIG</li>
+          <li>No cost visibility — nobody knows what their GPU usage costs</li>
+          <li>Training jobs run on the same cluster as inference with no priority separation</li>
+          <li>Once a week, a training job saturates the cluster and inference latency spikes to 10x</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;font-weight:600;color:var(--green);margin-bottom:6px;">What They Want</p>
+        <ul style="font-size:0.78rem;color:var(--text-secondary);padding-left:16px;">
+          <li>Self-service GPU access for data scientists — no tickets</li>
+          <li>Small models on GPU slices, not whole GPUs</li>
+          <li>Inference GPUs that scale up during market hours and release at night</li>
+          <li>Training can use idle inference capacity without affecting production SLAs</li>
+          <li>Dashboard showing each team&rsquo;s GPU cost so leadership can optimize spend</li>
+          <li>Air-gapped deployment — all clusters are disconnected, FIPS required</li>
+          <li>Single management plane across all 3 clusters</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE WASTE SUMMARY -->
+  <h3>The Waste</h3>
+  <div class="grid-4" style="margin-top:12px;">
+    <div class="card" style="text-align:center;border-top:3px solid var(--red);">
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);">~98</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">GPUs idle right now</div>
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">38% of 256 fleet</div>
+    </div>
+    <div class="card" style="text-align:center;border-top:3px solid var(--red);">
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);">12</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">A100s wasted on 2GB models</div>
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Could be 2 GPUs with MIG</div>
+    </div>
+    <div class="card" style="text-align:center;border-top:3px solid var(--red);">
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);">36</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">H100s idle overnight</div>
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">No scale-to-zero</div>
+    </div>
+    <div class="card" style="text-align:center;border-top:3px solid var(--red);">
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);">22</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">Notebooks idle &gt;24 hours</div>
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">No cull timer</div>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-top:24px;">
+    <strong>The math:</strong> At $3.20/hr per H100 and $1.90/hr per A100, this enterprise is burning roughly <strong>$45,000/month</strong> on GPU capacity that serves zero requests. That&rsquo;s $540K/year &mdash; before counting the opportunity cost of teams waiting in a ticket queue for GPUs that are already idle one cluster over.
+  </div>
+  <a href="#challenges" class="section-arrow" title="Next: AI Challenges">&#8595;</a>
+</section>
+
+<!-- SEVEN AI CHALLENGES -->
+<section id="challenges" class="section">
+  <span class="section-label">What Makes AI GPUaaS Different From Traditional IaaS</span>
+  <h2>Seven AI-Specific Challenges</h2>
+
+  <div class="grid-3" style="margin-top:24px;">
+    <div class="card">
+      <h3>1. Wildly Different Workload Shapes</h3>
+      <p>0.25 GPU notebook for 4 hours, 4-GPU fine-tune for 2 hours, 64-GPU training for 3 days, always-on 8-GPU LLM &mdash; all at the same time. This is the packing problem.</p>
+    </div>
+    <div class="card">
+      <h3>2. GPUs Are Not Fungible</h3>
+      <p>&ldquo;8 GPUs&rdquo; is never a complete request. GPU model, memory (24GB vs 80GB vs 141GB), topology, network (RDMA), precision (FP8/BF16), driver version &mdash; all matter.</p>
+    </div>
+    <div class="card">
+      <h3>3. Topology Matters Enormously</h3>
+      <p>8 GPUs on one NVSwitch domain (900 GB/s interconnect) vs 4+4 split across servers connected by network. Same GPU count, dramatically different performance for tensor parallelism.</p>
+    </div>
+    <div class="card">
+      <h3>4. Queues, Quotas, Fairness</h3>
+      <p>100 GPUs, 150 requested. Who gets what, when? This is business policy, not merely a technical scheduler. It requires admission control.</p>
+    </div>
+    <div class="card">
+      <h3>5. Training &#8800; Inference</h3>
+      <div class="comparison-grid">
+        <div class="comparison-col">
+          <h4>Training</h4>
+          <ul>
+            <li>Queue jobs</li>
+            <li>Can wait</li>
+            <li>Hours/days</li>
+            <li>Throughput matters</li>
+            <li>Scheduler-oriented</li>
+          </ul>
+        </div>
+        <div class="comparison-col">
+          <h4>Inference</h4>
+          <ul>
+            <li>Serve requests</li>
+            <li>Usually can&rsquo;t wait</li>
+            <li>Persistent</li>
+            <li>Latency/SLO matters</li>
+            <li>Autoscaling/routing-oriented</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>6. LLM Inference Is Unique</h3>
+      <p>KV cache, prefill vs decode phases, token throughput, TTFT, LoRA adapters, continuous batching. The shift: from &ldquo;give me 8 H100s&rdquo; to &ldquo;deploy Llama at 500 req/sec.&rdquo;</p>
+    </div>
+    <div class="card">
+      <h3>7. Self-Service Abstractions Needed</h3>
+      <p>Data scientists want &ldquo;Large Fine-Tuning&rdquo; not <code>nvidia.com/gpu: 4</code>. The translation layer from human intent to hardware configuration is core infrastructure.</p>
+    </div>
+  </div>
+  <a href="#layers" class="section-arrow" title="Next: The Architecture">&#8595;</a>
+</section>
+
+<!-- FIVE LAYERS -->
+<section id="layers" class="section">
+  <span class="section-label">The Solution Framework</span>
+  <h2>The Five-Layer Architecture</h2>
+  <p style="margin-bottom:24px;">GPU-as-a-Service is not one product &mdash; it is five distinct abstraction layers, each solving a different problem. Click any layer to explore.</p>
+
+  <div class="layer-stack">
+    <div class="layer-card" data-layer="5">
+      <div class="layer-header">
+        <div class="layer-num">5</div>
+        <div>
+          <div class="layer-title">Self-Service Experience</div>
+          <div class="layer-subtitle">Compute profiles, accelerator catalog, chargeback dashboards</div>
+        </div>
+        <span class="layer-expand-icon">&#9662;</span>
+      </div>
+      <div class="layer-detail">
+        <p>A data scientist should never write Kubernetes YAML. They pick &ldquo;Large Fine-Tuning&rdquo; from a catalog. Compute Profiles abstract GPU complexity into named profiles. Accelerator Profiles define which GPU types are available. Chargeback dashboards show each team their consumption.</p>
+        <div class="component-pills">
+          <span class="component-pill">Compute Profiles</span>
+          <span class="component-pill">Accelerator Profiles</span>
+          <span class="component-pill">Dashboard UI</span>
+          <span class="component-pill">Showback/Chargeback</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card" data-layer="4">
+      <div class="layer-header">
+        <div class="layer-num">4</div>
+        <div>
+          <div class="layer-title">AI-Aware Services</div>
+          <div class="layer-subtitle">llm-d intelligent routing, WVA autoscaling, KServe model serving</div>
+        </div>
+        <span class="layer-expand-icon">&#9662;</span>
+      </div>
+      <div class="layer-detail">
+        <p>llm-d (CNCF Sandbox, co-created by Red Hat, Google, IBM, CoreWeave, NVIDIA) is distributed inference middleware. Its Endpoint Picker (EPP) routes each request to the replica with the most relevant KV-cache already loaded via a KV-Cache Indexer that maintains a near-real-time block-key-to-pods mapping. llm-d adds three capabilities: (1) KV-cache-aware routing &mdash; directs requests to replicas that already have relevant context cached, avoiding redundant computation; (2) Disaggregated prefill/decode &mdash; separates compute-intensive prompt processing from memory-intensive token generation across different GPU pools; (3) Tiered prefix caching &mdash; reuses shared system prompts and tool definitions across requests, particularly valuable for agentic workloads chaining 10&ndash;20 LLM calls. WVA (Workload Variant Autoscaler) scales model replicas based on inference-specific signals: queue depth, KV-cache pressure, token throughput, latency percentiles.</p>
+        <div class="component-pills">
+          <span class="component-pill">llm-d</span>
+          <span class="component-pill">WVA</span>
+          <span class="component-pill">KServe</span>
+          <span class="component-pill">vLLM</span>
+          <span class="component-pill">KEDA</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card" data-layer="3">
+      <div class="layer-header">
+        <div class="layer-num">3</div>
+        <div>
+          <div class="layer-title">Governance</div>
+          <div class="layer-subtitle">Kueue quotas, fair-share scheduling, borrowing, preemption</div>
+        </div>
+        <span class="layer-expand-icon">&#9662;</span>
+      </div>
+      <div class="layer-detail">
+        <p>When 4 teams want 150 GPUs but only 100 exist, Kueue makes the allocation policy. Each team gets a nominalQuota (guaranteed entitlement), can burst via borrowing from peers&rsquo; unused capacity, and capacity is reclaimed via preemption. NUANCE: Kueue is not always needed. A dedicated inference cluster with a single tenant gets no value from admission control &mdash; it only adds latency.</p>
+        <div class="component-pills">
+          <span class="component-pill">Kueue</span>
+          <span class="component-pill">ClusterQueue</span>
+          <span class="component-pill">LocalQueue</span>
+          <span class="component-pill">ResourceFlavor</span>
+          <span class="component-pill">Workload Priority</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card" data-layer="2">
+      <div class="layer-header">
+        <div class="layer-num">2</div>
+        <div>
+          <div class="layer-title">GPU Mechanisms</div>
+          <div class="layer-subtitle">MIG partitioning, DRA, time-slicing, device plugins</div>
+        </div>
+        <span class="layer-expand-icon">&#9662;</span>
+      </div>
+      <div class="layer-detail">
+        <p>MIG (Multi-Instance GPU) carves a single A100 or H100 into hardware-isolated partitions with dedicated memory bandwidth and compute cores. DRA (Dynamic Resource Allocation) replaces opaque <code>nvidia.com/gpu: 1</code> requests with attribute-based claims. NVIDIA donated the DRA GPU driver to CNCF at KubeCon Europe 2026. Red Hat shipped DRA GA in OpenShift 4.21.</p>
+        <div class="component-pills">
+          <span class="component-pill">NVIDIA GPU Operator</span>
+          <span class="component-pill">MIG Manager</span>
+          <span class="component-pill">DRA (K8s 1.34+)</span>
+          <span class="component-pill">Device Plugin</span>
+          <span class="component-pill">DCGM Exporter</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card" data-layer="1">
+      <div class="layer-header">
+        <div class="layer-num">1</div>
+        <div>
+          <div class="layer-title">GPU Fleet</div>
+          <div class="layer-subtitle">Physical accelerators, topology, networking</div>
+        </div>
+        <span class="layer-expand-icon">&#9662;</span>
+      </div>
+      <div class="layer-detail">
+        <p>Physical GPUs are not fungible. An H100 with NVLink at 900 GB/s between 8 GPUs on a single NVSwitch domain is fundamentally different from 4+4 split across servers connected by InfiniBand. Node Feature Discovery (NFD) labels every node with hardware metadata &mdash; GPU model, memory capacity, PCIe generation, NUMA affinity.</p>
+        <div class="component-pills">
+          <span class="component-pill">H100/H200</span>
+          <span class="component-pill">A100</span>
+          <span class="component-pill">L40S/L4</span>
+          <span class="component-pill">NVSwitch/NVLink</span>
+          <span class="component-pill">NFD</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a href="#loops" class="section-arrow" title="Next: Control Loops">&#8595;</a>
+</section>
+
+<!-- THREE CONTROL LOOPS -->
+<section id="loops" class="section">
+  <span class="section-label">The Centerpiece</span>
+  <h2>Three Control Loops</h2>
+  <p style="margin-bottom:12px;">GPU workload management is not one scheduling problem. It is three problems operating at three different timescales. Conflating them creates oscillation &mdash; the autoscaler and the quota manager fight each other.</p>
+
+  <div class="control-loops-visual">
+    <div class="rings-container">
+      <div class="ring ring-outer"></div>
+      <div class="ring ring-middle"></div>
+      <div class="ring ring-inner"></div>
+      <div class="ring-center-label">Three<br>Timescales</div>
+    </div>
+    <div class="loop-cards">
+      <div class="loop-card outer">
+        <h4 style="color:var(--l3-governance);">Outer Loop: Kueue &mdash; Entitlement</h4>
+        <p><strong>Minutes&ndash;hours.</strong> Which team is entitled to GPU capacity? Manages quotas, fair-share weights, borrowing, preemption.</p>
+      </div>
+      <div class="loop-card middle">
+        <h4 style="color:var(--l4-ai-aware);">Middle Loop: WVA/KEDA &mdash; Scaling</h4>
+        <p><strong>Seconds&ndash;minutes.</strong> How many replicas does this model need? Scales based on queue depth, KV-cache pressure, token throughput, latency.</p>
+      </div>
+      <div class="loop-card inner">
+        <h4 style="color:var(--l2-mechanisms);">Inner Loop: llm-d EPP &mdash; Routing</h4>
+        <p><strong>Milliseconds.</strong> Which replica handles this request? Routes to the replica with the most relevant KV-cache via KV-Cache Indexer.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <strong>Insight:</strong> Kueue sets the ceiling. WVA scales within it. llm-d routes within the live replicas.
+  </div>
+
+  <h3 style="margin-top:32px;">Scale-to-Zero: Releasing Idle GPUs</h3>
+  <div class="loop-cards" style="grid-template-columns:1fr;">
+    <div class="loop-card" style="border-left:3px solid var(--l4-ai-aware);">
+      <p>The most impactful capability for GPU utilization is <strong>scale-to-zero</strong> &mdash; models that receive no traffic for a configurable period release their GPUs entirely.</p>
+      <p style="margin-top:12px;"><strong>How it works:</strong> KServe provides Knative-based autoscaling including scale-to-zero for model endpoints. When a model receives no inference requests for a configurable idle period, its pods are terminated and GPUs are returned to the cluster. When a new request arrives, KServe cold-starts the model &mdash; pulling it from cache (seconds) or downloading weights (minutes).</p>
+      <p style="margin-top:12px;"><strong>Combined with KEDA:</strong> KEDA watches queue depth and custom inference metrics to trigger scale-up before latency degrades. Together, KServe + KEDA bridge the gap between &ldquo;no demand&rdquo; and &ldquo;auto-scaling to meet demand&rdquo; without manual GPU reservation.</p>
+      <p style="margin-top:12px;"><strong>WVA adds intelligence:</strong> WVA&rsquo;s <code>minReplicas: 0</code> setting enables scale-to-zero for specific model variants, while optimizing cost by preferring cheaper GPU variants first during scale-up.</p>
+    </div>
+  </div>
+  <div class="insight-box">
+    <strong>Why it matters:</strong> Without scale-to-zero, a data science team with 20 deployed models keeps 20+ GPUs reserved even when only 3 models are actively serving. Scale-to-zero recovers 85% of idle capacity automatically.
+  </div>
+  <a href="#mechanisms" class="section-arrow" title="Next: GPU Mechanisms">&#8595;</a>
+</section>
+
+<!-- GPU MECHANISMS DEEP DIVE -->
+<section id="mechanisms" class="section">
+  <span class="section-label">Layer 2 Deep Dive</span>
+  <h2>GPU Mechanisms</h2>
+
+  <h3 style="margin-top:24px;">MIG Slicing Visualization</h3>
+  <p>A 2GB content-safety model on an 80GB A100 uses 2.5% of VRAM. MIG carves the GPU into isolated partitions.</p>
+
+  <div class="mig-viz">
+    <div class="mig-gpu">
+      <div class="mig-gpu-label">Before: Single A100 (80GB)</div>
+      <div class="mig-full-bar">
+        <div class="model-usage"></div>
+      </div>
+      <p style="font-size:0.75rem;margin-top:8px;text-align:center;">2.5% VRAM efficiency</p>
+    </div>
+    <div class="mig-arrow">&#10132;</div>
+    <div class="mig-slices-container">
+      <div class="mig-gpu-label">After: 7 MIG Partitions (1g.10gb each)</div>
+      <div class="mig-slices" id="mig-slices">
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+      </div>
+      <p style="font-size:0.75rem;margin-top:8px;text-align:center;">7 guard models that each needed a full GPU &#8594; 1 GPU with 7 MIG slices (2.5% VRAM waste per model)</p>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-bottom:24px;">
+    <strong>Production-proven:</strong> content safety models on MIG 2g.20gb slices achieve 42&ndash;88% streaming multiprocessor utilization &mdash; the highest compute efficiency in enterprise deployments.
+  </div>
+
+  <h3>DRA Resource Claim (Dynamic Resource Allocation)</h3>
+  <details class="yaml-toggle">
+    <summary>ResourceClaimTemplate &mdash; requesting a MIG slice by GPU type and profile</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">resource.k8s.io/v1</span>
+<span class="key">kind:</span> <span class="str">ResourceClaimTemplate</span>
+<span class="key">metadata:</span>
+  <span class="key">name:</span> <span class="str">a100-mig-slice</span>
+  <span class="key">namespace:</span> <span class="str">content-safety</span>
+<span class="key">spec:</span>
+  <span class="key">spec:</span>
+    <span class="key">devices:</span>
+      <span class="key">requests:</span>
+      - <span class="key">name:</span> <span class="str">mig</span>
+        <span class="key">exactly:</span>
+          <span class="key">deviceClassName:</span> <span class="str">mig.nvidia.com</span>
+          <span class="key">selectors:</span>
+          - <span class="key">cel:</span>
+              <span class="key">expression:</span> <span class="str">|</span>
+                <span class="str">device.attributes['gpu.nvidia.com'].productName == 'NVIDIA A100 80GB PCIe'</span>
+                <span class="str">&amp;&amp; device.attributes['gpu.nvidia.com'].profile == '1g.10gb'</span></pre></div>
+  </details>
+
+  <div class="insight-box">
+    <strong>Compare with the legacy approach:</strong> <code style="color:var(--red);">nvidia.com/gpu: 1</code> &mdash; an opaque integer with no awareness of GPU type, memory, or MIG capability.
+  </div>
+  <a href="#governance" class="section-arrow" title="Next: Governance">&#8595;</a>
+</section>
+
+<!-- KUEUE GOVERNANCE -->
+<section id="governance" class="section">
+  <span class="section-label">Layer 3 Deep Dive &mdash; Governance</span>
+  <h2>Kueue Configuration</h2>
+  <p style="margin-bottom:24px;">When Kueue applies &mdash; and when it doesn&rsquo;t. Do not add Kueue merely because GPUs are involved.</p>
+
+  <h3>Decision Framework</h3>
+  <div class="grid-3" style="margin-top:12px;margin-bottom:32px;">
+    <div class="scenario-card">
+      <h3 style="font-size:0.9rem;">Scenario A: Dedicated Inference Pool</h3>
+      <p>WVA optimizes the pool directly. No multi-tenant contention.</p>
+      <span class="scenario-verdict no">Kueue: NO</span>
+    </div>
+    <div class="scenario-card">
+      <h3 style="font-size:0.9rem;">Scenario B: Inference + Training Shared</h3>
+      <p>Prevents training from starving production inference.</p>
+      <span class="scenario-verdict yes">Kueue: YES</span>
+    </div>
+    <div class="scenario-card">
+      <h3 style="font-size:0.9rem;">Scenario C: Service-Tier Boundaries</h3>
+      <p>Critical (48 GPUs guaranteed, no preempt) / Standard (32, best-effort, can borrow) / Elastic (16, preemptible, spot-like)</p>
+      <span class="scenario-verdict yes">Kueue: YES</span>
+    </div>
+  </div>
+
+  <h3>ResourceFlavor</h3>
+  <details class="yaml-toggle">
+    <summary>ResourceFlavor &mdash; labeling H100 nodes for Kueue scheduling</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">kueue.x-k8s.io/v1beta2</span>
+<span class="key">kind:</span> <span class="str">ResourceFlavor</span>
+<span class="key">metadata:</span>
+  <span class="key">name:</span> <span class="str">h100-80gb</span>
+<span class="key">spec:</span>
+  <span class="key">nodeLabels:</span>
+    <span class="key">nvidia.com/gpu.product:</span> <span class="str">NVIDIA-H100-80GB-HBM3</span></pre></div>
+  </details>
+
+  <h3>ClusterQueue with Cohort</h3>
+  <details class="yaml-toggle">
+    <summary>ClusterQueue &mdash; 16 H100 quota, borrowing up to 8 more, fair-share weight 2</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">kueue.x-k8s.io/v1beta2</span>
+<span class="key">kind:</span> <span class="str">ClusterQueue</span>
+<span class="key">metadata:</span>
+  <span class="key">name:</span> <span class="str">team-llm-serving</span>
+<span class="key">spec:</span>
+  <span class="key">namespaceSelector:</span> {}
+  <span class="key">cohortName:</span> <span class="str">gpu-shared-pool</span>
+  <span class="key">resourceGroups:</span>
+  - <span class="key">coveredResources:</span> [<span class="str">"cpu"</span>, <span class="str">"memory"</span>, <span class="str">"nvidia.com/gpu"</span>]
+    <span class="key">flavors:</span>
+    - <span class="key">name:</span> <span class="str">h100-80gb</span>
+      <span class="key">resources:</span>
+      - <span class="key">name:</span> <span class="str">"nvidia.com/gpu"</span>
+        <span class="key">nominalQuota:</span> <span class="num">16</span>
+        <span class="key">borrowingLimit:</span> <span class="num">8</span>
+  <span class="key">preemption:</span>
+    <span class="key">withinClusterQueue:</span> <span class="str">LowerPriority</span>
+    <span class="key">reclaimWithinCohort:</span> <span class="str">Any</span>
+  <span class="key">fairSharing:</span>
+    <span class="key">weight:</span> <span class="num">2</span></pre></div>
+  </details>
+
+  <h3>GPU Credit System</h3>
+  <details class="yaml-toggle">
+    <summary>Kueue Resource Transformations &mdash; H100 = 100 credits, A100 = 60, MIG = 10</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">config.kueue.x-k8s.io/v1beta2</span>
+<span class="key">kind:</span> <span class="str">Configuration</span>
+<span class="key">resources:</span>
+  <span class="key">transformations:</span>
+  - <span class="key">input:</span> <span class="str">nvidia.com/gpu-h100</span>
+    <span class="key">strategy:</span> <span class="str">Replace</span>
+    <span class="key">outputs:</span>
+      <span class="key">gpu_credits:</span> <span class="num">100</span>   <span class="comment"># H100 @ $3.20/hr</span>
+  - <span class="key">input:</span> <span class="str">nvidia.com/gpu-a100</span>
+    <span class="key">strategy:</span> <span class="str">Replace</span>
+    <span class="key">outputs:</span>
+      <span class="key">gpu_credits:</span> <span class="num">60</span>    <span class="comment"># A100 @ $1.92/hr</span>
+  - <span class="key">input:</span> <span class="str">nvidia.com/gpu-a100-mig-1g</span>
+    <span class="key">strategy:</span> <span class="str">Replace</span>
+    <span class="key">outputs:</span>
+      <span class="key">gpu_credits:</span> <span class="num">10</span>    <span class="comment"># MIG 1g.10gb slice</span></pre></div>
+  </details>
+
+  <div class="insight-box">
+    <strong>Note:</strong> 600 credits buys 6 H100s or 10 A100s or 60 MIG slices. GPU credits normalize cost across heterogeneous GPU types.
+  </div>
+  <a href="#finops" class="section-arrow" title="Next: GPU FinOps">&#8595;</a>
+</section>
+
+<!-- GPU FINOPS -->
+<section id="finops" class="section">
+  <span class="section-label">GPU FinOps</span>
+  <h2>GPU FinOps &mdash; Chargeback</h2>
+
+  <h3 style="margin-top:20px;">Metering Pipeline</h3>
+  <div class="flow-diagram" style="margin-bottom:24px;">
+    <span class="flow-node amber">Metering (what consumed?)</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node purple">Rating (what rate?)</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node cyan">Allocation (who pays?)</span>
+  </div>
+
+  <h3>Two Core Principles</h3>
+  <div class="grid-2" style="margin:16px 0 24px;">
+    <div class="card">
+      <h3 style="font-size:0.95rem;">Charge for allocation, not utilization</h3>
+      <p>Tying billing to utilization makes costs unpredictable and incentivizes gaming &mdash; teams run busy loops to look efficient.</p>
+    </div>
+    <div class="card">
+      <h3 style="font-size:0.95rem;">Billable share = max(compute share, memory share)</h3>
+      <p>A model using 20% compute but 70% VRAM is billed at 70%.</p>
+    </div>
+  </div>
+
+  <h3>What Gets Charged vs What Gets Shown</h3>
+  <div class="grid-2" style="margin:16px 0 24px;">
+    <div class="card" style="border-left:3px solid var(--red);">
+      <h3 style="font-size:0.95rem; color:var(--red);">Charge For</h3>
+      <ul style="margin:8px 0 0;padding-left:18px;font-size:0.85rem;">
+        <li>Allocated GPU-hours (reserved capacity)</li>
+        <li>Burst / borrowing above guaranteed quota</li>
+        <li>Premium priority tier surcharge</li>
+        <li>Dedicated topology reservation (NVLink groups)</li>
+        <li>Token throughput (API-style billing)</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green);">
+      <h3 style="font-size:0.95rem; color:var(--green);">Show (Don&rsquo;t Charge)</h3>
+      <ul style="margin:8px 0 0;padding-left:18px;font-size:0.85rem;">
+        <li>Queue wait time (scheduler delay)</li>
+        <li>Platform maintenance windows</li>
+        <li>Failed placement attempts</li>
+        <li>Idle allocation visibility (optimization signal)</li>
+        <li>Cross-team borrowing credits returned</li>
+      </ul>
+    </div>
+  </div>
+  <div class="insight-box" style="margin-bottom:24px;">
+    <strong>Why separate them?</strong> Charging for queue wait punishes teams for platform-level capacity gaps. Showing it drives FinOps conversations about fleet sizing. Charging for failed placements creates perverse incentives to avoid experimentation.
+  </div>
+
+  <h3>Showback Dashboard</h3>
+  <div class="dashboard-mock">
+    <div class="dashboard-header">
+      <span class="dashboard-title">Team: Model Engineering</span>
+      <span class="dashboard-period">July 2026</span>
+    </div>
+    <div class="dashboard-metrics">
+      <div class="dashboard-metric">
+        <div class="value" style="color:var(--red);">$42K</div>
+        <div class="label">Allocated Cost</div>
+      </div>
+      <div class="dashboard-metric">
+        <div class="value" style="color:var(--green);">$24K</div>
+        <div class="label">Active Compute</div>
+      </div>
+      <div class="dashboard-metric">
+        <div class="value" style="color:var(--amber);">$18K</div>
+        <div class="label">Idle Allocation</div>
+      </div>
+    </div>
+    <div class="dashboard-stats">
+      <div class="dashboard-stat"><div class="val">57%</div><div class="lbl">GPU Utilization</div></div>
+      <div class="dashboard-stat"><div class="val">81%</div><div class="lbl">VRAM Utilization</div></div>
+      <div class="dashboard-stat"><div class="val">320</div><div class="lbl">Queue Wait (GPU-hrs)</div></div>
+      <div class="dashboard-stat"><div class="val">16</div><div class="lbl">Dedicated H100s</div></div>
+    </div>
+    <div class="dashboard-insight">$18,000 idle capacity &mdash; optimization opportunity. Data Science team flagged: 25% efficiency (idle notebooks).</div>
+  </div>
+
+  <h3>Three Billing Modes</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Mode</th><th>What&rsquo;s Metered</th><th>Pricing Model</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Dedicated allocation</td><td>GPU-hours reserved (used or not)</td><td>Flat hourly rate per GPU type</td></tr>
+        <tr><td>Burst / borrowing</td><td>GPU-hours above guaranteed quota</td><td>Premium rate (1.5&ndash;2x)</td></tr>
+        <tr><td>Token-based API</td><td>Input + output tokens consumed</td><td>Per-1K-token rate by model size</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <a href="#patterns" class="section-arrow" title="Next: Architecture Patterns">&#8595;</a>
+</section>
+
+<!-- ARCHITECTURE PATTERNS -->
+<section id="patterns" class="section">
+  <span class="section-label">Deployment Patterns</span>
+  <h2>Architecture Patterns</h2>
+
+  <div class="toggle-group">
+    <button class="toggle-btn active" data-pattern="dedicated">Dedicated Inference Pool</button>
+    <button class="toggle-btn" data-pattern="shared">Shared Cluster</button>
+  </div>
+
+  <div class="pattern-view active" id="pattern-dedicated">
+    <h3>Pattern A: Dedicated Inference Pool</h3>
+    <div class="flow-diagram">
+      <span class="flow-node">Request Traffic</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node cyan">llm-d EPP (ms)</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node pink">WVA (sec-min)</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node">kube-scheduler</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node blue">GPU Pool (inference only)</span>
+    </div>
+    <div class="insight-box">
+      <strong>Note:</strong> No Kueue in the path. WVA distributes capacity across models directly. Simpler, lower latency.
+    </div>
+  </div>
+
+  <div class="pattern-view" id="pattern-shared">
+    <h3>Pattern B: Shared Cluster</h3>
+    <div class="flow-diagram">
+      <span class="flow-node blue">GPU Pool (128 H100s)</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node purple">Kueue Governance</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node pink">Inference Pool (60% quota, WVA + llm-d)</span>
+    </div>
+    <div class="flow-diagram" style="margin-top:8px;">
+      <span class="flow-node blue">GPU Pool (128 H100s)</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node purple">Kueue Governance</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node amber">Training Pool (40% quota, batch jobs)</span>
+    </div>
+    <div class="insight-box">
+      <strong>Note:</strong> Kueue prevents training from starving inference. WVA operates freely inside the inference envelope.
+    </div>
+  </div>
+  <a href="#decision" class="section-arrow" title="Next: Your Pattern">&#8595;</a>
+</section>
+
+<!-- DECISION TREE — WHAT PATTERN FITS YOU? -->
+<section id="decision" class="section">
+  <span class="section-label">Architecture Selection</span>
+  <h2>What Pattern Fits You?</h2>
+  <p style="margin-bottom:8px;">Three questions determine your starting architecture. Click the answer that matches your environment.</p>
+
+  <div class="decision-tree">
+    <div class="decision-node" id="q1">
+      <div class="decision-question-text">Q1: Do training and inference share the same GPU cluster?</div>
+      <div class="decision-options">
+        <div class="decision-option" onclick="selectDecision(this, 'q1', 'shared')">
+          <div class="decision-option-label">Yes &mdash; Shared cluster</div>
+          <div class="decision-option-result">Training jobs compete with live inference for GPU time</div>
+        </div>
+        <div class="decision-option" onclick="selectDecision(this, 'q1', 'dedicated')">
+          <div class="decision-option-label">No &mdash; Dedicated pools</div>
+          <div class="decision-option-result">Inference runs on its own GPU fleet, training is separate</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-connector"></div>
+
+    <div class="decision-node" id="q2">
+      <div class="decision-question-text">Q2: Do you serve many small models (&lt;10GB) alongside large LLMs?</div>
+      <div class="decision-options">
+        <div class="decision-option" onclick="selectDecision(this, 'q2', 'mixed')">
+          <div class="decision-option-label">Yes &mdash; Mixed model sizes</div>
+          <div class="decision-option-result">Guard models, embeddings, classifiers alongside 70B+ LLMs</div>
+        </div>
+        <div class="decision-option" onclick="selectDecision(this, 'q2', 'large')">
+          <div class="decision-option-label">No &mdash; Mostly large models</div>
+          <div class="decision-option-result">Primary workload is 13B+ parameter models requiring full GPUs</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-connector"></div>
+
+    <div class="decision-node" id="q3">
+      <div class="decision-question-text">Q3: Do you need to show teams what their GPU usage costs?</div>
+      <div class="decision-options">
+        <div class="decision-option" onclick="selectDecision(this, 'q3', 'yes')">
+          <div class="decision-option-label">Yes &mdash; Showback or chargeback</div>
+          <div class="decision-option-result">Finance, leadership, or teams need cost visibility</div>
+        </div>
+        <div class="decision-option" onclick="selectDecision(this, 'q3', 'no')">
+          <div class="decision-option-label">Not yet &mdash; Focus on efficiency first</div>
+          <div class="decision-option-result">Primary goal is utilization, billing comes later</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-connector"></div>
+
+    <!-- RESULT -->
+    <div id="decision-result" style="display:none;">
+      <div class="card" style="border-left:3px solid var(--l2-mechanisms); margin-top:8px;">
+        <h3 style="color:var(--l2-mechanisms); margin-bottom:12px;" id="result-title">Your Recommended Architecture</h3>
+        <div id="result-body"></div>
+      </div>
+    </div>
+  </div>
+  <a href="#results" class="section-arrow" title="Next: Results">&#8595;</a>
+</section>
+
+<!-- VALIDATED RESULTS -->
+<section id="results" class="section">
+  <span class="section-label">Production Results</span>
+  <h2>Validated Results</h2>
+
+  <div class="stat-grid" style="margin-top:24px;">
+    <div class="stat-card">
+      <div class="stat-number green" data-target="61" data-suffix="%">0%</div>
+      <div class="stat-label">GPU fleet reduction</div>
+      <div class="stat-source">Global Bank (256 &#8594; 99 H200 GPUs)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number green" data-target="80" data-suffix="%">0%</div>
+      <div class="stat-label">GPU reduction</div>
+      <div class="stat-source">Global Bank (2K checks/min, p99 &lt; 500ms)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number green" data-target="2.5" data-suffix="M" data-prefix="$" data-decimals="1">$0M</div>
+      <div class="stat-label">Projected savings</div>
+      <div class="stat-source">Major Telecom (10&ndash;30x TTFT improvement)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number green" data-target="93" data-suffix="%">0%</div>
+      <div class="stat-label">KV-cache hit rate</div>
+      <div class="stat-source">Major Telecom (15x P95 TTFT, 40% throughput)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number amber" data-target="50" data-suffix="%" data-range="30-">0%</div>
+      <div class="stat-label">Typical idle rate</div>
+      <div class="stat-source">Industry Average</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number red" data-target="300" data-suffix="%">0%</div>
+      <div class="stat-label">Common overprovisioning</div>
+      <div class="stat-source">Industry Average</div>
+    </div>
+  </div>
+  <a href="#stack" class="section-arrow" title="Next: Tech Stack">&#8595;</a>
+</section>
+
+<!-- TECHNOLOGY STACK -->
+<section id="stack" class="section">
+  <span class="section-label">Open Source, No Lock-In</span>
+  <h2>Technology Stack</h2>
+
+  <div class="grid-3" style="margin-top:24px;">
+    <div class="tech-card">
+      <div class="tech-name">KServe</div>
+      <div class="tech-org">CNCF Graduated</div>
+      <div class="tech-desc">Model serving framework with scale-to-zero, versioning, and canary rollouts</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">vLLM</div>
+      <div class="tech-org">Community (UC Berkeley)</div>
+      <div class="tech-desc">High-throughput LLM inference engine with PagedAttention</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">llm-d</div>
+      <div class="tech-org">CNCF Sandbox</div>
+      <div class="tech-desc">Distributed inference middleware &mdash; KV-cache routing, disaggregated P/D, prefix caching. Co-created by Red Hat, Google, IBM, CoreWeave, NVIDIA</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">WVA</div>
+      <div class="tech-org">Part of llm-d</div>
+      <div class="tech-desc">Inference-aware autoscaler &mdash; scales replicas on queue depth, KV-cache pressure, token throughput</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">Kueue</div>
+      <div class="tech-org">K8s SIG Scheduling</div>
+      <div class="tech-desc">Fair-share GPU scheduling &mdash; quotas, borrowing, preemption, GPU credit normalization</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">NVIDIA GPU Operator</div>
+      <div class="tech-org">NVIDIA Certified</div>
+      <div class="tech-desc">GPU lifecycle management &mdash; drivers, MIG Manager, DCGM, device plugin</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">DRA</div>
+      <div class="tech-org">Kubernetes</div>
+      <div class="tech-desc">Dynamic Resource Allocation &mdash; declarative, attribute-based GPU claims replacing opaque integers</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">KubeRay</div>
+      <div class="tech-org">CNCF / Ray Community</div>
+      <div class="tech-desc">Kubernetes operator for Ray clusters &mdash; distributed training, fine-tuning, hyperparameter tuning, and Ray Serve</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">KEDA</div>
+      <div class="tech-org">CNCF Graduated</div>
+      <div class="tech-desc">Event-driven autoscaling &mdash; scales on queue depth, custom Prometheus metrics, WVA signals</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">Compute Profiles</div>
+      <div class="tech-org">Red Hat</div>
+      <div class="tech-desc">Self-service GPU catalog &mdash; admin-defined GPU t-shirt sizes for data scientists</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">Red Hat ACM</div>
+      <div class="tech-org">Red Hat</div>
+      <div class="tech-desc">Multi-cluster fleet management &mdash; GPU visibility, policy-based placement, GitOps</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:32px;">Fleet Orchestration with ACM</h3>
+  <div class="card" style="margin-bottom:24px;">
+    <p>Red Hat Advanced Cluster Management (ACM) extends GPUaaS across multiple OpenShift clusters, providing capabilities critical for enterprise GPU operations:</p>
+    <div class="grid-2" style="margin-top:12px;">
+      <div>
+        <p style="font-size:0.82rem;"><strong style="color:var(--l3-governance);">Fleet-wide GPU Visibility</strong></p>
+        <p style="font-size:0.78rem;color:var(--text-secondary);">Unified dashboard showing GPU availability, utilization, and queue depth across all clusters. Operators see a single pane of glass for all GPU resources &mdash; dev, staging, production, and burst clusters.</p>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;"><strong style="color:var(--l4-ai-aware);">Policy-Based Workload Placement</strong></p>
+        <p style="font-size:0.78rem;color:var(--text-secondary);">Placement rules route workloads to clusters with matching GPU topology, data locality, and compliance zone. Training goes to clusters with NVLink; inference goes to clusters closest to users.</p>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;"><strong style="color:var(--l2-mechanisms);">GitOps Configuration</strong></p>
+        <p style="font-size:0.78rem;color:var(--text-secondary);">Consistent Kueue policies, ResourceFlavors, and DRA DeviceClasses across all clusters via ArgoCD or OpenShift GitOps. Changes are auditable, version-controlled, and rollback-ready.</p>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;"><strong style="color:var(--l5-self-service);">Environment Promotion</strong></p>
+        <p style="font-size:0.78rem;color:var(--text-secondary);">Models validated in dev clusters are promoted to production clusters through policy-gated pipelines. Same model, same config, different GPU topology &mdash; no manual reconfiguration.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px;text-align:center;">
+    <h3>Multi-Vendor GPU Support</h3>
+    <p>llm-d supports NVIDIA CUDA, AMD ROCm, Intel Gaudi, and IBM Spyre accelerators.</p>
+    <div class="vendor-pills" style="justify-content:center;">
+      <span class="vendor-pill">NVIDIA CUDA</span>
+      <span class="vendor-pill">AMD ROCm</span>
+      <span class="vendor-pill">Intel Gaudi</span>
+      <span class="vendor-pill">IBM Spyre</span>
+    </div>
+  </div>
+  <a href="#usecases" class="section-arrow" title="Next: Use Cases">&#8595;</a>
+</section>
+
+<!-- USE CASE MAPPING -->
+<section id="usecases" class="section">
+  <span class="section-label">The Complete Picture</span>
+  <h2>Use Cases &rarr; Capabilities &rarr; Platform Features</h2>
+  <p style="margin-bottom:24px;">Each persona has specific use cases. Each use case needs specific capabilities. Each capability maps to a specific RHOAI feature with a known maturity level.</p>
+
+  <!-- LLM SERVING -->
+  <div class="mapping-persona">
+    <div class="mapping-persona-header">
+      <div class="persona-icon">&#129302;</div>
+      <div>
+        <h3>LLM Serving / NLP</h3>
+        <p style="font-size:0.78rem;margin:0;">Over-replication, 70B models on 4&ndash;8 GPUs each, idle at night</p>
+      </div>
+    </div>
+    <div class="mapping-rows">
+      <div class="mapping-row mapping-row-header">
+        <div class="mapping-cell">Use Case</div>
+        <div class="mapping-cell">Capability Needed</div>
+        <div class="mapping-cell">RHOAI Feature</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Optimize LLM inference</strong><br>Reduce per-request latency, reuse context across calls</div>
+        <div class="mapping-cell" data-label="Capability">KV-cache-aware routing, prefix caching, disaggregated prefill/decode</div>
+        <div class="mapping-cell" data-label="Feature">llm-d (EPP + KV-Cache Indexer)</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Auto-scale inference replicas</strong><br>Scale on inference signals, not CPU/memory</div>
+        <div class="mapping-cell" data-label="Capability">Inference-aware autoscaling (queue depth, token throughput, KV pressure)</div>
+        <div class="mapping-cell" data-label="Feature">WVA + KEDA</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Scale to zero at night</strong><br>Release GPUs when no traffic arrives</div>
+        <div class="mapping-cell" data-label="Capability">Model idle detection, cold-start on demand</div>
+        <div class="mapping-cell" data-label="Feature">KServe scale-to-zero + WVA minReplicas:0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENAI PLATFORM -->
+  <div class="mapping-persona">
+    <div class="mapping-persona-header">
+      <div class="persona-icon">&#9889;</div>
+      <div>
+        <h3>GenAI Platform / APIs</h3>
+        <p style="font-size:0.78rem;margin:0;">Bursty traffic, provisioned for peak, idle at trough</p>
+      </div>
+    </div>
+    <div class="mapping-rows">
+      <div class="mapping-row mapping-row-header">
+        <div class="mapping-cell">Use Case</div>
+        <div class="mapping-cell">Capability Needed</div>
+        <div class="mapping-cell">RHOAI Feature</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Multi-tenant GPU sharing</strong><br>Multiple teams share a GPU cluster fairly</div>
+        <div class="mapping-cell" data-label="Capability">Quotas, borrowing, preemption, fair-share scheduling</div>
+        <div class="mapping-cell" data-label="Feature">Kueue (ClusterQueue + Cohort)</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Burst scaling for API traffic</strong><br>Handle 10x traffic spikes without pre-provisioning</div>
+        <div class="mapping-cell" data-label="Capability">Event-driven autoscaling on queue depth</div>
+        <div class="mapping-cell" data-label="Feature">KEDA + Custom Metrics Autoscaler</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>GPU chargeback per team</strong><br>Show each team what they consumed and what it cost</div>
+        <div class="mapping-cell" data-label="Capability">GPU metering, credit normalization, showback dashboards</div>
+        <div class="mapping-cell" data-label="Feature">Kueue GPU Credits + DCGM metering</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT SAFETY -->
+  <div class="mapping-persona">
+    <div class="mapping-persona-header">
+      <div class="persona-icon">&#128737;</div>
+      <div>
+        <h3>Content Safety / Guards</h3>
+        <p style="font-size:0.78rem;margin:0;">2GB model on 80GB GPU = 2.5% VRAM. Dozens of such pods</p>
+      </div>
+    </div>
+    <div class="mapping-rows">
+      <div class="mapping-row mapping-row-header">
+        <div class="mapping-cell">Use Case</div>
+        <div class="mapping-cell">Capability Needed</div>
+        <div class="mapping-cell">RHOAI Feature</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Fractional GPU allocation</strong><br>Run small models on GPU slices, not whole GPUs</div>
+        <div class="mapping-cell" data-label="Capability">Hardware-isolated GPU partitioning with dedicated compute/memory</div>
+        <div class="mapping-cell" data-label="Feature">MIG + DRA (ResourceClaimTemplate)</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Deploy guard models at scale</strong><br>7 guard models on 1 GPU instead of 7 GPUs</div>
+        <div class="mapping-cell" data-label="Capability">MIG slicing (1g.10gb profiles), declarative GPU claims</div>
+        <div class="mapping-cell" data-label="Feature">NVIDIA GPU Operator (MIG Manager) + DRA</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA SCIENCE -->
+  <div class="mapping-persona">
+    <div class="mapping-persona-header">
+      <div class="persona-icon">&#128300;</div>
+      <div>
+        <h3>Data Science / Experimentation</h3>
+        <p style="font-size:0.78rem;margin:0;">Hold GPUs with 0 bytes used for hours (meetings, lunch, gone for day)</p>
+      </div>
+    </div>
+    <div class="mapping-rows">
+      <div class="mapping-row mapping-row-header">
+        <div class="mapping-cell">Use Case</div>
+        <div class="mapping-cell">Capability Needed</div>
+        <div class="mapping-cell">RHOAI Feature</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Idle GPU reclamation</strong><br>Reclaim GPUs from abandoned notebooks automatically</div>
+        <div class="mapping-cell" data-label="Capability">Idle detection, configurable cull timers</div>
+        <div class="mapping-cell" data-label="Feature">NOTEBOOK_CULL_IDLE_TIME + notebook controller</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Self-service GPU access</strong><br>Data scientists pick GPU sizes from a menu, not YAML</div>
+        <div class="mapping-cell" data-label="Capability">Admin-defined GPU profiles, dashboard integration</div>
+        <div class="mapping-cell" data-label="Feature">Compute Profiles + Accelerator Profiles</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Fair sharing with inference teams</strong><br>Training jobs don&rsquo;t starve production inference</div>
+        <div class="mapping-cell" data-label="Capability">Cross-workload-type quotas, preemption policies</div>
+        <div class="mapping-cell" data-label="Feature">Kueue (priority classes + preemption)</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Distributed training &amp; fine-tuning</strong><br>Multi-node GPU jobs for model training, hyperparameter sweeps</div>
+        <div class="mapping-cell" data-label="Capability">Ray cluster orchestration, multi-node GPU scheduling, fault-tolerant checkpointing</div>
+        <div class="mapping-cell" data-label="Feature">KubeRay (RayCluster + RayJob)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CROSS-CUTTING -->
+  <div class="mapping-persona">
+    <div class="mapping-persona-header" style="border-left:3px solid var(--l3-governance);">
+      <div class="persona-icon" style="font-size:1rem;">&#127760;</div>
+      <div>
+        <h3>Cross-Cutting (Platform Ops)</h3>
+        <p style="font-size:0.78rem;margin:0;">Infrastructure concerns that span all personas</p>
+      </div>
+    </div>
+    <div class="mapping-rows">
+      <div class="mapping-row mapping-row-header">
+        <div class="mapping-cell">Use Case</div>
+        <div class="mapping-cell">Capability Needed</div>
+        <div class="mapping-cell">RHOAI Feature</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Multi-cluster GPU orchestration</strong><br>Unified view and policy across GPU clusters</div>
+        <div class="mapping-cell" data-label="Capability">Fleet visibility, policy-based placement, GitOps config</div>
+        <div class="mapping-cell" data-label="Feature">Red Hat ACM</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Air-gapped / regulated deployment</strong><br>Run in disconnected environments with full compliance</div>
+        <div class="mapping-cell" data-label="Capability">FIPS crypto, signed OCI, mirror registry, FedRAMP</div>
+        <div class="mapping-cell" data-label="Feature">OpenShift (FIPS + disconnected) + RHOAI Operator</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>GPU fleet observability</strong><br>Real-time utilization, waste detection, capacity planning</div>
+        <div class="mapping-cell" data-label="Capability">GPU telemetry, per-model metering, dashboard integration</div>
+        <div class="mapping-cell" data-label="Feature">DCGM Exporter + OpenShift Monitoring + Showback</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <strong>Reading this map:</strong> Start from your team (left column). Find your pain point (Use Case). The Capability column tells you <em>what</em> you need. The Feature column tells you <em>what to deploy</em>.
+  </div>
+  <a href="#personas" class="section-arrow" title="Next: Team Personas">&#8595;</a>
+</section>
+
+<!-- TEAM PERSONAS (SUMMARY) -->
+<section id="personas" class="section">
+  <span class="section-label">Quick Reference</span>
+  <h2>Persona Waste &amp; Fix Summary</h2>
+
+  <div class="grid-2" style="margin-top:24px;">
+    <div class="persona-card">
+      <div class="persona-icon">&#129302;</div>
+      <h3>LLM Serving / NLP</h3>
+      <div class="persona-waste">Over-replication, 70B models on 4&ndash;8 GPUs each, idle at night.</div>
+      <div class="persona-fix">llm-d KV-cache routing + WVA scale-to-demand + scale-to-zero.</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-icon">&#9889;</div>
+      <h3>GenAI Platform / APIs</h3>
+      <div class="persona-waste">Bursty traffic, provisioned for peak, idle at trough.</div>
+      <div class="persona-fix">KEDA autoscaling on queue depth, fractional GPU via MIG.</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-icon">&#128737;</div>
+      <h3>Content Safety / Guards</h3>
+      <div class="persona-waste">2GB model on 80GB GPU = 2.5% VRAM. Dozens of such pods.</div>
+      <div class="persona-fix">MIG slicing &mdash; 1 A100 serves 7 guard models instead of 7 full GPUs.</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-icon">&#128300;</div>
+      <h3>Data Science / Experimentation</h3>
+      <div class="persona-waste">Hold GPUs with 0 bytes used for hours (meetings, lunch, gone for day).</div>
+      <div class="persona-fix">Idle GPU culling (NOTEBOOK_CULL_IDLE_TIME) + chargeback visibility.</div>
+    </div>
+  </div>
+  <a href="#nextsteps" class="section-arrow" title="Next: Solution Roadmap">&#8595;</a>
+</section>
+
+<!-- SOLUTION ROADMAP -->
+<section id="nextsteps" class="section">
+  <span class="section-label">The Solution &mdash; In Order</span>
+  <h2>Implementation Roadmap</h2>
+  <p style="margin-bottom:8px;">Each step solves a specific problem from the environment above. The order matters &mdash; each phase unlocks the next, and early wins build the confidence to tackle harder problems.</p>
+
+  <div class="steps-timeline">
+
+    <div class="phase-label" style="color:var(--green);">Quick Wins &mdash; Immediate ROI, Zero Risk</div>
+
+    <!-- PHASE 1 -->
+    <div class="step-item">
+      <div class="step-dot">1</div>
+      <div class="step-content">
+        <div class="step-title">Idle GPU Reclamation</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: 22 notebooks holding GPUs with 0 bytes used</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Set <code>NOTEBOOK_CULL_IDLE_TIME</code> on the notebook controller. This is a configuration change &mdash; no new operators, no architecture changes. Notebooks idle beyond the threshold (e.g., 60 minutes) are automatically stopped and their GPUs released. Recovers 22 A10G GPUs immediately.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why first:</strong> Zero risk. Zero cost. Immediate measurable result. Builds credibility with leadership before touching production workloads.</p>
+        </div>
+        <span class="step-deliverable">Recovers: ~22 GPUs &middot; Effort: 1 day &middot; Risk: None</span>
+      </div>
+    </div>
+
+    <!-- PHASE 2 -->
+    <div class="step-item">
+      <div class="step-dot">2</div>
+      <div class="step-content">
+        <div class="step-title">MIG Slicing for Small Models</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: 14 A100s running 1&ndash;3GB guard models at 2.5% VRAM</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Enable MIG on A100 nodes via the NVIDIA GPU Operator MIG Manager. Partition each A100 into 7x 1g.10gb slices. Redeploy the 14 content safety models onto MIG slices. 14 full GPUs collapse to 2 GPUs with MIG &mdash; freeing 12 A100s back to the fleet.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why second:</strong> Highest dollar-value recovery per unit of effort. MIG is hardware-isolated &mdash; no noisy-neighbor risk. Content safety models are non-latency-critical, making them the safest workload to migrate first. Requires NVIDIA GPU Operator (already installed) with MIG Manager enabled.</p>
+        </div>
+        <span class="step-deliverable">Recovers: ~12 A100s &middot; Effort: 1&ndash;2 weeks &middot; Risk: Low</span>
+      </div>
+    </div>
+
+    <div class="phase-label" style="color:var(--l2-mechanisms);">Foundation &mdash; Enable Type-Aware Scheduling</div>
+
+    <!-- PHASE 3 -->
+    <div class="step-item">
+      <div class="step-dot">3</div>
+      <div class="step-content">
+        <div class="step-title">DRA Enablement</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: <code>nvidia.com/gpu: 1</code> &mdash; no GPU type, memory, or MIG awareness</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Install the NVIDIA DRA driver alongside the GPU Operator (with legacy device plugin disabled). Label DRA-targeted nodes with <code>nvidia.com/dra-kubelet-plugin=true</code>. Define DeviceClasses for each GPU type (H100, A100, A10G) and MIG profiles. Teams can now request specific GPU types and MIG slices declaratively via ResourceClaimTemplates instead of opaque integers.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why third:</strong> DRA is the foundation for type-aware GPU scheduling. Everything after this step depends on the cluster knowing <em>what kind</em> of GPU a workload needs, not just <em>how many</em>. Requires OpenShift 4.21+ (Kubernetes 1.34) where DRA is GA.</p>
+        </div>
+        <span class="step-deliverable">Enables: Type-aware GPU claims &middot; Effort: 1&ndash;2 weeks &middot; Prereq: OCP 4.21+</span>
+      </div>
+    </div>
+
+    <div class="phase-label" style="color:var(--l4-ai-aware);">Inference Optimization &mdash; Make Every GPU Work Harder</div>
+
+    <!-- PHASE 4 -->
+    <div class="step-item">
+      <div class="step-dot">4</div>
+      <div class="step-content">
+        <div class="step-title">Inference Optimization with llm-d</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: LLM replicas serve duplicate context, no KV-cache reuse across requests</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Deploy llm-d with the Endpoint Picker (EPP) and KV-Cache Indexer. The EPP routes each request to the replica that already has the most relevant context in its KV-cache. Disaggregated prefill/decode separates prompt processing from token generation. Prefix caching reuses shared system prompts across agentic chains. Combined, these reduce per-request latency and enable higher throughput per GPU.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why fourth:</strong> Now that the cluster knows GPU types (DRA), llm-d can request the right GPUs for inference pools. llm-d makes each GPU work harder &mdash; getting more throughput from the same hardware before you need to scale out. Requires RHOAI 3.5+ with Red Hat Connectivity Link and Leader Worker Set operators.</p>
+        </div>
+        <span class="step-deliverable">Improves: Inference throughput per GPU &middot; Effort: 2&ndash;3 weeks &middot; Prereq: RHOAI 3.5</span>
+      </div>
+    </div>
+
+    <!-- PHASE 5 -->
+    <div class="step-item">
+      <div class="step-dot">5</div>
+      <div class="step-content">
+        <div class="step-title">Scale-to-Zero for Inference</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: 36 H100s reserved overnight serving zero requests</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Configure KServe autoscaling with scale-to-zero on model endpoints. Models that receive no traffic for a configurable period (e.g., 15 minutes) release their GPUs entirely. When a new request arrives, KServe cold-starts the model. Pair with KEDA for queue-depth-based scale-up to prevent cold-start latency from reaching users. WVA&rsquo;s <code>minReplicas: 0</code> enables variant-level scale-to-zero.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why fifth:</strong> Scale-to-zero is the biggest single GPU recovery &mdash; 36 H100s overnight. But it requires KServe and llm-d to be in place so that cold-start is manageable and requests route correctly during scale-up. This is where the fleet starts breathing.</p>
+        </div>
+        <span class="step-deliverable">Recovers: ~36 H100s overnight &middot; Effort: 1 week &middot; Prereq: KServe + llm-d</span>
+      </div>
+    </div>
+
+    <!-- PHASE 6 -->
+    <div class="step-item">
+      <div class="step-dot">6</div>
+      <div class="step-content">
+        <div class="step-title">Autoscaling for Bursty APIs</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: GenAI platform provisioned for peak (16 A100s), averages 25% utilization</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Deploy KEDA (Custom Metrics Autoscaler) with WVA for inference-aware scaling. KEDA watches queue depth and WVA&rsquo;s <code>wva_desired_replicas</code> metric. API endpoints scale from 2 replicas at trough to 12 at market open &mdash; automatically. No manual provisioning for peak.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why sixth:</strong> Autoscaling amplifies scale-to-zero. Together they create a fully elastic inference layer: zero at night, minimal at trough, scaled at peak. Requires KEDA operator + User Workload Monitoring for Prometheus metrics.</p>
+        </div>
+        <span class="step-deliverable">Recovers: ~12 A100s (peak-to-avg gap) &middot; Effort: 1&ndash;2 weeks &middot; Prereq: KEDA + monitoring</span>
+      </div>
+    </div>
+
+    <div class="phase-label" style="color:var(--l3-governance);">Governance &mdash; Sharing, Fairness, Cost Visibility</div>
+
+    <!-- PHASE 7 -->
+    <div class="step-item">
+      <div class="step-dot">7</div>
+      <div class="step-content">
+        <div class="step-title">Fair-Share Governance with Kueue</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: Training jobs saturate the cluster weekly, inference latency spikes 10x</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Install the Red Hat build of Kueue Operator. Define ResourceFlavors for each GPU type. Create ClusterQueues with guaranteed quotas for inference (high priority, no preemption) and training (lower priority, can borrow from inference when idle, preemptible). Configure cohort-level borrowing so idle inference GPUs flow to training automatically, but reclaim instantly when inference demand returns.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why seventh:</strong> Now that inference is elastic (steps 4&ndash;6), there are regularly idle GPUs to share. Kueue makes that sharing safe. Without elastic inference first, there&rsquo;s nothing to share &mdash; every GPU is statically claimed. Set Kueue to <code>Unmanaged</code> in the DataScienceCluster CR so the standalone Kueue Operator manages scheduling.</p>
+        </div>
+        <span class="step-deliverable">Solves: Training/inference contention &middot; Effort: 2&ndash;3 weeks &middot; Prereq: RH build of Kueue</span>
+      </div>
+    </div>
+
+    <!-- PHASE 8 -->
+    <div class="step-item">
+      <div class="step-dot">8</div>
+      <div class="step-content">
+        <div class="step-title">GPU FinOps &mdash; Metering &amp; Showback</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: Nobody knows what their GPU usage costs</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Enable DCGM Exporter for GPU telemetry. Configure Kueue GPU credit transformations to normalize heterogeneous GPU types (H100 = 100 credits, A100 = 60, MIG slice = 10). Build showback dashboards showing each team&rsquo;s allocated cost, active compute, and idle waste. Start with visibility &mdash; teams change behavior when they can see their cost.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why eighth:</strong> FinOps requires Kueue (for credit normalization) and DCGM (for utilization metrics). Both must be in place first. Start with showback, not chargeback &mdash; let 1&ndash;2 quarters of data build trust before enforcing billing.</p>
+        </div>
+        <span class="step-deliverable">Enables: Cost visibility &middot; Effort: 2 weeks &middot; Prereq: Kueue + DCGM</span>
+      </div>
+    </div>
+
+    <div class="phase-label" style="color:var(--l5-self-service);">Scale &mdash; Training, Self-Service, Multi-Cluster</div>
+
+    <!-- PHASE 9 -->
+    <div class="step-item">
+      <div class="step-dot">9</div>
+      <div class="step-content">
+        <div class="step-title">Distributed Training with KubeRay</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: Training jobs are ad-hoc, no orchestration for multi-node GPU workloads</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Enable the Ray component in the DataScienceCluster CR. Data scientists submit RayJob or RayCluster specs for fine-tuning, hyperparameter sweeps, and distributed training. KubeRay manages multi-node GPU scheduling, auto-scales worker pools, and integrates with Kueue for fair-share admission. Training workloads run in Kueue-governed queues with borrowing from idle inference capacity.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why ninth:</strong> Training orchestration depends on Kueue for admission control and fair sharing. Without Kueue, training jobs compete in a free-for-all. Set <code>ray: Managed</code> and <code>trainingoperator: Managed</code> in the DataScienceCluster CR.</p>
+        </div>
+        <span class="step-deliverable">Enables: Governed distributed training &middot; Effort: 1&ndash;2 weeks &middot; Prereq: Kueue + RHOAI</span>
+      </div>
+    </div>
+
+    <!-- PHASE 10 -->
+    <div class="step-item">
+      <div class="step-dot">10</div>
+      <div class="step-content">
+        <div class="step-title">Self-Service &amp; Multi-Cluster</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: GPU access via ServiceNow ticket (3&ndash;5 day turnaround) + no cross-cluster visibility</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Deploy Accelerator Profiles (available now) and Compute Profiles (roadmap) so data scientists select GPU sizes from the RHOAI dashboard &mdash; no YAML, no tickets. Deploy Red Hat ACM for fleet-wide GPU visibility, policy-based workload placement, and GitOps-driven configuration consistency across production, staging, and dev clusters. Transition from showback to chargeback once data has built organizational trust.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why last:</strong> Self-service requires all the guardrails to be in place first &mdash; Kueue quotas, DRA type-awareness, MIG slicing, cost visibility. Without them, self-service means uncontrolled GPU consumption. ACM extends the single-cluster wins across the fleet.</p>
+        </div>
+        <span class="step-deliverable">Enables: Self-service + fleet management &middot; Effort: 3&ndash;4 weeks &middot; Prereq: All above</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="insight-box" style="margin-top:24px;">
+    <strong>The logic of the order:</strong> Steps 1&ndash;2 are zero-risk quick wins that recover GPUs immediately and build organizational confidence. Step 3 (DRA) is the foundation every later step depends on. Steps 4&ndash;6 make inference elastic, creating idle capacity to share. Step 7 (Kueue) makes that sharing safe and fair. Step 8 makes the value visible. Steps 9&ndash;10 open the platform to everyone &mdash; but only after the guardrails are in place.
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <p style="font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:12px;">GPU as a Service &mdash; Architecture Deep Dive</p>
+  <p>Built on open source. KServe (CNCF Graduated) &middot; llm-d (CNCF Sandbox) &middot; Kueue (K8s SIG) &middot; vLLM (Community)</p>
+</footer>
+
+<script defer src="js/scroll.js"></script>
+<script defer src="js/reveal.js"></script>
+<script defer src="js/animations.js"></script>
+<script defer src="js/interactions.js"></script>
+<script src="js/decision-tree.js"></script>
+</body>
+</html>

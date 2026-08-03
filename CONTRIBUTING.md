@@ -1,0 +1,75 @@
+# Contributing
+
+This is a reusable whiteboard asset. The most common contribution is forking it for a specific customer engagement.
+
+## Fork for a Customer Session
+
+1. **Fork** this repo (or create a private copy)
+2. **Customize the environment section** (`#discovery` in `index.html`) — replace the generic fleet data with the customer's actual GPU inventory, team structure, and utilization patterns
+3. **Reorder the Solution Roadmap** (`#nextsteps`) to match the customer's priorities
+4. **Adjust the Decision Tree** (`js/decision-tree.js`) if the customer's workload mix differs
+5. **Deploy** to GitHub Pages or any static host
+
+## Modify Content
+
+All content is in `index.html`. The page is structured as 17 `<section>` elements, each with a unique `id`. To find a section, search for its ID:
+
+```
+#hero        — Opening hook + agenda
+#vocab       — Flash card vocabulary
+#problems    — Three GPU problems
+#discovery   — Enterprise environment narrative
+#challenges  — Seven AI challenges
+#layers      — Five-layer architecture
+#loops       — Three control loops
+#mechanisms  — GPU mechanisms deep dive
+#governance  — Kueue configuration
+#finops      — GPU FinOps
+#patterns    — Architecture patterns
+#decision    — Decision tree
+#results     — Validated results
+#stack       — Technology stack
+#usecases    — Use case mapping
+#personas    — Persona summary
+#nextsteps   — Solution roadmap
+```
+
+## Add a New CSS Component
+
+1. Decide which CSS file your styles belong in (see `README.md` for the file map)
+2. Add styles following existing conventions — use `var()` tokens from `tokens.css`, not raw color values
+3. Test at `768px` breakpoint and add responsive overrides to `responsive.css` if needed
+
+## Style Conventions
+
+- All colors use CSS custom properties from `css/tokens.css`
+- Border radius uses `var(--radius)` (12px) or `var(--radius-sm)` (8px)
+- Transitions use `var(--transition)` for consistency
+- Font sizes use `rem` or `clamp()` for responsive scaling
+- No `!important` except in print styles
+
+## Testing Locally
+
+```bash
+open index.html
+```
+
+No build step. For live reload during development, use any static file server:
+
+```bash
+# Python
+python3 -m http.server 8000
+
+# Node (if available)
+npx serve .
+```
+
+## Pull Requests
+
+If you have improvements to the core content, architecture accuracy, or UX:
+
+1. Fork the repo
+2. Create a feature branch
+3. Make your changes
+4. Test locally at both desktop and mobile widths
+5. Submit a PR with a clear description of what changed and why

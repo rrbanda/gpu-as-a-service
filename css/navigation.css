@@ -1,0 +1,107 @@
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--l1-fleet), var(--l2-mechanisms), var(--l3-governance), var(--l4-ai-aware), var(--l5-self-service));
+  width: 0%;
+  z-index: 10000;
+  transition: width 0.1s linear;
+}
+
+#side-nav {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 8px;
+  background: rgba(15, 20, 32, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  border: 1px solid var(--border);
+  border-left: none;
+}
+
+#side-nav a {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: var(--transition);
+  text-decoration: none;
+  position: relative;
+}
+
+#side-nav a.active {
+  background: var(--l2-mechanisms);
+  box-shadow: 0 0 8px var(--l2-mechanisms);
+  transform: scale(1.4);
+}
+
+#side-nav a:hover {
+  background: var(--text-secondary);
+  transform: scale(1.3);
+}
+
+#side-nav a::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--raised);
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+#side-nav a:hover::after { opacity: 1; }
+
+.scroll-indicator {
+  display: inline-block;
+  margin-top: 16px;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+  opacity: 0;
+  animation: fadeSlideUp 0.6s 2s forwards, bounce 2s 2.6s infinite;
+}
+
+.scroll-indicator:hover {
+  color: var(--text);
+}
+
+.section-arrow {
+  display: block;
+  text-align: center;
+  margin-top: 32px;
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  animation: bounce 2s infinite;
+  transition: color 0.2s;
+}
+
+.section-arrow:hover {
+  color: var(--text);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(10px); }
+}
+
+.gpu-bars { display: grid; gap: 12px; margin-top: 20px; }
+
