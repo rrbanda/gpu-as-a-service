@@ -58,15 +58,8 @@ The page follows a logical whiteboarding flow — each section builds on the las
 gpu-as-a-service/
 ├── index.html              # Page content (HTML only — no inline CSS/JS)
 ├── css/
-│   ├── tokens.css          # Design tokens (colors, fonts, spacing)
-│   ├── base.css            # Reset, typography, section layout, grids
-│   ├── navigation.css      # Side nav dots, progress bar, scroll arrows
-│   ├── hero.css            # Landing screen, hook, agenda timeline
-│   ├── cards.css           # All card types, flashcards, mapping tables
-│   ├── visualizations.css  # GPU bars, MIG animation, rings, dashboards
-│   ├── interactive.css     # Pattern toggle, YAML collapsibles, decision tree
-│   ├── roadmap.css         # Solution timeline, phase labels, step cards
-│   └── responsive.css      # Mobile breakpoints + print styles
+│   └── main.css            # All styles — tokens, layout, components,
+│                           #   animations, responsive, print
 ├── js/
 │   ├── scroll.js           # Reading progress bar
 │   ├── reveal.js           # Scroll-triggered section reveals + nav tracking
@@ -87,7 +80,7 @@ gpu-as-a-service/
 
 ### Change Colors
 
-Edit `css/tokens.css`. All 23 design tokens are CSS custom properties:
+Edit `css/main.css`. All 23 design tokens are CSS custom properties at the top of the file:
 
 ```css
 :root {
@@ -107,7 +100,7 @@ Edit `css/tokens.css`. All 23 design tokens are CSS custom properties:
 1. Add HTML in `index.html` using the `<section id="your-id" class="section">` pattern
 2. Add a nav dot in `<nav id="side-nav">`: `<a href="#your-id" data-label="Your Label"></a>`
 3. Add a `↓` arrow in the preceding section: `<a href="#your-id" class="section-arrow">↓</a>`
-4. Style new components in the appropriate CSS file
+4. Style new components in `css/main.css`
 
 ### Modify Content
 

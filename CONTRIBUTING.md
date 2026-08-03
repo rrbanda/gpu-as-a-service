@@ -36,9 +36,9 @@ All content is in `index.html`. The page is structured as 17 `<section>` element
 
 ## Add a New CSS Component
 
-1. Decide which CSS file your styles belong in (see `README.md` for the file map)
-2. Add styles following existing conventions — use `var()` tokens from `tokens.css`, not raw color values
-3. Test at `768px` breakpoint and add responsive overrides to `responsive.css` if needed
+1. Add styles to `css/main.css` following existing section organization
+2. Use `var()` tokens from the `:root` block at the top, not raw color values
+3. Test at `768px` breakpoint and add responsive overrides to the `@media` block at the bottom
 
 ## Style Conventions
 
