@@ -341,19 +341,22 @@
     <div class="card">
       <h3>Problem 3: Regulated Industries Add Hard Constraints</h3>
       <p>Air-gapped deployment, audit trails, multi-vendor GPU procurement policies, FIPS compliance, and disconnected operation are non-negotiable for financial services. Many AI infrastructure tools assume cloud connectivity.</p>
-      <div style="margin-top:16px;padding:12px;background:rgba(139,92,246,0.08);border-radius:8px;border:1px solid rgba(139,92,246,0.2);">
-        <p style="font-size:0.8rem;font-weight:600;color:var(--l3-governance);margin-bottom:8px;">How the Platform Addresses This:</p>
-        <ul style="font-size:0.78rem;margin:0;padding-left:16px;color:var(--text-secondary);">
-          <li><strong>FIPS 140-2 validated cryptography</strong> &mdash; all TLS, certificate, and key management uses FIPS-validated modules</li>
-          <li><strong>Signed OCI artifacts</strong> &mdash; every container image, Helm chart, and operator bundle is signed with cosign and verified at deploy time</li>
-          <li><strong>Supply chain integrity</strong> &mdash; SLSA provenance for all Red Hat-built images; SBOM generation for audit</li>
-          <li><strong>Disconnected / air-gapped operation</strong> &mdash; full mirror registry support; no outbound network required post-install</li>
-          <li><strong>FedRAMP-capable architecture</strong> &mdash; OpenShift has achieved FedRAMP High authorization; AI services inherit the control plane</li>
-          <li><strong>Dedicated Product Security team</strong> &mdash; vulnerability scanning, CVE response SLAs, and proactive security advisories</li>
-        </ul>
-      </div>
     </div>
   </div>
+
+  <details class="yaml-toggle" style="margin-top:16px;">
+    <summary>How the Platform Addresses Regulatory Constraints</summary>
+    <div style="padding:16px;font-size:0.85rem;color:var(--text-secondary);">
+      <ul style="margin:0;padding-left:18px;line-height:1.8;">
+        <li><strong>FIPS 140-2 validated cryptography</strong> &mdash; all TLS, certificate, and key management uses FIPS-validated modules</li>
+        <li><strong>Signed OCI artifacts</strong> &mdash; every container image, Helm chart, and operator bundle is signed with cosign and verified at deploy time</li>
+        <li><strong>Supply chain integrity</strong> &mdash; SLSA provenance for all Red Hat-built images; SBOM generation for audit</li>
+        <li><strong>Disconnected / air-gapped operation</strong> &mdash; full mirror registry support; no outbound network required post-install</li>
+        <li><strong>FedRAMP-capable architecture</strong> &mdash; OpenShift has achieved FedRAMP High authorization; AI services inherit the control plane</li>
+        <li><strong>Dedicated Product Security team</strong> &mdash; vulnerability scanning, CVE response SLAs, and proactive security advisories</li>
+      </ul>
+    </div>
+  </details>
   <a href="#discovery" class="section-arrow" title="Next: The Environment">&#8595;</a>
 </section>
 
