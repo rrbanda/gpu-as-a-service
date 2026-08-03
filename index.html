@@ -41,7 +41,7 @@
   <a href="#mechanisms" data-label="GPU Mechanisms"></a>
   <a href="#governance" data-label="Governance"></a>
   <a href="#finops" data-label="GPU FinOps"></a>
-  <a href="#patterns" data-label="Patterns"></a>
+  <a href="#patterns" data-label="Architecture"></a>
   <a href="#decision" data-label="Your Pattern"></a>
   <a href="#results" data-label="Results"></a>
   <a href="#stack" data-label="Tech Stack"></a>
@@ -961,11 +961,83 @@
   <a href="#patterns" class="section-arrow" title="Next: Architecture Patterns">&#8595;</a>
 </section>
 
-<!-- ARCHITECTURE PATTERNS -->
+<!-- RECOMMENDED ARCHITECTURE -->
 <section id="patterns" class="section">
-  <span class="section-label">Deployment Patterns</span>
-  <h2>Architecture Patterns</h2>
+  <span class="section-label">Recommended Architecture</span>
+  <h2>Production-Friendly GPUaaS Architecture</h2>
+  <p style="margin-bottom:24px;">Guarantee the production envelope first. Then let llm-d/WVA dynamically allocate inside it.</p>
 
+  <!-- Architecture Tree Diagram -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:32px;">
+
+    <!-- GPU Fleet -->
+    <div style="padding:12px 40px;border:2px solid var(--green);border-radius:8px;font-weight:700;font-size:0.95rem;color:var(--green);text-align:center;">GPU FLEET</div>
+    <div style="font-size:0.7rem;color:var(--text-muted);margin:4px 0;">infrastructure capacity policy &#8595;</div>
+
+    <!-- Two branches -->
+    <div style="display:flex;gap:48px;width:100%;max-width:700px;justify-content:center;margin-top:8px;">
+
+      <!-- Left: Production Reservation -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;">
+        <div style="padding:10px 20px;border:2px solid var(--red);border-radius:8px;font-weight:600;font-size:0.85rem;color:var(--red);text-align:center;width:100%;">Prod Reservation</div>
+        <div style="color:var(--text-muted);font-size:0.8rem;">&#8595;</div>
+        <div style="padding:8px 16px;border:2px solid var(--red);border-radius:8px;font-size:0.82rem;color:var(--red);text-align:center;width:100%;">Inference Capacity</div>
+        <div style="color:var(--text-muted);font-size:0.8rem;">&#8595;</div>
+        <div style="padding:10px 20px;background:rgba(6,182,212,0.12);border:2px solid var(--cyan);border-radius:8px;font-weight:600;font-size:0.85rem;color:var(--cyan);text-align:center;width:100%;">llm-d &rarr; WVA</div>
+        <div style="color:var(--text-muted);font-size:0.8rem;">&#8595;</div>
+        <div style="display:flex;gap:8px;justify-content:center;width:100%;">
+          <div style="padding:8px 16px;background:rgba(34,197,94,0.12);border:1px solid var(--green);border-radius:6px;font-size:0.78rem;color:var(--green);text-align:center;">Model A<br><span style="font-size:0.65rem;color:var(--text-muted);">x replicas</span></div>
+          <div style="padding:8px 16px;background:rgba(34,197,94,0.12);border:1px solid var(--green);border-radius:6px;font-size:0.78rem;color:var(--green);text-align:center;">B<br><span style="font-size:0.65rem;color:var(--text-muted);">x replicas</span></div>
+          <div style="padding:8px 16px;background:rgba(34,197,94,0.12);border:1px solid var(--green);border-radius:6px;font-size:0.78rem;color:var(--green);text-align:center;">C<br><span style="font-size:0.65rem;color:var(--text-muted);">x replicas</span></div>
+        </div>
+      </div>
+
+      <!-- Right: Elastic Pool -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;">
+        <div style="padding:10px 20px;border:2px solid var(--cyan);border-radius:8px;font-weight:600;font-size:0.85rem;color:var(--cyan);text-align:center;width:100%;position:relative;">
+          Elastic Pool
+          <span style="position:absolute;right:-90px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);font-style:italic;">guaranteed<br>capacity</span>
+        </div>
+        <div style="color:var(--text-muted);font-size:0.8rem;">&#8595;</div>
+        <div style="padding:10px 20px;border:2px dashed var(--l3-governance);border-radius:8px;font-size:0.82rem;color:var(--l3-governance);text-align:center;width:100%;position:relative;">
+          Kueue &mdash; batch / training
+          <span style="position:absolute;right:-90px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);font-style:italic;">borrowable /<br>preemptible</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Chargeback bar -->
+    <div style="margin-top:20px;padding:10px 32px;border:1px solid var(--green);border-radius:6px;font-size:0.78rem;color:var(--green);text-align:center;width:100%;max-width:700px;background:rgba(34,197,94,0.05);">
+      CHARGEBACK / SHOWBACK &mdash; who caused capacity to be held?
+    </div>
+  </div>
+
+  <!-- Component → Question Table -->
+  <h3 style="margin-bottom:12px;">Each Component Answers One Question</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th style="width:35%;">Component</th><th>Question It Answers</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>llm-d EPP</strong></td><td>Where should this <em>request</em> go?</td></tr>
+        <tr><td><strong>WVA / KEDA / HPA</strong></td><td>How many serving <em>replicas</em> are needed?</td></tr>
+        <tr><td><strong>Kueue</strong></td><td>What <em>capacity envelope</em> or admission policy applies?</td></tr>
+        <tr><td><strong>kube-scheduler</strong></td><td>Which actual <em>nodes/GPUs</em> should run the Pods?</td></tr>
+        <tr><td><strong>Cluster Autoscaler</strong></td><td>Do more <em>GPU nodes</em> need to be provisioned?</td></tr>
+        <tr><td><strong>MIG / DRA / Device Plugins</strong></td><td>Which physical GPU <em>device/slice</em> is assigned?</td></tr>
+        <tr><td><strong>Chargeback / Showback</strong></td><td>Who caused capacity to be <em>held</em>, and how efficiently?</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-box" style="margin-top:16px;">
+    <strong>Key insight:</strong> The left path (Prod Reservation) is latency-sensitive &mdash; llm-d routes in milliseconds, WVA scales in seconds. The right path (Elastic Pool) is throughput-oriented &mdash; Kueue queues jobs for minutes to hours and allows borrowing from idle production capacity.
+  </div>
+
+  <!-- Pattern Variations -->
+  <h3 style="margin-top:32px;margin-bottom:12px;">Pattern Variations</h3>
   <div class="toggle-group">
     <button class="toggle-btn active" data-pattern="dedicated">Dedicated Inference Pool</button>
     <button class="toggle-btn" data-pattern="shared">Shared Cluster</button>
