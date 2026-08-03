@@ -61,11 +61,8 @@ gpu-as-a-service/
 │   └── main.css            # All styles — tokens, layout, components,
 │                           #   animations, responsive, print
 ├── js/
-│   ├── scroll.js           # Reading progress bar
-│   ├── reveal.js           # Scroll-triggered section reveals + nav tracking
-│   ├── animations.js       # GPU bars, MIG slices, animated counters
-│   ├── interactions.js     # Layer cards expand, pattern toggle
-│   └── decision-tree.js    # 3-question decision tree → recommendation
+│   └── main.js             # All interactions — progress bar, scroll reveal,
+│                           #   GPU animations, layer toggle, decision tree
 ├── images/
 │   └── og-preview.png      # Social share preview image
 ├── README.md
