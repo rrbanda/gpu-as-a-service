@@ -691,19 +691,6 @@
   <div class="insight-box">
     <strong>Insight:</strong> Kueue sets the ceiling. WVA scales within it. llm-d routes within the live replicas.
   </div>
-
-  <h3 style="margin-top:32px;">Scale-to-Zero: Releasing Idle GPUs</h3>
-  <div class="loop-cards" style="grid-template-columns:1fr;">
-    <div class="loop-card" style="border-left:3px solid var(--l4-ai-aware);">
-      <p>The most impactful capability for GPU utilization is <strong>scale-to-zero</strong> &mdash; models that receive no traffic for a configurable period release their GPUs entirely.</p>
-      <p style="margin-top:12px;"><strong>How it works:</strong> KServe provides Knative-based autoscaling including scale-to-zero for model endpoints. When a model receives no inference requests for a configurable idle period, its pods are terminated and GPUs are returned to the cluster. When a new request arrives, KServe cold-starts the model &mdash; pulling it from cache (seconds) or downloading weights (minutes).</p>
-      <p style="margin-top:12px;"><strong>Combined with KEDA:</strong> KEDA watches queue depth and custom inference metrics to trigger scale-up before latency degrades. Together, KServe + KEDA bridge the gap between &ldquo;no demand&rdquo; and &ldquo;auto-scaling to meet demand&rdquo; without manual GPU reservation.</p>
-      <p style="margin-top:12px;"><strong>WVA adds intelligence:</strong> WVA&rsquo;s <code>minReplicas: 0</code> setting enables scale-to-zero for specific model variants, while optimizing cost by preferring cheaper GPU variants first during scale-up.</p>
-    </div>
-  </div>
-  <div class="insight-box">
-    <strong>Why it matters:</strong> Without scale-to-zero, a data science team with 20 deployed models keeps 20+ GPUs reserved even when only 3 models are actively serving. Scale-to-zero recovers 85% of idle capacity automatically.
-  </div>
   <a href="#mechanisms" class="section-arrow" title="Next: GPU Mechanisms">&#8595;</a>
 </section>
 
@@ -767,6 +754,19 @@
 
   <div class="insight-box">
     <strong>Compare with the legacy approach:</strong> <code style="color:var(--red);">nvidia.com/gpu: 1</code> &mdash; an opaque integer with no awareness of GPU type, memory, or MIG capability.
+  </div>
+
+  <h3 style="margin-top:32px;">Scale-to-Zero: Releasing Idle GPUs</h3>
+  <p>The three mechanisms above improve utilization of <em>active</em> GPUs. Scale-to-zero solves the other half: GPUs reserved by models that aren&rsquo;t serving any traffic at all.</p>
+  <div class="loop-cards" style="grid-template-columns:1fr;">
+    <div class="loop-card" style="border-left:3px solid var(--l4-ai-aware);">
+      <p><strong>How it works:</strong> KServe provides Knative-based autoscaling including scale-to-zero for model endpoints. When a model receives no inference requests for a configurable idle period, its pods are terminated and GPUs are returned to the cluster. When a new request arrives, KServe cold-starts the model &mdash; pulling it from cache (seconds) or downloading weights (minutes).</p>
+      <p style="margin-top:12px;"><strong>Combined with KEDA:</strong> KEDA watches queue depth and custom inference metrics to trigger scale-up before latency degrades. Together, KServe + KEDA bridge the gap between &ldquo;no demand&rdquo; and &ldquo;auto-scaling to meet demand&rdquo; without manual GPU reservation.</p>
+      <p style="margin-top:12px;"><strong>WVA adds intelligence:</strong> WVA&rsquo;s <code>minReplicas: 0</code> setting enables scale-to-zero for specific model variants, while optimizing cost by preferring cheaper GPU variants first during scale-up.</p>
+    </div>
+  </div>
+  <div class="insight-box">
+    <strong>Why it matters:</strong> Without scale-to-zero, a data science team with 20 deployed models keeps 20+ GPUs reserved even when only 3 models are actively serving. Scale-to-zero recovers 85% of idle capacity automatically.
   </div>
   <a href="#governance" class="section-arrow" title="Next: Governance">&#8595;</a>
 </section>
