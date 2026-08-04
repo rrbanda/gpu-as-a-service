@@ -981,6 +981,7 @@ details.yaml-toggle[open] summary {
 .agenda-step:nth-child(3) .agenda-dot { border-color: var(--l3-governance); }
 .agenda-step:nth-child(4) .agenda-dot { border-color: var(--l4-ai-aware); }
 .agenda-step:nth-child(5) .agenda-dot { border-color: var(--l5-self-service); }
+.agenda-step:nth-child(6) .agenda-dot { border-color: var(--green); }
 
 .agenda-num {
   font-size: 0.6rem;

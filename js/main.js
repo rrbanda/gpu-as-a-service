@@ -207,24 +207,62 @@
     if (presenterMode) exitPresenter(); else enterPresenter();
   });
 
-  // Live sticky notes
+  // Live sticky notes — facilitator-driven with pre-seeded pain points
   var stickyInput = document.getElementById('wb-sticky-input');
-  var stickyBtn = document.getElementById('wb-sticky-add');
+  var stickyAddBtn = document.getElementById('wb-sticky-add');
   var stickyBoard = document.getElementById('wb-sticky-board');
+  var seedBtn = document.getElementById('wb-seed-stickies');
 
-  function addSticky() {
-    if (!stickyInput || !stickyInput.value.trim()) return;
+  var seedPainPoints = [
+    'Provisioning takes days — tickets, approvals, wait',
+    'GPUs sit idle overnight but are still reserved',
+    'No visibility into who is using what',
+    'Small models get a full GPU — massive waste',
+    'Training jobs crash inference with no warning',
+    'No way to share GPUs across teams',
+    'Cost attribution is impossible — no showback',
+    'Data scientists hoard GPUs in idle notebooks'
+  ];
+  var seedIndex = 0;
+
+  function addStickyNote(text) {
+    if (!stickyBoard) return;
     var note = document.createElement('div');
     note.className = 'wb-sticky-note';
-    note.textContent = stickyInput.value.trim();
+    note.textContent = text;
     stickyBoard.appendChild(note);
+  }
+
+  if (seedBtn) seedBtn.addEventListener('click', function() {
+    if (seedIndex >= seedPainPoints.length) return;
+    addStickyNote(seedPainPoints[seedIndex]);
+    seedIndex++;
+    if (seedIndex >= seedPainPoints.length) {
+      seedBtn.textContent = 'All revealed';
+      seedBtn.disabled = true;
+      seedBtn.style.opacity = '0.5';
+    } else {
+      seedBtn.textContent = 'Next Pain Point (' + (seedPainPoints.length - seedIndex) + ' left)';
+    }
+  });
+
+  if (stickyAddBtn) stickyAddBtn.addEventListener('click', function() {
+    if (stickyInput) {
+      var isHidden = stickyInput.style.display === 'none';
+      stickyInput.style.display = isHidden ? 'block' : 'none';
+      if (isHidden) stickyInput.focus();
+    }
+  });
+
+  function addCustomSticky() {
+    if (!stickyInput || !stickyInput.value.trim()) return;
+    addStickyNote(stickyInput.value.trim());
     stickyInput.value = '';
     stickyInput.focus();
   }
 
-  if (stickyBtn) stickyBtn.addEventListener('click', addSticky);
   if (stickyInput) stickyInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { e.preventDefault(); addSticky(); }
+    if (e.key === 'Enter') { e.preventDefault(); addCustomSticky(); }
   });
 
   // Inject vote buttons into use case mapping rows

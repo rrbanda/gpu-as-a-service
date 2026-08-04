@@ -34,7 +34,8 @@
 
 <nav id="side-nav">
   <a href="#hero" data-label="Opening" class="active"></a>
-  <a href="#vocab" data-label="Key Concepts"></a>
+  <a href="#gpu101" data-label="Why GPUs?"></a>
+  <a href="#vocab" data-label="Building Blocks"></a>
   <a href="#problems" data-label="Three Problems"></a>
   <a href="#discovery" data-label="The Environment"></a>
   <a href="#challenges" data-label="AI Challenges"></a>
@@ -72,30 +73,36 @@
       <div class="agenda-step">
         <div class="agenda-dot"></div>
         <div class="agenda-num">01</div>
-        <a href="#vocab" style="text-decoration:none;"><div class="agenda-title">Vocabulary</div></a>
-        <div class="agenda-time">Key concepts</div>
+        <a href="#gpu101" style="text-decoration:none;"><div class="agenda-title">Why GPUs?</div></a>
+        <div class="agenda-time">The hotel analogy</div>
       </div>
       <div class="agenda-step">
         <div class="agenda-dot"></div>
         <div class="agenda-num">02</div>
+        <a href="#vocab" style="text-decoration:none;"><div class="agenda-title">Building Blocks</div></a>
+        <div class="agenda-time">Key concepts (tap to flip)</div>
+      </div>
+      <div class="agenda-step">
+        <div class="agenda-dot"></div>
+        <div class="agenda-num">03</div>
         <a href="#problems" style="text-decoration:none;"><div class="agenda-title">Problem + Environment</div></a>
         <div class="agenda-time">Why GPUs sit idle &amp; what we see</div>
       </div>
       <div class="agenda-step">
         <div class="agenda-dot"></div>
-        <div class="agenda-num">03</div>
+        <div class="agenda-num">04</div>
         <a href="#layers" style="text-decoration:none;"><div class="agenda-title">The Architecture</div></a>
         <div class="agenda-time">Five layers + three loops</div>
       </div>
       <div class="agenda-step">
         <div class="agenda-dot"></div>
-        <div class="agenda-num">04</div>
+        <div class="agenda-num">05</div>
         <a href="#decision" style="text-decoration:none;"><div class="agenda-title">Your Pattern</div></a>
         <div class="agenda-time">Decision tree + deep dives</div>
       </div>
       <div class="agenda-step">
         <div class="agenda-dot"></div>
-        <div class="agenda-num">05</div>
+        <div class="agenda-num">06</div>
         <a href="#nextsteps" style="text-decoration:none;"><div class="agenda-title">Solution Roadmap</div></a>
         <div class="agenda-time">10 steps: problem &rarr; solution &rarr; order</div>
       </div>
@@ -104,22 +111,61 @@
 
   <!-- LIVE STICKY NOTES (visible in Presenter Mode) -->
   <div class="wb-sticky-zone">
-    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">What frustrates your team most about GPUs today?</p>
-    <div class="wb-sticky-input-row">
-      <input id="wb-sticky-input" class="wb-sticky-input" type="text" placeholder="Type an answer and press Enter&hellip;" />
-      <button id="wb-sticky-add" class="wb-sticky-btn">Add</button>
+    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">These are the pain points we hear most often. Do any sound familiar?</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <button id="wb-seed-stickies" class="wb-sticky-btn">Reveal Common Pain Points</button>
+      <button id="wb-sticky-add" class="wb-sticky-btn" style="background:var(--raised);color:var(--text);border:1px solid var(--border);">+ Add Custom</button>
     </div>
+    <input id="wb-sticky-input" class="wb-sticky-input" type="text" placeholder="Type a custom pain point and press Enter&hellip;" style="display:none;margin-bottom:12px;" />
     <div id="wb-sticky-board" class="wb-sticky-board"></div>
   </div>
 
-  <a href="#vocab" class="scroll-indicator" title="Start the session">&#8595;</a>
+  <a href="#gpu101" class="scroll-indicator" title="Start the session">&#8595;</a>
+</section>
+
+<!-- GPU 101 — THE ANALOGY -->
+<section id="gpu101" class="section">
+  <span class="section-label">Setting the Stage</span>
+  <h2>Why GPUs &mdash; and Why &ldquo;as a Service&rdquo;?</h2>
+
+  <div class="card" style="margin-top:16px;margin-bottom:20px;border-left:3px solid var(--l1-fleet);">
+    <h3 style="font-size:0.95rem;margin-bottom:10px;">Think of GPUs like hotel rooms</h3>
+    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">
+      A <strong>CPU</strong> is like a brilliant professor &mdash; great at complex problems, one at a time.<br>
+      A <strong>GPU</strong> is like a stadium of 10,000 students &mdash; each can only do simple math, but together they solve massive problems in parallel.<br><br>
+      AI models need this kind of parallelism. Training a model means running billions of math operations simultaneously. Inference (answering a question) means matrix multiplications across millions of parameters. <strong>Only GPUs can do this at the speed AI requires.</strong>
+    </p>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:20px;">
+    <div class="card" style="text-align:center;border-top:3px solid var(--l1-fleet);">
+      <div style="font-size:1.5rem;">&#127976;</div>
+      <h4 style="font-size:0.85rem;margin:8px 0 4px;">The Hotel Problem</h4>
+      <p style="font-size:0.78rem;color:var(--text-secondary);">You have 256 hotel rooms (GPUs). Each team books a block of rooms at the start of the quarter. Some rooms sit empty all night. Others have guests in the lobby waiting. <strong>No way to reassign rooms dynamically.</strong></p>
+    </div>
+    <div class="card" style="text-align:center;border-top:3px solid var(--amber);">
+      <div style="font-size:1.5rem;">&#128275;</div>
+      <h4 style="font-size:0.85rem;margin:8px 0 4px;">The Missing Layer</h4>
+      <p style="font-size:0.78rem;color:var(--text-secondary);">Cloud providers solved this years ago for CPU/memory. You don&rsquo;t reserve a server &mdash; you request capacity and the platform finds it. <strong>That abstraction doesn&rsquo;t exist for GPUs yet.</strong> That&rsquo;s what GPUaaS builds.</p>
+    </div>
+    <div class="card" style="text-align:center;border-top:3px solid var(--green);">
+      <div style="font-size:1.5rem;">&#9889;</div>
+      <h4 style="font-size:0.85rem;margin:8px 0 4px;">GPU as a Service</h4>
+      <p style="font-size:0.78rem;color:var(--text-secondary);">Instead of booking specific rooms, you tell the hotel: &ldquo;I need a room with a king bed for 3 hours.&rdquo; The system finds the best fit, shares rooms when possible, and frees them when you leave. <strong>That&rsquo;s GPUaaS.</strong></p>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <strong>One sentence:</strong> GPU as a Service turns your fixed GPU fleet into elastic, shared capacity &mdash; the right GPU, to the right workload, for the right duration, with cost visibility.
+  </div>
+  <a href="#vocab" class="section-arrow" title="Next: Key Concepts">&#8595;</a>
 </section>
 
 <!-- FLASH CARDS — VOCABULARY -->
 <section id="vocab" class="section">
-  <span class="section-label">Before We Begin</span>
+  <span class="section-label">Building Blocks</span>
   <h2>Key Concepts &mdash; Tap to Flip</h2>
-  <p style="margin-bottom:4px;">Six terms you&rsquo;ll hear throughout. Tap any card to see the definition.</p>
+  <p style="margin-bottom:4px;">These are the components that make GPUaaS work. Don&rsquo;t worry about memorizing &mdash; we&rsquo;ll see each one in action. Tap any card to see the definition.</p>
 
   <div class="flashcard-grid">
     <div class="flashcard" onclick="this.classList.toggle('flipped')">
