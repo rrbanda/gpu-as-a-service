@@ -132,6 +132,152 @@
   updateProgress();
 })();
 
+// ===== PRESENTER MODE =====
+(function() {
+  var presenterMode = false;
+  var revealedIndex = 0;
+  var allSections = document.querySelectorAll('.section');
+
+  var editableFields = document.querySelectorAll('.wb-editable');
+
+  function enterPresenter() {
+    presenterMode = true;
+    document.body.classList.add('presenter-mode');
+    revealedIndex = 0;
+    allSections.forEach(function(s, i) {
+      if (i === 0) { s.classList.add('p-revealed'); }
+      else { s.classList.remove('p-revealed'); }
+    });
+    editableFields.forEach(function(el) { el.contentEditable = 'true'; });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function exitPresenter() {
+    presenterMode = false;
+    document.body.classList.remove('presenter-mode');
+    allSections.forEach(function(s) { s.classList.remove('p-revealed'); });
+    editableFields.forEach(function(el) { el.contentEditable = 'false'; });
+  }
+
+  // Auto-update waste % when fleet size or utilization changes
+  editableFields.forEach(function(el) {
+    el.addEventListener('input', function() {
+      var totalEl = document.querySelector('[data-field="total-gpus"]');
+      var utilEl = document.querySelector('[data-field="avg-util"]');
+      var idleEl = document.querySelector('[data-field="idle-gpus"]');
+      var pctEl = document.getElementById('wb-idle-pct');
+      if (!totalEl || !utilEl || !idleEl || !pctEl) return;
+      var total = parseInt(totalEl.textContent) || 0;
+      var utilText = utilEl.textContent.replace(/[^0-9.]/g, '');
+      var util = parseFloat(utilText) || 0;
+      var idle = Math.round(total * (1 - util / 100));
+      idleEl.textContent = '~' + idle;
+      var pct = total > 0 ? Math.round((1 - util / 100) * 100) : 0;
+      pctEl.textContent = pct + '% of ' + total + ' fleet';
+    });
+  });
+
+  function revealNext() {
+    if (revealedIndex < allSections.length - 1) {
+      revealedIndex++;
+      allSections[revealedIndex].classList.add('p-revealed');
+      allSections[revealedIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function revealPrev() {
+    if (revealedIndex > 0) {
+      allSections[revealedIndex].classList.remove('p-revealed');
+      revealedIndex--;
+      allSections[revealedIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'p' && !e.ctrlKey && !e.metaKey && e.target.tagName !== 'INPUT' && !e.target.isContentEditable) {
+      if (presenterMode) exitPresenter(); else enterPresenter();
+    }
+    if (!presenterMode) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); revealNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); revealPrev(); }
+  });
+
+  var toggle = document.getElementById('presenter-toggle');
+  if (toggle) toggle.addEventListener('click', function() {
+    if (presenterMode) exitPresenter(); else enterPresenter();
+  });
+
+  // Live sticky notes
+  var stickyInput = document.getElementById('wb-sticky-input');
+  var stickyBtn = document.getElementById('wb-sticky-add');
+  var stickyBoard = document.getElementById('wb-sticky-board');
+
+  function addSticky() {
+    if (!stickyInput || !stickyInput.value.trim()) return;
+    var note = document.createElement('div');
+    note.className = 'wb-sticky-note';
+    note.textContent = stickyInput.value.trim();
+    stickyBoard.appendChild(note);
+    stickyInput.value = '';
+    stickyInput.focus();
+  }
+
+  if (stickyBtn) stickyBtn.addEventListener('click', addSticky);
+  if (stickyInput) stickyInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); addSticky(); }
+  });
+
+  // Inject vote buttons into use case mapping rows
+  document.querySelectorAll('.mapping-row:not(.mapping-row-header)').forEach(function(row) {
+    var firstCell = row.querySelector('.mapping-cell');
+    if (!firstCell) return;
+    var btn = document.createElement('button');
+    btn.className = 'wb-vote-btn';
+    btn.innerHTML = '&#9650; <span class="wb-vote-count">0</span>';
+    firstCell.appendChild(btn);
+  });
+
+  // Vote button click handlers
+  document.querySelectorAll('.wb-vote-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var countEl = btn.querySelector('.wb-vote-count');
+      var count = parseInt(countEl.textContent) + 1;
+      countEl.textContent = count;
+      btn.classList.add('voted');
+      updateVoteSummary();
+    });
+  });
+
+  function updateVoteSummary() {
+    var votes = [];
+    document.querySelectorAll('.wb-vote-btn').forEach(function(btn) {
+      var count = parseInt(btn.querySelector('.wb-vote-count').textContent);
+      var row = btn.closest('.mapping-row');
+      var label = row ? row.querySelector('.mapping-cell strong') : null;
+      if (count > 0 && label) {
+        votes.push({ name: label.textContent, count: count, row: row });
+      }
+    });
+    votes.sort(function(a, b) { return b.count - a.count; });
+
+    document.querySelectorAll('.mapping-row').forEach(function(r) { r.classList.remove('wb-top-voted'); });
+    votes.slice(0, 3).forEach(function(v) { v.row.classList.add('wb-top-voted'); });
+
+    var summary = document.getElementById('wb-vote-summary');
+    if (!summary) return;
+    var list = summary.querySelector('ol');
+    if (!list) return;
+    list.innerHTML = '';
+    if (votes.length === 0) { list.innerHTML = '<li>No votes yet</li>'; return; }
+    votes.forEach(function(v) {
+      var li = document.createElement('li');
+      li.innerHTML = '<strong>' + v.name + '</strong> — ' + v.count + ' vote' + (v.count > 1 ? 's' : '');
+      list.appendChild(li);
+    });
+  }
+})();
+
 var decisionState = {};
 function selectDecision(el, qId, value) {
   var parent = el.parentElement;

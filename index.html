@@ -29,6 +29,8 @@
 <body>
 
 <div id="progress-bar"></div>
+<button id="presenter-toggle" class="presenter-toggle">Press P &mdash; Presenter Mode</button>
+<div class="presenter-hint">&#8592; &#8594; arrow keys to reveal sections &middot; P to exit</div>
 
 <nav id="side-nav">
   <a href="#hero" data-label="Opening" class="active"></a>
@@ -98,6 +100,16 @@
         <div class="agenda-time">10 steps: problem &rarr; solution &rarr; order</div>
       </div>
     </div>
+  </div>
+
+  <!-- LIVE STICKY NOTES (visible in Presenter Mode) -->
+  <div class="wb-sticky-zone">
+    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">What frustrates your team most about GPUs today?</p>
+    <div class="wb-sticky-input-row">
+      <input id="wb-sticky-input" class="wb-sticky-input" type="text" placeholder="Type an answer and press Enter&hellip;" />
+      <button id="wb-sticky-add" class="wb-sticky-btn">Add</button>
+    </div>
+    <div id="wb-sticky-board" class="wb-sticky-board"></div>
   </div>
 
   <a href="#vocab" class="scroll-indicator" title="Start the session">&#8595;</a>
@@ -370,17 +382,17 @@
   <h3>The Fleet</h3>
   <div class="grid-3" style="margin-top:12px;margin-bottom:24px;">
     <div class="card" style="text-align:center;">
-      <div style="font-size:2rem;font-weight:800;color:var(--l1-fleet);">256</div>
-      <div style="font-size:0.8rem;color:var(--text-secondary);">Total GPUs across 3 clusters</div>
+      <div style="font-size:2rem;font-weight:800;color:var(--l1-fleet);"><span class="wb-editable" contenteditable="false" data-field="total-gpus" data-default="256">256</span></div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);">Total GPUs across <span class="wb-editable" contenteditable="false" data-field="num-clusters" data-default="3">3</span> clusters</div>
       <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Production &middot; Staging &middot; Dev/Experiment</div>
     </div>
     <div class="card" style="text-align:center;">
-      <div style="font-size:2rem;font-weight:800;color:var(--amber);">3 types</div>
+      <div style="font-size:2rem;font-weight:800;color:var(--amber);"><span class="wb-editable" contenteditable="false" data-field="gpu-types" data-default="3 types">3 types</span></div>
       <div style="font-size:0.8rem;color:var(--text-secondary);">Heterogeneous GPU mix</div>
-      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">64x H100 SXM &middot; 128x A100 80GB &middot; 64x A10G</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;"><span class="wb-editable" contenteditable="false" data-field="gpu-mix" data-default="64x H100 SXM &middot; 128x A100 80GB &middot; 64x A10G">64x H100 SXM &middot; 128x A100 80GB &middot; 64x A10G</span></div>
     </div>
     <div class="card" style="text-align:center;">
-      <div style="font-size:2rem;font-weight:800;color:var(--red);">~38%</div>
+      <div style="font-size:2rem;font-weight:800;color:var(--red);"><span class="wb-editable" contenteditable="false" data-field="avg-util" data-default="~38%">~38%</span></div>
       <div style="font-size:0.8rem;color:var(--text-secondary);">Average GPU compute utilization</div>
       <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Despite &ldquo;no GPUs available&rdquo; in ticket queue</div>
     </div>
@@ -462,29 +474,29 @@
   <h3>The Waste</h3>
   <div class="grid-4" style="margin-top:12px;">
     <div class="card" style="text-align:center;border-top:3px solid var(--red);">
-      <div style="font-size:1.4rem;font-weight:800;color:var(--red);">~98</div>
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);"><span class="wb-editable" contenteditable="false" data-field="idle-gpus" data-default="~98">~98</span></div>
       <div style="font-size:0.7rem;color:var(--text-muted);">GPUs idle right now</div>
-      <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">38% of 256 fleet</div>
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;" id="wb-idle-pct">38% of 256 fleet</div>
     </div>
     <div class="card" style="text-align:center;border-top:3px solid var(--red);">
-      <div style="font-size:1.4rem;font-weight:800;color:var(--red);">12</div>
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);"><span class="wb-editable" contenteditable="false" data-field="wasted-a100s" data-default="12">12</span></div>
       <div style="font-size:0.7rem;color:var(--text-muted);">A100s wasted on 2GB models</div>
       <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Could be 2 GPUs with MIG</div>
     </div>
     <div class="card" style="text-align:center;border-top:3px solid var(--red);">
-      <div style="font-size:1.4rem;font-weight:800;color:var(--red);">36</div>
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);"><span class="wb-editable" contenteditable="false" data-field="idle-h100s" data-default="36">36</span></div>
       <div style="font-size:0.7rem;color:var(--text-muted);">H100s idle overnight</div>
       <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">No scale-to-zero</div>
     </div>
     <div class="card" style="text-align:center;border-top:3px solid var(--red);">
-      <div style="font-size:1.4rem;font-weight:800;color:var(--red);">22</div>
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);"><span class="wb-editable" contenteditable="false" data-field="idle-notebooks" data-default="22">22</span></div>
       <div style="font-size:0.7rem;color:var(--text-muted);">Notebooks idle &gt;24 hours</div>
       <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">No cull timer</div>
     </div>
   </div>
 
   <div class="insight-box" style="margin-top:24px;">
-    <strong>The math:</strong> At $3.20/hr per H100 and $1.90/hr per A100, this enterprise is burning roughly <strong>$45,000/month</strong> on GPU capacity that serves zero requests. That&rsquo;s $540K/year &mdash; before counting the opportunity cost of teams waiting in a ticket queue for GPUs that are already idle one cluster over.
+    <strong>The math:</strong> At $3.20/hr per H100 and $1.90/hr per A100, this enterprise is burning roughly <strong><span class="wb-editable" contenteditable="false" data-field="monthly-waste" data-default="$45,000/month">$45,000/month</span></strong> on GPU capacity that serves zero requests. That&rsquo;s <span class="wb-editable" contenteditable="false" data-field="yearly-waste" data-default="$540K/year">$540K/year</span> &mdash; before counting the opportunity cost of teams waiting in a ticket queue for GPUs that are already idle one cluster over.
   </div>
   <a href="#challenges" class="section-arrow" title="Next: AI Challenges">&#8595;</a>
 </section>
@@ -1456,6 +1468,12 @@
   <div class="insight-box">
     <strong>Reading this map:</strong> Start from your team (left column). Find your pain point (Use Case). The Capability column tells you <em>what</em> you need. The Feature column tells you <em>what to deploy</em>.
   </div>
+
+  <div id="wb-vote-summary" class="wb-vote-summary">
+    <h4>Prioritized Use Cases (by votes)</h4>
+    <ol><li>No votes yet</li></ol>
+  </div>
+
   <a href="#personas" class="section-arrow" title="Next: Team Personas">&#8595;</a>
 </section>
 
