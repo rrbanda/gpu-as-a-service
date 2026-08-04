@@ -73,7 +73,7 @@
       <a href="#gpu101" class="agenda-card" style="--card-accent:var(--l1-fleet);">
         <span class="agenda-num">01</span>
         <span class="agenda-title">Why GPUs?</span>
-        <span class="agenda-desc">The hotel analogy</span>
+        <span class="agenda-desc">The power grid analogy</span>
       </a>
       <a href="#vocab" class="agenda-card" style="--card-accent:var(--l2-mechanisms);">
         <span class="agenda-num">02</span>
@@ -156,34 +156,33 @@
   <h2>Why GPUs &mdash; and Why &ldquo;as a Service&rdquo;?</h2>
 
   <div class="card" style="margin-top:16px;margin-bottom:20px;border-left:3px solid var(--l1-fleet);">
-    <h3 style="font-size:0.95rem;margin-bottom:10px;">Think of GPUs like hotel rooms</h3>
+    <h3 style="font-size:0.95rem;margin-bottom:10px;">What a GPU does</h3>
     <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">
-      A <strong>CPU</strong> is like a brilliant professor &mdash; great at complex problems, one at a time.<br>
-      A <strong>GPU</strong> is like a stadium of 10,000 students &mdash; each can only do simple math, but together they solve massive problems in parallel.<br><br>
-      AI models need this kind of parallelism. Training a model means running billions of math operations simultaneously. Inference (answering a question) means matrix multiplications across millions of parameters. <strong>Only GPUs can do this at the speed AI requires.</strong>
+      A <strong>CPU</strong> is a brilliant specialist &mdash; it solves complex problems one step at a time.<br>
+      A <strong>GPU</strong> has thousands of small cores that do simple math in parallel &mdash; exactly what AI requires. Training runs billions of operations simultaneously. Inference multiplies millions of parameters per request. <strong>No other hardware can do this at AI speed.</strong>
     </p>
   </div>
 
   <div class="grid-3" style="margin-bottom:20px;">
     <div class="card" style="text-align:center;border-top:3px solid var(--l1-fleet);">
-      <div style="font-size:1.5rem;">&#127976;</div>
-      <h4 style="font-size:0.85rem;margin:8px 0 4px;">The Hotel Problem</h4>
-      <p style="font-size:0.78rem;color:var(--text-secondary);">You have 256 hotel rooms (GPUs). Each team books a block of rooms at the start of the quarter. Some rooms sit empty all night. Others have guests in the lobby waiting. <strong>No way to reassign rooms dynamically.</strong></p>
+      <div style="font-size:1.5rem;">&#9889;</div>
+      <h4 style="font-size:0.85rem;margin:8px 0 4px;">The Power Grid Problem</h4>
+      <p style="font-size:0.78rem;color:var(--text-secondary);">Your organization bought 256 GPUs &mdash; the equivalent of building a private power plant. But instead of metering electricity by the kilowatt-hour, you gave each team a dedicated generator. Some run at 5% load while others have a waiting list. <strong>An unused GPU-hour, like an unsold airline seat, is gone forever.</strong></p>
     </div>
     <div class="card" style="text-align:center;border-top:3px solid var(--amber);">
       <div style="font-size:1.5rem;">&#128275;</div>
       <h4 style="font-size:0.85rem;margin:8px 0 4px;">The Missing Layer</h4>
-      <p style="font-size:0.78rem;color:var(--text-secondary);">Cloud providers solved this years ago for CPU/memory. You don&rsquo;t reserve a server &mdash; you request capacity and the platform finds it. <strong>That abstraction doesn&rsquo;t exist for GPUs yet.</strong> That&rsquo;s what GPUaaS builds.</p>
+      <p style="font-size:0.78rem;color:var(--text-secondary);">Cloud providers solved this for CPU/memory years ago &mdash; you don&rsquo;t buy a server, you request capacity and the platform finds it. For GPUs, that abstraction layer doesn&rsquo;t exist yet. <strong>Most enterprises still manage GPUs like physical equipment, not like a utility.</strong></p>
     </div>
     <div class="card" style="text-align:center;border-top:3px solid var(--green);">
-      <div style="font-size:1.5rem;">&#9889;</div>
+      <div style="font-size:1.5rem;">&#128161;</div>
       <h4 style="font-size:0.85rem;margin:8px 0 4px;">GPU as a Service</h4>
-      <p style="font-size:0.78rem;color:var(--text-secondary);">Instead of booking specific rooms, you tell the hotel: &ldquo;I need a room with a king bed for 3 hours.&rdquo; The system finds the best fit, shares rooms when possible, and frees them when you leave. <strong>That&rsquo;s GPUaaS.</strong></p>
+      <p style="font-size:0.78rem;color:var(--text-secondary);">GPUaaS adds the utility layer. Teams request capacity (&ldquo;I need 20 GB of GPU memory for 3 hours&rdquo;), the platform finds the best fit, meters the usage, and reclaims capacity when the workload finishes. <strong>Your private power plant becomes a managed grid.</strong></p>
     </div>
   </div>
 
   <div class="insight-box">
-    <strong>One sentence:</strong> GPU as a Service turns your fixed GPU fleet into elastic, shared capacity &mdash; the right GPU, to the right workload, for the right duration, with cost visibility.
+    <strong>One sentence:</strong> GPU as a Service turns a fixed hardware investment into a metered utility &mdash; the right GPU, to the right workload, for the right duration, with cost visibility.
   </div>
   <a href="#vocab" class="section-arrow" title="Next: Key Concepts">&#8595;</a>
 </section>
@@ -203,7 +202,7 @@
           <div class="flashcard-tap">tap to flip</div>
         </div>
         <div class="flashcard-back" style="border-top:3px solid var(--l2-mechanisms);">
-          <p>Hardware-level GPU partitioning. Carves one A100 into up to 7 isolated slices, each with dedicated compute, memory, and cache. No driver sharing, no noisy neighbors.</p>
+          <p>Hardware-level GPU partitioning. Carves one A100 into up to 7 isolated slices, each with dedicated compute, memory, and cache. Like splitting one large office into 7 soundproof private offices &mdash; each tenant gets their own key, walls, and power meter.</p>
           <div class="flashcard-tap">tap to flip back</div>
         </div>
       </div>
@@ -217,7 +216,7 @@
           <div class="flashcard-tap">tap to flip</div>
         </div>
         <div class="flashcard-back" style="border-top:3px solid var(--l3-governance);">
-          <p>Fair-share GPU scheduler. Manages quotas, borrowing, preemption, and priority across teams. Prevents training from starving inference. Normalizes GPU types into fungible &ldquo;credits.&rdquo;</p>
+          <p>Fair-share GPU scheduler. GPU scheduling is a business policy problem, not merely a Kubernetes configuration. Kueue enforces that policy &mdash; quotas, borrowing, preemption, and priority across teams. Like the grid operator that decides which district gets power during peak demand.</p>
           <div class="flashcard-tap">tap to flip back</div>
         </div>
       </div>
@@ -231,7 +230,7 @@
           <div class="flashcard-tap">tap to flip</div>
         </div>
         <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
-          <p>CNCF Incubating project for model lifecycle &mdash; deploy, version, scale, and monitor models. Provides scale-to-zero: idle models release GPUs entirely and cold-start on demand.</p>
+          <p>CNCF Incubating project for model lifecycle &mdash; deploy, version, scale, and monitor. Provides scale-to-zero: idle models release GPUs entirely, cold-start on demand. The electricity meter stops when you turn off the lights &mdash; and starts instantly when you flip the switch.</p>
           <div class="flashcard-tap">tap to flip back</div>
         </div>
       </div>
@@ -245,7 +244,7 @@
           <div class="flashcard-tap">tap to flip</div>
         </div>
         <div class="flashcard-back" style="border-top:3px solid var(--l5-self-service);">
-          <p>A unit that normalizes different GPU types into a common currency. H100 = 100 credits, A100 = 60, MIG slice = 10. Teams get credit budgets, not GPU counts &mdash; enabling flexible multi-GPU procurement.</p>
+          <p>A unit that normalizes different GPU types into a common currency. H100 = 100 credits, A100 = 60, MIG slice = 10. Like kilowatt-hours on your electricity bill &mdash; you don&rsquo;t care which generator produced the power, you care about consumption. Teams get credit budgets, not GPU counts.</p>
           <div class="flashcard-tap">tap to flip back</div>
         </div>
       </div>
@@ -264,7 +263,7 @@
           <div class="flashcard-tap">tap to flip</div>
         </div>
         <div class="flashcard-back" style="border-top:3px solid var(--l2-mechanisms);">
-          <p>Kubernetes API that replaces <code>nvidia.com/gpu: 1</code> with rich, declarative GPU claims &mdash; specify GPU type, memory, MIG profile, and topology in a single resource request.</p>
+          <p>Kubernetes API that replaces <code>nvidia.com/gpu: 1</code> with rich, declarative GPU claims. Saying <code>nvidia.com/gpu: 1</code> is like telling a recruiter &ldquo;hire me two people.&rdquo; DRA is like saying &ldquo;hire me two engineers with Go experience, Kubernetes knowledge, and 5 years backend&rdquo; &mdash; GPU type, memory, MIG profile, topology, all in one request.</p>
           <div class="flashcard-tap">tap to flip back</div>
         </div>
       </div>
@@ -364,7 +363,7 @@
   <div class="grid-3" style="margin-top:24px;">
     <div class="card">
       <h3>Problem 1: Memory Claimed &#8800; Demand Served</h3>
-      <p>Serving frameworks claim GPU memory upfront regardless of actual work. &ldquo;The GPUs are full&rdquo; is usually a setting, not a measure of demand.</p>
+      <p>Serving frameworks claim GPU memory upfront regardless of actual work. A 2 GB model on an 80 GB GPU is like parking a bicycle in a semi-truck spot &mdash; the space is &ldquo;taken,&rdquo; but 97% of it is empty.</p>
 
       <div class="gpu-bars" id="gpu-bars">
         <div class="gpu-bar-row">
@@ -407,8 +406,8 @@
     </div>
 
     <div class="card">
-      <h3>Problem 2: Multi-Tenant GPU Sharing Is Unsolved</h3>
-      <p>Traditional Kubernetes treats GPUs as opaque integer counters &mdash; <code>nvidia.com/gpu: 1</code> (the only way to request a GPU today: just a number, no type, no memory, no slicing). The scheduler has no awareness of GPU type, memory size, MIG capability, or current utilization. Four teams sharing a cluster have no mechanism for fair-share allocation, quota enforcement, or cost attribution.</p>
+      <h3>Problem 2: GPU Scheduling Is a Business Policy Problem</h3>
+      <p>Kubernetes treats GPUs as opaque integer counters &mdash; <code>nvidia.com/gpu: 1</code>. No type, no memory, no slicing. Four teams sharing a cluster have no mechanism for fair-share allocation, quota enforcement, or cost attribution. This isn&rsquo;t a scheduler tuning problem &mdash; it&rsquo;s an enterprise service policy that doesn&rsquo;t exist yet.</p>
     </div>
 
     <div class="card">
@@ -777,8 +776,8 @@
   <h2>GPU Mechanisms</h2>
 
   <h3 style="margin-top:24px;">MIG Slicing Visualization</h3>
-  <p>A 2GB content-safety model on an 80GB A100 uses 2.5% of VRAM. MIG carves the GPU into isolated partitions.</p>
-  <p style="font-size:0.8rem;color:var(--l2-mechanisms);margin-top:4px;font-style:italic;">&#127976; Hotel analogy: One luxury suite divided into 7 economy rooms &mdash; each guest gets their own key, their own bathroom, no sharing.</p>
+  <p>A 2GB content-safety model on an 80GB A100 uses 2.5% of VRAM &mdash; parking a bicycle in a semi-truck spot. MIG carves the GPU into hardware-isolated partitions.</p>
+  <p style="font-size:0.8rem;color:var(--l2-mechanisms);margin-top:4px;font-style:italic;">&#127970; Think: one large office split into 7 soundproof private offices &mdash; each tenant gets their own walls, their own power meter, no noisy neighbors.</p>
 
   <div class="mig-viz">
     <div class="mig-gpu">
@@ -835,8 +834,8 @@
   </div>
 
   <h3 style="margin-top:32px;">Scale-to-Zero: Releasing Idle GPUs</h3>
-  <p>The three mechanisms above improve utilization of <em>active</em> GPUs. Scale-to-zero solves the other half: GPUs reserved by models that aren&rsquo;t serving any traffic at all.</p>
-  <p style="font-size:0.8rem;color:var(--green);margin-top:4px;font-style:italic;">&#127976; Hotel analogy: When a guest checks out, the room is immediately available for the next guest &mdash; not held empty &ldquo;just in case&rdquo; they come back.</p>
+  <p>MIG and DRA improve utilization of <em>active</em> GPUs. Scale-to-zero solves the other half: GPUs reserved by models that aren&rsquo;t serving any traffic at all.</p>
+  <p style="font-size:0.8rem;color:var(--green);margin-top:4px;font-style:italic;">&#9889; Think: the electricity meter stops when you turn off the lights &mdash; and starts instantly when you flip the switch. You pay only for power you actually consume.</p>
   <div class="loop-cards" style="grid-template-columns:1fr;">
     <div class="loop-card" style="border-left:3px solid var(--l4-ai-aware);">
       <p><strong>How it works:</strong> KServe provides Knative-based autoscaling including scale-to-zero for model endpoints. When a model receives no inference requests for a configurable idle period, its pods are terminated and GPUs are returned to the cluster. When a new request arrives, KServe cold-starts the model &mdash; pulling it from cache (seconds) or downloading weights (minutes).</p>
@@ -880,7 +879,7 @@
   <span class="section-label">Layer 3 Deep Dive &mdash; Governance</span>
   <h2>Kueue Configuration</h2>
   <p style="margin-bottom:12px;">When Kueue applies &mdash; and when it doesn&rsquo;t. Do not add Kueue merely because GPUs are involved.</p>
-  <p style="font-size:0.8rem;color:var(--l3-governance);margin-bottom:24px;font-style:italic;">&#127976; Hotel analogy: Kueue is the front desk &mdash; it decides who gets which room, lets guests borrow empty rooms from other floors, and bumps low-priority guests when VIPs arrive.</p>
+  <p style="font-size:0.8rem;color:var(--l3-governance);margin-bottom:24px;font-style:italic;">&#9889; Think: the grid operator during peak demand &mdash; decides which district gets power, lets idle capacity flow to neighbors, and sheds non-critical load before the grid fails. GPU scheduling is a business policy problem, not a Kubernetes configuration problem.</p>
 
   <h3>Decision Framework</h3>
   <div class="grid-3" style="margin-top:12px;margin-bottom:32px;">
@@ -969,7 +968,7 @@
 <section id="finops" class="section">
   <span class="section-label">GPU FinOps</span>
   <h2>GPU FinOps &mdash; Chargeback</h2>
-  <p style="font-size:0.8rem;color:var(--amber);margin-bottom:16px;font-style:italic;">&#127976; Hotel analogy: The hotel bill &mdash; you see exactly which rooms each team used, for how long, and what it cost. Start by showing the bill (showback). Enforce payment (chargeback) once everyone trusts the numbers.</p>
+  <p style="font-size:0.8rem;color:var(--amber);margin-bottom:16px;font-style:italic;">&#9889; Think: your electricity bill &mdash; you see exactly how many kilowatt-hours each department consumed, when peak usage happened, and what it cost. Start by showing the bill (showback). Enforce payment (chargeback) once everyone trusts the numbers.</p>
 
   <h3 style="margin-top:20px;">Metering Pipeline</h3>
   <div class="flow-diagram" style="margin-bottom:24px;">
