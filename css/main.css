@@ -216,27 +216,27 @@ p { color: var(--text-secondary); }
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   text-align: center;
-  padding-top: 40px;
-  padding-bottom: 20px;
+  padding-top: 28px;
+  padding-bottom: 12px;
   position: relative;
   margin-bottom: 0;
 }
 
 #hero .subtitle {
-  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  font-size: clamp(0.85rem, 1.6vw, 1rem);
   color: var(--text-secondary);
   max-width: 700px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .hero-agenda {
   width: 100%;
-  max-width: 720px;
+  max-width: 780px;
   margin: 0 auto;
-  padding: 16px 20px 12px;
+  padding: 10px 16px 8px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius);
   background: rgba(15,20,32,0.6);
@@ -944,7 +944,7 @@ details.yaml-toggle[open] summary {
 .agenda-card {
   display: flex;
   flex-direction: column;
-  padding: 14px 16px;
+  padding: 10px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-left: 3px solid var(--card-accent, var(--border));
@@ -1051,18 +1051,20 @@ details.yaml-toggle[open] summary {
   padding-top: 8px;
 }
 
-/* Hook question styling */
-.hook-question {
-  font-size: clamp(1rem, 2.2vw, 1.3rem);
-  color: var(--red);
-  font-weight: 600;
-  margin-bottom: 8px;
-  opacity: 0;
-  animation: fadeSlideUp 1s 0.3s forwards;
+/* Compact hero headline */
+.hero-headline { margin-bottom: 8px; text-align: center; }
+.hero-headline h1 { font-size: clamp(1.4rem, 3vw, 2rem); margin-bottom: 6px; }
+.hero-stat-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
 }
 
 .hook-stat {
-  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
   font-weight: 800;
   background: linear-gradient(135deg, var(--red), var(--amber));
   -webkit-background-clip: text;
@@ -1073,11 +1075,16 @@ details.yaml-toggle[open] summary {
   animation: fadeSlideUp 1s 0.6s forwards;
 }
 
+.hook-sep {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
 .hook-followup {
-  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  font-size: clamp(0.82rem, 1.5vw, 0.92rem);
   color: var(--text-secondary);
-  max-width: 600px;
-  margin-bottom: 12px;
+  max-width: 500px;
+  margin-bottom: 0;
   opacity: 0;
   animation: fadeSlideUp 1s 0.9s forwards;
 }
@@ -1502,7 +1509,7 @@ body.presenter-mode .scroll-indicator { display: none !important; }
 body.presenter-mode .presenter-hint { display: block; }
 
 /* Pain point flash cards */
-.pain-zone { margin-top: 28px; }
+.pain-zone { margin-top: 16px; }
 .pain-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
