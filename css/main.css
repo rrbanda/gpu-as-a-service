@@ -1494,9 +1494,10 @@ footer p { color: var(--text-muted); margin-bottom: 8px; }
 .presenter-toggle:hover { border-color: var(--l2-mechanisms); color: var(--l2-mechanisms); }
 body.presenter-mode .presenter-toggle { background: var(--l2-mechanisms); color: var(--bg); border-color: var(--l2-mechanisms); font-weight: 600; }
 
-body.presenter-mode .section:not(.p-revealed) { opacity: 0.06 !important; transform: none !important; pointer-events: none; filter: blur(2px); transition: opacity 0.5s, filter 0.5s; }
-body.presenter-mode .section.p-revealed { opacity: 1 !important; filter: none; pointer-events: auto; transition: opacity 0.5s, filter 0.5s; }
-body.presenter-mode #hero { opacity: 1 !important; filter: none; pointer-events: auto; }
+body.presenter-mode .section { opacity: 1 !important; transform: none !important; }
+body.presenter-mode .section:not(.p-revealed) { display: none !important; }
+body.presenter-mode .section.p-revealed { display: block !important; opacity: 1 !important; filter: none; pointer-events: auto; }
+body.presenter-mode #hero { display: block !important; opacity: 1 !important; filter: none; pointer-events: auto; }
 body.presenter-mode .section-arrow { display: none !important; }
 body.presenter-mode .scroll-indicator { display: none !important; }
 
