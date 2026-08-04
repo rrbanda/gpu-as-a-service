@@ -1184,6 +1184,64 @@
       <strong>Note:</strong> Kueue prevents training from starving inference. WVA operates freely inside the inference envelope.
     </div>
   </div>
+  <!-- WHY NOT JUST KUBERAY? -->
+  <h3 style="margin-top:32px;margin-bottom:12px;">Why Not Just KubeRay?</h3>
+  <p style="margin-bottom:16px;">Ray Serve is an excellent inference engine. In 2026, it supports prefix-aware routing (consistent hashing), disaggregated prefill/decode, and multi-LoRA multiplexing with LRU eviction. For a single team serving models on dedicated GPUs, it may be all you need. The gap emerges at the <strong>platform</strong> level.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th style="width:30%;">Enterprise problem</th><th style="width:35%;">What Ray Serve does</th><th style="width:35%;">What&rsquo;s needed beyond it</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Request routing</strong></td>
+          <td>Consistent hashing for session affinity; prefix-aware routing via <code>session_id</code></td>
+          <td><strong>llm-d EPP</strong> &mdash; precise KV-cache indexing via real-time model server events (ZeroMQ), modular scorer pipeline (prefix + load + latency + LoRA-affinity), deep Kubernetes Gateway API integration</td>
+        </tr>
+        <tr>
+          <td><strong>Prefill/decode disaggregation</strong></td>
+          <td>Supported &mdash; Ray Serve LLM handles P/D with similar TTFT improvements</td>
+          <td><strong>llm-d + NIXL</strong> &mdash; zero-copy GPU-to-GPU KV transfer via RDMA (IB, RoCE, EFA). Bidirectional D&rarr;P pull for multi-turn reuse. Production-grade on OpenShift with InferencePool CRD</td>
+        </tr>
+        <tr>
+          <td><strong>Multi-tenant GPU quotas</strong></td>
+          <td>Not addressed &mdash; Ray manages one cluster for one team</td>
+          <td><strong>Kueue</strong> &mdash; fair-share quotas, borrowing, preemption, priority classes across 4+ teams sharing a GPU fleet</td>
+        </tr>
+        <tr>
+          <td><strong>GPU partitioning</strong></td>
+          <td>Not addressed &mdash; allocates whole GPUs per replica</td>
+          <td><strong>MIG + DRA</strong> &mdash; carve one A100 into 7 isolated slices for small models (guard rails, embeddings). Hardware-isolated, no noisy neighbors</td>
+        </tr>
+        <tr>
+          <td><strong>Cost attribution</strong></td>
+          <td>No concept of GPU credits or showback</td>
+          <td><strong>FinOps layer</strong> &mdash; DCGM telemetry + Kueue GPU credit normalization + showback/chargeback dashboards</td>
+        </tr>
+        <tr>
+          <td><strong>Self-service abstractions</strong></td>
+          <td>Requires YAML (RayService manifests, serveConfigV2)</td>
+          <td><strong>Compute Profiles</strong> &mdash; data scientists pick &ldquo;Small GPU&rdquo; from a dropdown; the platform maps it to the right GPU type, MIG profile, and queue</td>
+        </tr>
+        <tr>
+          <td><strong>Air-gapped &amp; regulated</strong></td>
+          <td>Assumes network access for image pulls, model downloads</td>
+          <td><strong>OpenShift</strong> &mdash; disconnected mirror registries, FIPS 140-2 crypto, signed OCI artifacts, FedRAMP-capable control plane</td>
+        </tr>
+        <tr>
+          <td><strong>Multi-cluster orchestration</strong></td>
+          <td>Single-cluster only</td>
+          <td><strong>ACM</strong> &mdash; policy-based workload placement, fleet-wide GPU visibility, GitOps across clusters</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-box" style="margin-top:16px;">
+    <strong>When Ray Serve IS the right choice:</strong> You need multi-node tensor parallelism (model too large for one node). You want to serve many fine-tuned LoRA variants from a shared replica pool (<code>dynamic_lora_loading_path</code> with LRU eviction, <code>max_num_adapters_per_replica</code>). Your team already uses Ray for training and wants a unified platform. In these cases, KubeRay + Kueue is a strong combination &mdash; Ray handles the inference/training plane, Kueue governs the capacity.
+  </div>
+
   <a href="#decision" class="section-arrow" title="Next: Your Pattern">&#8595;</a>
 </section>
 
