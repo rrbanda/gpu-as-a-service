@@ -7,7 +7,7 @@
     const scrollTop = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-    progressBar.style.width = progress + '%';
+    if (progressBar) progressBar.style.width = progress + '%';
   }
 
   // Section reveal with IntersectionObserver
@@ -213,14 +213,14 @@
 
   function revealPrev() {
     if (revealedIndex > 0) {
-      allSections[revealedIndex].classList.remove('p-revealed');
-      while (revealedIndex > 0 && sectionGroupMap[revealedIndex] !== undefined) {
-        allSections[revealedIndex].classList.remove('p-revealed');
-        revealedIndex--;
+      var startIdx = revealedIndex;
+      while (startIdx > 0 && sectionGroupMap[startIdx] !== undefined) {
+        allSections[startIdx].classList.remove('p-revealed');
+        startIdx--;
       }
-      if (revealedIndex > 0 && sectionGroupMap[revealedIndex] === undefined) {
-        revealedIndex--;
-      }
+      allSections[startIdx].classList.remove('p-revealed');
+      revealedIndex = startIdx - 1;
+      if (revealedIndex < 0) revealedIndex = 0;
       allSections[revealedIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
@@ -230,6 +230,7 @@
       if (presenterMode) exitPresenter(); else enterPresenter();
     }
     if (!presenterMode) return;
+    if (e.target.isContentEditable || e.target.tagName === 'INPUT') return;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); revealNext(); }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); revealPrev(); }
   });

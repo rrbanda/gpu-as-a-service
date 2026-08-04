@@ -7,15 +7,16 @@ This is a reusable whiteboard asset. The most common contribution is forking it 
 1. **Fork** this repo (or create a private copy)
 2. **Customize the environment section** (`#discovery` in `index.html`) — replace the generic fleet data with the customer's actual GPU inventory, team structure, and utilization patterns
 3. **Reorder the Solution Roadmap** (`#nextsteps`) to match the customer's priorities
-4. **Adjust the Decision Tree** (`js/decision-tree.js`) if the customer's workload mix differs
+4. **Adjust the Decision Tree** (the `selectDecision` function in `js/main.js`) if the customer's workload mix differs
 5. **Deploy** to GitHub Pages or any static host
 
 ## Modify Content
 
-All content is in `index.html`. The page is structured as 17 `<section>` elements, each with a unique `id`. To find a section, search for its ID:
+All content is in `index.html`. The page is structured as 18 `<section>` elements, each with a unique `id`. To find a section, search for its ID:
 
 ```
-#hero        — Opening hook + agenda
+#hero        — Opening hook, agenda, and pain-point cards
+#gpu101      — GPU 101 (hotel analogy for beginners)
 #vocab       — Flash card vocabulary
 #problems    — Three GPU problems
 #discovery   — Enterprise environment narrative
@@ -25,11 +26,11 @@ All content is in `index.html`. The page is structured as 17 `<section>` element
 #mechanisms  — GPU mechanisms deep dive
 #governance  — Kueue configuration
 #finops      — GPU FinOps
-#patterns    — Architecture patterns
+#patterns    — Architecture patterns (Dedicated Inference Pool / Shared Cluster)
 #decision    — Decision tree
-#results     — Validated results
+#results     — Industry data
 #stack       — Technology stack
-#usecases    — Use case mapping
+#usecases    — Use case mapping (with voting)
 #personas    — Persona summary
 #nextsteps   — Solution roadmap
 ```
@@ -42,11 +43,11 @@ All content is in `index.html`. The page is structured as 17 `<section>` element
 
 ## Style Conventions
 
-- All colors use CSS custom properties from `css/tokens.css`
+- All colors use CSS custom properties from the `:root` block in `css/main.css`
 - Border radius uses `var(--radius)` (12px) or `var(--radius-sm)` (8px)
 - Transitions use `var(--transition)` for consistency
 - Font sizes use `rem` or `clamp()` for responsive scaling
-- No `!important` except in print styles
+- No `!important` except in print and presenter-mode styles
 
 ## Testing Locally
 

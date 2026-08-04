@@ -34,23 +34,38 @@ The page follows a logical whiteboarding flow — each section builds on the las
 
 | # | Section | What It Covers |
 |---|---------|----------------|
-| 1 | **Opening Hook** | "30-50% idle" stat + embedded session agenda |
-| 2 | **Vocabulary** | 11 interactive flip cards (MIG, DRA, Kueue, llm-d, KServe, etc.) |
-| 3 | **Three Problems** | Why generic IaaS doesn't work for AI GPUs |
-| 4 | **Enterprise Environment** | Realistic GPU fleet walkthrough — 86 GPUs, 4 teams, $540K/yr waste |
-| 5 | **AI Challenges** | 7 AI-specific scheduling problems |
-| 6 | **Five-Layer Architecture** | Expandable layer cards from physical GPUs to self-service |
-| 7 | **Control Loops** | Three concentric loops: scheduling, serving, governance |
-| 8 | **GPU Mechanisms** | MIG slicing visualization, GPU utilization bars, DRA examples |
-| 9 | **Governance** | Kueue configuration — when to use it and when not to |
-| 10 | **GPU FinOps** | Metering pipeline, showback dashboards, chargeback comparison |
-| 11 | **Architecture Patterns** | Dedicated vs. shared vs. hybrid — toggle between them |
-| 12 | **Decision Tree** | 3-question interactive quiz → personalized architecture recommendation |
-| 13 | **Validated Results** | Animated production metrics (61% utilization improvement, etc.) |
-| 14 | **Tech Stack** | Open-source components with provenance (KServe, llm-d, Kueue, etc.) |
-| 15 | **Use Case Mapping** | Persona → Use Case → Capability → RHOAI Feature table |
-| 16 | **Persona Summary** | 4 team personas with waste patterns and fixes |
-| 17 | **Solution Roadmap** | 10-step implementation plan ordered by dependency and ROI |
+| 1 | **Opening Hook** | "30-50% idle" stat, 5-step agenda grid, 8 pain-point cards |
+| 2 | **GPU 101** | Hotel analogy — why GPUs need a new abstraction layer |
+| 3 | **Vocabulary** | 11 interactive flip cards (MIG, DRA, Kueue, llm-d, KServe, etc.) |
+| 4 | **Three Problems** | Why generic IaaS doesn't work for AI GPUs |
+| 5 | **Enterprise Environment** | Example GPU fleet — 256 GPUs, 4 teams, $85K/month waste |
+| 6 | **AI Challenges** | 7 AI-specific scheduling problems |
+| 7 | **Five-Layer Architecture** | Expandable layer cards from physical GPUs to self-service |
+| 8 | **Control Loops** | Three concentric loops: scheduling, serving, governance |
+| 9 | **GPU Mechanisms** | MIG slicing, scale-to-zero, DRA claims |
+| 10 | **Governance** | Kueue configuration — when to use it and when not to |
+| 11 | **GPU FinOps** | Metering pipeline, showback dashboards, chargeback comparison |
+| 12 | **Architecture Patterns** | Dedicated Inference Pool vs. Shared Cluster — toggle between them |
+| 13 | **Decision Tree** | 3-question interactive quiz → personalized architecture recommendation |
+| 14 | **Industry Data** | Achievable improvements based on published data and platform capabilities |
+| 15 | **Tech Stack** | Open-source components with provenance (KServe, llm-d, Kueue, etc.) |
+| 16 | **Use Case Mapping** | Persona → Use Case → Capability → RHOAI Feature table (with voting) |
+| 17 | **Persona Summary** | 4 team personas with waste patterns and fixes |
+| 18 | **Solution Roadmap** | 10-step implementation plan ordered by dependency and ROI |
+
+## Presenter Mode
+
+Press **P** to enter Presenter Mode — designed for live whiteboarding sessions:
+
+- **Progressive reveal:** Sections are hidden until you press → (right arrow). Some sections reveal in groups (e.g., Three Problems + Enterprise Environment together) to reduce key presses.
+- **Pain-point cards:** 8 common pain points are visible in the hero section. Click **"+ Add Your Own"** to add custom pain points live.
+- **Editable environment:** Click any highlighted number in the Enterprise Environment section to type customer-specific GPU counts — the idle count and percentage update automatically.
+- **Use case voting:** Click the ▲ vote buttons on use cases as the audience raises hands. Top-voted items highlight in green with a ranked summary.
+- **Decision tree:** Walk through 3 interactive questions to generate a personalized architecture recommendation.
+
+Arrow keys are disabled while editing contenteditable fields or text inputs, so you can type freely without accidentally advancing sections.
+
+Press **P** again or click the toggle button to exit Presenter Mode.
 
 ## Project Structure
 
@@ -63,8 +78,6 @@ gpu-as-a-service/
 ├── js/
 │   └── main.js             # All interactions — progress bar, scroll reveal,
 │                           #   GPU animations, layer toggle, decision tree
-├── images/
-│   └── og-preview.png      # Social share preview image
 ├── README.md
 ├── CONTRIBUTING.md
 ├── LICENSE                  # Apache 2.0
