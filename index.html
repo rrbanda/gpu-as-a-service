@@ -348,7 +348,7 @@
           <div class="flashcard-tap">tap to flip</div>
         </div>
         <div class="flashcard-back" style="border-top:3px solid var(--l1-fleet);">
-          <p>Manages Ray clusters on Kubernetes for distributed training, fine-tuning, hyperparameter search, and Ray Serve inference. Handles multi-node GPU jobs, auto-scaling worker pools, and fault-tolerant checkpointing.</p>
+          <p>Manages Ray clusters on Kubernetes. Ray Serve enables multi-model LLM inference with built-in replica autoscaling (min/max replicas per model, target_ongoing_requests). Also handles distributed training, fine-tuning, and multi-node GPU jobs via RayJob/RayCluster.</p>
           <div class="flashcard-tap">tap to flip back</div>
         </div>
       </div>
@@ -847,6 +847,31 @@
   <div class="insight-box">
     <strong>Why it matters:</strong> Without scale-to-zero, a data science team with 20 deployed models keeps 20+ GPUs reserved even when only 3 models are actively serving. Scale-to-zero recovers 85% of idle capacity automatically.
   </div>
+
+  <h3 style="margin-top:32px;">Faster Model Loading: Making Scale-to-Zero Practical</h3>
+  <p>Scale-to-zero only works if cold-start is fast. A 70B model downloading weights from object storage takes 5&ndash;30 minutes &mdash; unacceptable for production. The solution is a layered approach to storage and loading.</p>
+
+  <div class="loop-cards" style="grid-template-columns: 1fr 1fr;">
+    <div class="loop-card" style="border-left:3px solid var(--l1-fleet);">
+      <h4 style="font-size:0.85rem;margin-bottom:8px;color:var(--l1-fleet);">Shared Storage (NAS / PVC)</h4>
+      <p style="font-size:0.78rem;"><strong>Download once, infer everywhere.</strong> Store model weights on a ReadWriteMany (RWX) persistent volume &mdash; NFS, GPFS, or Lustre. New pods mount the same volume and load weights directly into GPU memory. The download step is eliminated entirely.</p>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;"><strong>Pattern:</strong> An init container checks if the cache is warm. If yes, it exits immediately. If not, it downloads the model once. All subsequent replicas skip the download. KServe + RHOAI model registry supports <code>pvc://</code> URIs for this pattern.</p>
+    </div>
+    <div class="loop-card" style="border-left:3px solid var(--l4-ai-aware);">
+      <h4 style="font-size:0.85rem;margin-bottom:8px;color:var(--l4-ai-aware);">Accelerated Loading (vLLM)</h4>
+      <p style="font-size:0.78rem;">Even from fast storage, default sequential loading leaves 80% of bandwidth unused. vLLM supports multiple accelerated loaders:</p>
+      <ul style="font-size:0.75rem;margin-top:6px;padding-left:16px;color:var(--text-secondary);line-height:1.7;">
+        <li><strong>Run:ai Model Streamer</strong> &mdash; concurrent multi-threaded reads of safetensors, streaming directly to GPU memory (<code>--load-format runai_streamer</code>)</li>
+        <li><strong>CoreWeave Tensorizer</strong> &mdash; custom serialization that bypasses CPU staging, loads 40&ndash;50% faster than safetensors (<code>--load-format tensorizer</code>)</li>
+        <li><strong>Prefetch mode</strong> &mdash; pre-warms OS page cache in background threads while workers parse tensors (<code>--safetensors-load-strategy prefetch</code>)</li>
+        <li><strong>Torch compile cache</strong> &mdash; set <code>VLLM_CACHE_ROOT</code> to persistent storage to avoid recompilation on restart</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <strong>Combined impact:</strong> Shared NAS + accelerated loader reduces cold-start from 5&ndash;30 minutes to 30&ndash;90 seconds for a 70B model. This makes scale-to-zero viable even for latency-sensitive endpoints.
+  </div>
   <a href="#governance" class="section-arrow" title="Next: Governance">&#8595;</a>
 </section>
 
@@ -1305,7 +1330,7 @@
     <div class="tech-card">
       <div class="tech-name">KubeRay</div>
       <div class="tech-org">CNCF / Ray Community</div>
-      <div class="tech-desc">Kubernetes operator for Ray clusters &mdash; distributed training, fine-tuning, hyperparameter tuning, and Ray Serve</div>
+      <div class="tech-desc">Kubernetes operator for Ray clusters &mdash; Ray Serve for multi-model LLM inference with built-in autoscaling, distributed training, fine-tuning</div>
     </div>
     <div class="tech-card">
       <div class="tech-name">KEDA</div>
@@ -1494,6 +1519,16 @@
         <div class="mapping-cell" data-label="Use Case"><strong>Distributed training &amp; fine-tuning</strong><br>Multi-node GPU jobs for model training, hyperparameter sweeps</div>
         <div class="mapping-cell" data-label="Capability">Ray cluster orchestration, multi-node GPU scheduling, fault-tolerant checkpointing</div>
         <div class="mapping-cell" data-label="Feature">KubeRay (RayCluster + RayJob)</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Multi-model LLM inference with Ray Serve</strong><br>Serve multiple models from one cluster with per-model autoscaling</div>
+        <div class="mapping-cell" data-label="Capability">Built-in 3-tier autoscaling (app replicas, worker pods, GPU nodes), model multiplexing, multi-node tensor parallelism</div>
+        <div class="mapping-cell" data-label="Feature">KubeRay (RayService) + vLLM</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Fast model loading &amp; cold-start reduction</strong><br>Sub-minute scale-out for large models (70B+)</div>
+        <div class="mapping-cell" data-label="Capability">Shared NAS/PVC (RWX), accelerated loaders (Run:ai Streamer, Tensorizer), torch compile caching</div>
+        <div class="mapping-cell" data-label="Feature">RWX PVC + vLLM load-format options + RHOAI Model Registry (<code>pvc://</code> URIs)</div>
       </div>
     </div>
   </div>
@@ -1711,11 +1746,11 @@
     <div class="step-item">
       <div class="step-dot">9</div>
       <div class="step-content">
-        <div class="step-title">Distributed Training with KubeRay</div>
+        <div class="step-title">KubeRay: Training + Ray Serve Inference</div>
         <div class="step-detail">
-          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: Training jobs are ad-hoc, no orchestration for multi-node GPU workloads</p>
-          <p style="font-size:0.8rem;color:var(--text-secondary);">Enable the Ray component in the DataScienceCluster CR. Data scientists submit RayJob or RayCluster specs for fine-tuning, hyperparameter sweeps, and distributed training. KubeRay manages multi-node GPU scheduling, auto-scales worker pools, and integrates with Kueue for fair-share admission. Training workloads run in Kueue-governed queues with borrowing from idle inference capacity.</p>
-          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why ninth:</strong> Training orchestration depends on Kueue for admission control and fair sharing. Without Kueue, training jobs compete in a free-for-all. Set <code>ray: Managed</code> and <code>trainingoperator: Managed</code> in the DataScienceCluster CR.</p>
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: Training jobs are ad-hoc; multi-model inference needs built-in autoscaling</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Enable the Ray component in the DataScienceCluster CR. <strong>For training:</strong> submit RayJob or RayCluster specs for fine-tuning, hyperparameter sweeps, and distributed training. KubeRay manages multi-node GPU scheduling, auto-scales worker pools, and integrates with Kueue for fair-share admission. <strong>For inference:</strong> Ray Serve wraps vLLM with 3-tier autoscaling &mdash; application-level replicas scale on <code>target_ongoing_requests</code>, the Ray Autoscaler adjusts worker pods, and the cluster autoscaler provisions GPU nodes. Multiple models share a single RayService cluster with independent scaling policies.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why ninth:</strong> Training orchestration depends on Kueue for admission control and fair sharing. Ray Serve inference is an alternative to KServe+llm-d for teams that need multi-node tensor-parallel serving or multi-model multiplexing from a single cluster. Set <code>ray: Managed</code> in the DataScienceCluster CR.</p>
         </div>
         <span class="step-deliverable">Enables: Governed distributed training &middot; Effort: 1&ndash;2 weeks &middot; Prereq: Kueue + RHOAI</span>
       </div>
