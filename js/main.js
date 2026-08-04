@@ -177,10 +177,36 @@
     });
   });
 
+  var sectionGroupMap = {};
+  (function() {
+    var groups = [
+      ['problems', 'discovery'],
+      ['challenges', 'layers'],
+      ['loops', 'mechanisms'],
+      ['governance', 'finops']
+    ];
+    groups.forEach(function(group) {
+      var leaderIdx = -1;
+      for (var i = 0; i < allSections.length; i++) {
+        if (allSections[i].id === group[0]) { leaderIdx = i; break; }
+      }
+      if (leaderIdx < 0) return;
+      for (var g = 1; g < group.length; g++) {
+        for (var j = 0; j < allSections.length; j++) {
+          if (allSections[j].id === group[g]) { sectionGroupMap[j] = leaderIdx; break; }
+        }
+      }
+    });
+  })();
+
   function revealNext() {
     if (revealedIndex < allSections.length - 1) {
       revealedIndex++;
       allSections[revealedIndex].classList.add('p-revealed');
+      while (revealedIndex + 1 < allSections.length && sectionGroupMap[revealedIndex + 1] !== undefined) {
+        revealedIndex++;
+        allSections[revealedIndex].classList.add('p-revealed');
+      }
       allSections[revealedIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
@@ -188,7 +214,13 @@
   function revealPrev() {
     if (revealedIndex > 0) {
       allSections[revealedIndex].classList.remove('p-revealed');
-      revealedIndex--;
+      while (revealedIndex > 0 && sectionGroupMap[revealedIndex] !== undefined) {
+        allSections[revealedIndex].classList.remove('p-revealed');
+        revealedIndex--;
+      }
+      if (revealedIndex > 0 && sectionGroupMap[revealedIndex] === undefined) {
+        revealedIndex--;
+      }
       allSections[revealedIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }

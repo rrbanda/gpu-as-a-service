@@ -1515,6 +1515,8 @@ body.presenter-mode .presenter-toggle { background: var(--l2-mechanisms); color:
 body.presenter-mode .section:not(.p-revealed) { opacity: 0.06 !important; transform: none !important; pointer-events: none; filter: blur(2px); transition: opacity 0.5s, filter 0.5s; }
 body.presenter-mode .section.p-revealed { opacity: 1 !important; filter: none; pointer-events: auto; transition: opacity 0.5s, filter 0.5s; }
 body.presenter-mode #hero { opacity: 1 !important; filter: none; pointer-events: auto; }
+body.presenter-mode .section-arrow { display: none !important; }
+body.presenter-mode .scroll-indicator { display: none !important; }
 
 .presenter-hint {
   position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 999;
