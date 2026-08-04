@@ -949,7 +949,7 @@ details.yaml-toggle[open] summary {
 
 .flashcard {
   perspective: 600px;
-  height: 160px;
+  height: 210px;
   cursor: pointer;
 }
 
@@ -970,13 +970,14 @@ details.yaml-toggle[open] summary {
   inset: 0;
   backface-visibility: hidden;
   border-radius: var(--radius);
-  padding: 14px 16px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
   border: 1px solid var(--border);
+  overflow: hidden;
 }
 
 .flashcard-front {
@@ -1001,9 +1002,9 @@ details.yaml-toggle[open] summary {
 }
 
 .flashcard-back p {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 .flashcard-tap {
