@@ -69,55 +69,57 @@
       <span class="section-label" style="margin-bottom:0;">Session Roadmap</span>
     </div>
 
-    <div class="agenda-timeline">
-      <div class="agenda-step">
-        <div class="agenda-dot"></div>
-        <div class="agenda-num">01</div>
-        <a href="#gpu101" style="text-decoration:none;"><div class="agenda-title">Why GPUs?</div></a>
-        <div class="agenda-time">The hotel analogy</div>
-      </div>
-      <div class="agenda-step">
-        <div class="agenda-dot"></div>
-        <div class="agenda-num">02</div>
-        <a href="#vocab" style="text-decoration:none;"><div class="agenda-title">Building Blocks</div></a>
-        <div class="agenda-time">Key concepts (tap to flip)</div>
-      </div>
-      <div class="agenda-step">
-        <div class="agenda-dot"></div>
-        <div class="agenda-num">03</div>
-        <a href="#problems" style="text-decoration:none;"><div class="agenda-title">Problem + Environment</div></a>
-        <div class="agenda-time">Why GPUs sit idle &amp; what we see</div>
-      </div>
-      <div class="agenda-step">
-        <div class="agenda-dot"></div>
-        <div class="agenda-num">04</div>
-        <a href="#layers" style="text-decoration:none;"><div class="agenda-title">The Architecture</div></a>
-        <div class="agenda-time">Five layers + three loops</div>
-      </div>
-      <div class="agenda-step">
-        <div class="agenda-dot"></div>
-        <div class="agenda-num">05</div>
-        <a href="#decision" style="text-decoration:none;"><div class="agenda-title">Your Pattern</div></a>
-        <div class="agenda-time">Decision tree + deep dives</div>
-      </div>
-      <div class="agenda-step">
-        <div class="agenda-dot"></div>
-        <div class="agenda-num">06</div>
-        <a href="#nextsteps" style="text-decoration:none;"><div class="agenda-title">Solution Roadmap</div></a>
-        <div class="agenda-time">10 steps: problem &rarr; solution &rarr; order</div>
-      </div>
+    <div class="agenda-grid">
+      <a href="#gpu101" class="agenda-card" style="--card-accent:var(--l1-fleet);">
+        <span class="agenda-num">01</span>
+        <span class="agenda-title">Why GPUs?</span>
+        <span class="agenda-desc">The hotel analogy</span>
+      </a>
+      <a href="#vocab" class="agenda-card" style="--card-accent:var(--l2-mechanisms);">
+        <span class="agenda-num">02</span>
+        <span class="agenda-title">Building Blocks</span>
+        <span class="agenda-desc">Key concepts</span>
+      </a>
+      <a href="#problems" class="agenda-card" style="--card-accent:var(--l3-governance);">
+        <span class="agenda-num">03</span>
+        <span class="agenda-title">Problem + Environment</span>
+        <span class="agenda-desc">Why GPUs sit idle</span>
+      </a>
+      <a href="#layers" class="agenda-card" style="--card-accent:var(--l4-ai-aware);">
+        <span class="agenda-num">04</span>
+        <span class="agenda-title">The Architecture</span>
+        <span class="agenda-desc">Five layers + three loops</span>
+      </a>
+      <a href="#decision" class="agenda-card" style="--card-accent:var(--l5-self-service);">
+        <span class="agenda-num">05</span>
+        <span class="agenda-title">Your Pattern</span>
+        <span class="agenda-desc">Decision tree + deep dives</span>
+      </a>
+      <a href="#nextsteps" class="agenda-card" style="--card-accent:var(--green);">
+        <span class="agenda-num">06</span>
+        <span class="agenda-title">Solution Roadmap</span>
+        <span class="agenda-desc">Problem &rarr; solution &rarr; order</span>
+      </a>
     </div>
   </div>
 
-  <!-- LIVE STICKY NOTES (visible in Presenter Mode) -->
+  <!-- PAIN POINTS — always visible, all shown at once -->
   <div class="wb-sticky-zone">
-    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">These are the pain points we hear most often. Do any sound familiar?</p>
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-      <button id="wb-seed-stickies" class="wb-sticky-btn">Reveal Common Pain Points</button>
-      <button id="wb-sticky-add" class="wb-sticky-btn" style="background:var(--raised);color:var(--text);border:1px solid var(--border);">+ Add Custom</button>
+    <p style="font-size:0.95rem;color:var(--text-secondary);margin-bottom:16px;">These are the pain points we hear most often. Do any sound familiar?</p>
+    <div id="wb-sticky-board" class="wb-sticky-board">
+      <div class="wb-sticky-note">Provisioning takes days &mdash; tickets, approvals, wait</div>
+      <div class="wb-sticky-note">GPUs sit idle overnight but are still reserved</div>
+      <div class="wb-sticky-note">No visibility into who is using what</div>
+      <div class="wb-sticky-note">Small models get a full GPU &mdash; massive waste</div>
+      <div class="wb-sticky-note">Training jobs crash inference with no warning</div>
+      <div class="wb-sticky-note">No way to share GPUs across teams</div>
+      <div class="wb-sticky-note">Cost attribution is impossible &mdash; no showback</div>
+      <div class="wb-sticky-note">Data scientists hoard GPUs in idle notebooks</div>
     </div>
-    <input id="wb-sticky-input" class="wb-sticky-input" type="text" placeholder="Type a custom pain point and press Enter&hellip;" style="display:none;margin-bottom:12px;" />
-    <div id="wb-sticky-board" class="wb-sticky-board"></div>
+    <div style="margin-top:16px;display:flex;gap:8px;align-items:center;">
+      <button id="wb-sticky-add" class="wb-sticky-btn" style="background:var(--raised);color:var(--text);border:1px solid var(--border);">+ Add Custom</button>
+      <input id="wb-sticky-input" class="wb-sticky-input" type="text" placeholder="Type a custom pain point and press Enter&hellip;" style="display:none;" />
+    </div>
   </div>
 
   <a href="#gpu101" class="scroll-indicator" title="Start the session">&#8595;</a>
