@@ -33,8 +33,7 @@
 <nav id="side-nav">
   <a href="#hero" data-label="Opening" class="active"></a>
   <a href="#gpu101" data-label="Why GPUs?"></a>
-  <a href="#vocab" data-label="Building Blocks"></a>
-  <a href="#problems" data-label="Three Problems"></a>
+  <a href="#vocab" data-label="Concepts + Problems"></a>
   <a href="#discovery" data-label="The Environment"></a>
   <a href="#challenges" data-label="AI Challenges"></a>
   <a href="#layers" data-label="Five Layers"></a>
@@ -78,13 +77,13 @@
       </a>
       <a href="#vocab" class="agenda-card" style="--card-accent:var(--l2-mechanisms);">
         <span class="agenda-num">02</span>
-        <span class="agenda-title">Building Blocks</span>
-        <span class="agenda-desc">Key concepts</span>
+        <span class="agenda-title">Concepts + Problems</span>
+        <span class="agenda-desc">Key terms &amp; why GPUs sit idle</span>
       </a>
-      <a href="#problems" class="agenda-card" style="--card-accent:var(--l3-governance);">
+      <a href="#discovery" class="agenda-card" style="--card-accent:var(--l3-governance);">
         <span class="agenda-num">03</span>
-        <span class="agenda-title">Problem + Environment</span>
-        <span class="agenda-desc">Why GPUs sit idle</span>
+        <span class="agenda-title">The Environment</span>
+        <span class="agenda-desc">Example fleet &amp; waste math</span>
       </a>
       <a href="#layers" class="agenda-card" style="--card-accent:var(--l4-ai-aware);">
         <span class="agenda-num">04</span>
@@ -357,43 +356,24 @@
 
     </div>
   </details>
-  <a href="#problems" class="section-arrow" title="Next: The Problem">&#8595;</a>
-</section>
 
-<!-- THREE PROBLEMS -->
-<section id="problems" class="section">
+  <hr id="problems" style="border:none;border-top:1px solid var(--border-subtle);margin:32px 0 24px;">
   <span class="section-label">Why GPUaaS for AI Is Different</span>
-  <h2>The Three Problems</h2>
+  <h2 style="margin-bottom:0;">The Three Problems</h2>
 
   <div class="grid-3" style="margin-top:24px;">
     <div class="card">
       <h3>Problem 1: Memory Claimed &#8800; Demand Served</h3>
-      <p>Serving frameworks claim GPU memory upfront by configuration, regardless of how much work is arriving. A model reporting 90% GPU memory utilization may be serving zero requests. &ldquo;The GPUs are full&rdquo; is usually a setting, not a measure of demand. Enterprise GPU fleets show 30&ndash;50% idle rates. Overprovisioning by 300% is common.</p>
+      <p>Serving frameworks claim GPU memory upfront regardless of actual work. &ldquo;The GPUs are full&rdquo; is usually a setting, not a measure of demand.</p>
 
       <div class="gpu-bars" id="gpu-bars">
         <div class="gpu-bar-row">
-          <span class="gpu-bar-label">Model A</span>
+          <span class="gpu-bar-label">LLM</span>
           <div class="gpu-bar-track">
             <div class="gpu-bar-mem" data-w="90"></div>
             <div class="gpu-bar-req" data-w="5"></div>
           </div>
           <span class="gpu-bar-pct">90/5%</span>
-        </div>
-        <div class="gpu-bar-row">
-          <span class="gpu-bar-label">Model B</span>
-          <div class="gpu-bar-track">
-            <div class="gpu-bar-mem" data-w="80"></div>
-            <div class="gpu-bar-req" data-w="40"></div>
-          </div>
-          <span class="gpu-bar-pct">80/40%</span>
-        </div>
-        <div class="gpu-bar-row">
-          <span class="gpu-bar-label">Model C</span>
-          <div class="gpu-bar-track">
-            <div class="gpu-bar-mem" data-w="100"></div>
-            <div class="gpu-bar-req" data-w="70"></div>
-          </div>
-          <span class="gpu-bar-pct">100/70%</span>
         </div>
         <div class="gpu-bar-row">
           <span class="gpu-bar-label">Guard Rail</span>
@@ -422,7 +402,7 @@
       </div>
       <div class="bar-legend">
         <span><span class="dot red"></span> Memory claimed</span>
-        <span><span class="dot green"></span> Actual request load</span>
+        <span><span class="dot green"></span> Actual load</span>
       </div>
     </div>
 

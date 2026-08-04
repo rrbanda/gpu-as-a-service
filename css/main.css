@@ -209,8 +209,13 @@ p { color: var(--text-secondary); }
 }
 
 .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+
+#vocab .grid-3 { margin-top: 12px; }
+#vocab .grid-3 .card { padding: 16px; }
+#vocab .grid-3 .card h3 { font-size: 0.85rem; margin-bottom: 6px; }
+#vocab .grid-3 .card p { font-size: 0.78rem; line-height: 1.5; }
 
 #hero {
   min-height: 100vh;
@@ -938,13 +943,13 @@ details.yaml-toggle[open] summary {
 .flashcard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin: 24px 0;
+  gap: 12px;
+  margin: 16px 0;
 }
 
 .flashcard {
   perspective: 600px;
-  height: 180px;
+  height: 160px;
   cursor: pointer;
 }
 
@@ -965,7 +970,7 @@ details.yaml-toggle[open] summary {
   inset: 0;
   backface-visibility: hidden;
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   justify-content: center;

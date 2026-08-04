@@ -180,7 +180,6 @@
   var sectionGroupMap = {};
   (function() {
     var groups = [
-      ['problems', 'discovery'],
       ['challenges', 'layers'],
       ['loops', 'mechanisms'],
       ['governance', 'finops']
