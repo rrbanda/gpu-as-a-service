@@ -43,7 +43,7 @@
   <a href="#finops" data-label="GPU FinOps"></a>
   <a href="#patterns" data-label="Architecture"></a>
   <a href="#decision" data-label="Your Pattern"></a>
-  <a href="#results" data-label="Results"></a>
+  <a href="#results" data-label="Opportunity"></a>
   <a href="#stack" data-label="Tech Stack"></a>
   <a href="#usecases" data-label="Use Cases"></a>
   <a href="#personas" data-label="Personas"></a>
@@ -244,7 +244,7 @@
           <div class="flashcard-tap">tap to flip</div>
         </div>
         <div class="flashcard-back" style="border-top:3px solid var(--l5-self-service);">
-          <p>Admin-defined GPU &ldquo;t-shirt sizes&rdquo; that data scientists select from a dropdown. Instead of writing YAML, users pick &ldquo;Small GPU&rdquo; or &ldquo;Large Inference&rdquo; &mdash; the platform maps this to the right GPU type, MIG profile, and Kueue queue.</p>
+          <p>Evolution of Hardware Profiles &mdash; admin-defined GPU &ldquo;t-shirt sizes&rdquo; that data scientists select from a dropdown. Instead of writing YAML, users pick &ldquo;Small GPU&rdquo; or &ldquo;Large Inference&rdquo; &mdash; the platform maps this to the right GPU type, MIG profile, and Kueue queue. Targeted for RHOAI 3.7.</p>
           <div class="flashcard-tap">tap to flip back</div>
         </div>
       </div>
@@ -627,7 +627,7 @@
         <span class="layer-expand-icon">&#9662;</span>
       </div>
       <div class="layer-detail">
-        <p>MIG (Multi-Instance GPU) carves a single A100 or H100 into hardware-isolated partitions with dedicated memory bandwidth and compute cores. DRA (Dynamic Resource Allocation) replaces opaque <code>nvidia.com/gpu: 1</code> requests with attribute-based claims. NVIDIA donated the DRA GPU driver to CNCF at KubeCon Europe 2026. Red Hat shipped DRA GA in OpenShift 4.21.</p>
+        <p>MIG (Multi-Instance GPU) carves a single A100 or H100 into hardware-isolated partitions with dedicated memory bandwidth and compute cores. DRA (Dynamic Resource Allocation) replaces opaque <code>nvidia.com/gpu: 1</code> requests with attribute-based claims. NVIDIA donated the DRA GPU driver to CNCF at KubeCon Europe 2026. DRA GA in RHOAI is targeted for 3.6/3.7.</p>
         <div class="component-pills">
           <span class="component-pill">NVIDIA GPU Operator</span>
           <span class="component-pill">MIG Manager</span>
@@ -1152,40 +1152,33 @@
 
 <!-- VALIDATED RESULTS -->
 <section id="results" class="section">
-  <span class="section-label">Production Results</span>
-  <h2>Validated Results</h2>
+  <span class="section-label">The Opportunity</span>
+  <h2>What the Industry Data Shows</h2>
 
   <div class="stat-grid" style="margin-top:24px;">
     <div class="stat-card">
-      <div class="stat-number green" data-target="61" data-suffix="%">0%</div>
-      <div class="stat-label">GPU fleet reduction</div>
-      <div class="stat-source">Global Bank (256 &#8594; 99 H200 GPUs)</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number green" data-target="80" data-suffix="%">0%</div>
-      <div class="stat-label">GPU reduction</div>
-      <div class="stat-source">Global Bank (2K checks/min, p99 &lt; 500ms)</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number green" data-target="2.5" data-suffix="M" data-prefix="$" data-decimals="1">$0M</div>
-      <div class="stat-label">Projected savings</div>
-      <div class="stat-source">Major Telecom (10&ndash;30x TTFT improvement)</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number green" data-target="93" data-suffix="%">0%</div>
-      <div class="stat-label">KV-cache hit rate</div>
-      <div class="stat-source">Major Telecom (15x P95 TTFT, 40% throughput)</div>
-    </div>
-    <div class="stat-card">
       <div class="stat-number amber" data-target="50" data-suffix="%" data-range="30-">0%</div>
-      <div class="stat-label">Typical idle rate</div>
-      <div class="stat-source">Industry Average</div>
+      <div class="stat-label">Typical GPU idle rate</div>
+      <div class="stat-source">Enterprise AI fleets (industry surveys)</div>
     </div>
     <div class="stat-card">
       <div class="stat-number red" data-target="300" data-suffix="%">0%</div>
       <div class="stat-label">Common overprovisioning</div>
-      <div class="stat-source">Industry Average</div>
+      <div class="stat-source">Peak-provisioned GPU clusters</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-number green" data-target="7" data-suffix="x">0x</div>
+      <div class="stat-label">MIG density improvement</div>
+      <div class="stat-source">7 guard models on 1 A100 vs. 7 GPUs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number green" data-target="85" data-suffix="%">0%</div>
+      <div class="stat-label">Idle capacity recoverable</div>
+      <div class="stat-source">Scale-to-zero on low-traffic models</div>
+    </div>
+  </div>
+  <div class="insight-box" style="margin-top:16px;">
+    <strong>Note:</strong> These figures represent industry patterns and architectural capabilities, not customer-specific benchmarks. Actual results depend on workload mix, GPU types, and organizational readiness.
   </div>
   <a href="#stack" class="section-arrow" title="Next: Tech Stack">&#8595;</a>
 </section>
@@ -1228,7 +1221,7 @@
     </div>
     <div class="tech-card">
       <div class="tech-name">DRA</div>
-      <div class="tech-org">Kubernetes</div>
+      <div class="tech-org">Kubernetes (RHOAI GA targeted 3.6/3.7)</div>
       <div class="tech-desc">Dynamic Resource Allocation &mdash; declarative, attribute-based GPU claims replacing opaque integers</div>
     </div>
     <div class="tech-card">
@@ -1238,13 +1231,13 @@
     </div>
     <div class="tech-card">
       <div class="tech-name">KEDA</div>
-      <div class="tech-org">CNCF Graduated</div>
+      <div class="tech-org">CNCF Graduated (GA for llm-d in RHOAI 3.6)</div>
       <div class="tech-desc">Event-driven autoscaling &mdash; scales on queue depth, custom Prometheus metrics, WVA signals</div>
     </div>
     <div class="tech-card">
       <div class="tech-name">Compute Profiles</div>
-      <div class="tech-org">Red Hat</div>
-      <div class="tech-desc">Self-service GPU catalog &mdash; admin-defined GPU t-shirt sizes for data scientists</div>
+      <div class="tech-org">Red Hat (targeted RHOAI 3.7)</div>
+      <div class="tech-desc">Evolution of Hardware Profiles &mdash; admin-defined GPU t-shirt sizes for data scientists</div>
     </div>
     <div class="tech-card">
       <div class="tech-name">Red Hat ACM</div>
@@ -1548,7 +1541,7 @@
         <div class="step-detail">
           <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: <code>nvidia.com/gpu: 1</code> &mdash; no GPU type, memory, or MIG awareness</p>
           <p style="font-size:0.8rem;color:var(--text-secondary);">Install the NVIDIA DRA driver alongside the GPU Operator (with legacy device plugin disabled). Label DRA-targeted nodes with <code>nvidia.com/dra-kubelet-plugin=true</code>. Define DeviceClasses for each GPU type (H100, A100, A10G) and MIG profiles. Teams can now request specific GPU types and MIG slices declaratively via ResourceClaimTemplates instead of opaque integers.</p>
-          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why third:</strong> DRA is the foundation for type-aware GPU scheduling. Everything after this step depends on the cluster knowing <em>what kind</em> of GPU a workload needs, not just <em>how many</em>. Requires OpenShift 4.21+ (Kubernetes 1.34) where DRA is GA.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why third:</strong> DRA is the foundation for type-aware GPU scheduling. Everything after this step depends on the cluster knowing <em>what kind</em> of GPU a workload needs, not just <em>how many</em>. DRA GA in RHOAI is targeted for 3.6/3.7 (requires OpenShift 4.21+ / Kubernetes 1.34).</p>
         </div>
         <span class="step-deliverable">Enables: Type-aware GPU claims &middot; Effort: 1&ndash;2 weeks &middot; Prereq: OCP 4.21+</span>
       </div>
@@ -1592,7 +1585,7 @@
         <div class="step-detail">
           <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: GenAI platform provisioned for peak (16 A100s), averages 25% utilization</p>
           <p style="font-size:0.8rem;color:var(--text-secondary);">Deploy KEDA (Custom Metrics Autoscaler) with WVA for inference-aware scaling. KEDA watches queue depth and WVA&rsquo;s <code>wva_desired_replicas</code> metric. API endpoints scale from 2 replicas at trough to 12 at market open &mdash; automatically. No manual provisioning for peak.</p>
-          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why sixth:</strong> Autoscaling amplifies scale-to-zero. Together they create a fully elastic inference layer: zero at night, minimal at trough, scaled at peak. Requires KEDA operator + User Workload Monitoring for Prometheus metrics.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why sixth:</strong> Autoscaling amplifies scale-to-zero. Together they create a fully elastic inference layer: zero at night, minimal at trough, scaled at peak. KEDA GA for llm-d is targeted in RHOAI 3.6. Requires KEDA operator + User Workload Monitoring for Prometheus metrics.</p>
         </div>
         <span class="step-deliverable">Recovers: ~12 A100s (peak-to-avg gap) &middot; Effort: 1&ndash;2 weeks &middot; Prereq: KEDA + monitoring</span>
       </div>
@@ -1651,7 +1644,7 @@
         <div class="step-title">Self-Service &amp; Multi-Cluster</div>
         <div class="step-detail">
           <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: GPU access via ServiceNow ticket (3&ndash;5 day turnaround) + no cross-cluster visibility</p>
-          <p style="font-size:0.8rem;color:var(--text-secondary);">Deploy Accelerator Profiles (available now) and Compute Profiles (roadmap) so data scientists select GPU sizes from the RHOAI dashboard &mdash; no YAML, no tickets. Deploy Red Hat ACM for fleet-wide GPU visibility, policy-based workload placement, and GitOps-driven configuration consistency across production, staging, and dev clusters. Transition from showback to chargeback once data has built organizational trust.</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Deploy Accelerator Profiles (available now) and Compute Profiles (targeted RHOAI 3.7) so data scientists select GPU sizes from the RHOAI dashboard &mdash; no YAML, no tickets. Deploy Red Hat ACM for fleet-wide GPU visibility, policy-based workload placement, and GitOps-driven configuration consistency across production, staging, and dev clusters. Transition from showback to chargeback once data has built organizational trust.</p>
           <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why last:</strong> Self-service requires all the guardrails to be in place first &mdash; Kueue quotas, DRA type-awareness, MIG slicing, cost visibility. Without them, self-service means uncontrolled GPU consumption. ACM extends the single-cluster wins across the fleet.</p>
         </div>
         <span class="step-deliverable">Enables: Self-service + fleet management &middot; Effort: 3&ndash;4 weeks &middot; Prereq: All above</span>
