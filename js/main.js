@@ -182,7 +182,7 @@
     var groups = [
       ['challenges', 'layers'],
       ['loops', 'mechanisms'],
-      ['governance', 'finops']
+      ['governance', 'maas', 'training', 'finops']
     ];
     groups.forEach(function(group) {
       var leaderIdx = -1;
@@ -320,6 +320,72 @@
       list.appendChild(li);
     });
   }
+})();
+
+// ===== PERSONA GATE + AUDIENCE NAVIGATION =====
+(function() {
+  var audienceSections = {
+    csuite: ['hero', 'gpu101', 'discovery', 'results', 'competitive', 'finops', 'roadmap', 'nextsteps'],
+    platform: ['hero', 'gpu101', 'vocab', 'discovery', 'challenges', 'layers', 'loops', 'mechanisms', 'governance', 'maas', 'training', 'finops', 'patterns', 'decision', 'stack', 'roadmap', 'nextsteps'],
+    datascience: ['hero', 'gpu101', 'vocab', 'maas', 'training', 'mechanisms', 'results', 'usecases', 'personas', 'nextsteps'],
+    architect: ['hero', 'gpu101', 'vocab', 'discovery', 'challenges', 'layers', 'loops', 'mechanisms', 'governance', 'maas', 'training', 'finops', 'patterns', 'decision', 'competitive', 'results', 'stack', 'usecases', 'personas', 'roadmap', 'nextsteps'],
+    all: null
+  };
+
+  var audienceLabels = {
+    csuite: 'C-Suite',
+    platform: 'Platform Eng',
+    datascience: 'Data Science',
+    architect: 'Solution Arch',
+    all: 'All'
+  };
+
+  function applyAudience(audience) {
+    var allowed = audienceSections[audience];
+
+    document.querySelectorAll('.section').forEach(function(s) {
+      s.classList.remove('audience-dimmed', 'audience-highlighted');
+      if (allowed && allowed.indexOf(s.id) === -1) {
+        s.classList.add('audience-dimmed');
+      }
+    });
+
+    document.querySelectorAll('#side-nav a').forEach(function(link) {
+      var href = link.getAttribute('href').replace('#', '');
+      if (allowed && allowed.indexOf(href) === -1) {
+        link.style.display = 'none';
+      } else {
+        link.style.display = '';
+      }
+    });
+
+    document.querySelectorAll('.audience-btn').forEach(function(b) {
+      b.classList.remove('active');
+      if (b.getAttribute('data-audience') === audience) b.classList.add('active');
+    });
+  }
+
+  function dismissGate(audience) {
+    var gate = document.getElementById('persona-gate');
+    if (gate) gate.classList.add('dismissed');
+    document.body.classList.remove('gate-active');
+    document.body.classList.add('audience-chosen');
+    applyAudience(audience);
+  }
+
+  document.body.classList.add('gate-active');
+
+  document.querySelectorAll('.persona-gate-card, .persona-gate-all').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      dismissGate(btn.getAttribute('data-audience'));
+    });
+  });
+
+  document.querySelectorAll('.audience-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      applyAudience(btn.getAttribute('data-audience'));
+    });
+  });
 })();
 
 var decisionState = {};
