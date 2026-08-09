@@ -72,6 +72,14 @@ gpu-as-a-service/
 ├── KNOWLEDGE_BASE.md       # Consolidated research reference (7 layers)
 ├── SPEAKER_NOTES.md        # Talking points + Q&A preparation
 ├── CHEAT_SHEET.md          # Quick-reference stats, YAML snippets, CLI commands
+├── AGENTS.md               # AI coding assistant instructions (agent-agnostic)
+├── SOURCES.md              # Source registry — every claim tracked with URLs
+├── skills/                 # Agent workflow guides
+│   ├── add-section.md      #   Add a new topic
+│   ├── edit-section.md     #   Update existing content
+│   ├── verify-accuracy.md  #   Fact-check against upstream docs
+│   ├── customize-presentation.md  # Fork for a customer/event
+│   └── section-template.html      # Starting point for new sections
 ├── CONTRIBUTING.md
 ├── LICENSE                 # Apache 2.0
 └── .github/
@@ -168,6 +176,12 @@ Copy the entire repo to any web server. Works on Netlify, Vercel, AWS S3 + Cloud
 - **Mobile responsive** — side nav hides, grids reflow, touch-friendly
 - **Print friendly** — `@media print` stylesheet strips animations
 - **Accessible** — semantic HTML, keyboard navigable
+
+## Contributing
+
+This repo is built for AI-assisted contribution. Any AI coding assistant can add sections, update content, verify accuracy, and customize the presentation by reading `AGENTS.md` and the workflow guides in `skills/`. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+Every factual claim is tracked in [SOURCES.md](SOURCES.md) with authoritative source URLs and verification dates, ensuring 100% technical accuracy.
 
 ## License
 
