@@ -1,0 +1,161 @@
+  <span class="section-label">The Solution &mdash; In Order</span>
+  <h2>Implementation Roadmap</h2>
+  <p style="margin-bottom:8px;">Each step solves a specific problem from the environment above. The order matters &mdash; each phase unlocks the next, and early wins build the confidence to tackle harder problems.</p>
+
+  <div class="steps-timeline">
+
+    <div class="phase-label" style="color:var(--green);">Quick Wins &mdash; Immediate ROI, Zero Risk</div>
+
+    <!-- PHASE 1 -->
+    <div class="step-item">
+      <div class="step-dot">1</div>
+      <div class="step-content">
+        <div class="step-title">Idle GPU Reclamation</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: 22 notebooks holding GPUs with 0 bytes used</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Set <code>NOTEBOOK_CULL_IDLE_TIME</code> on the notebook controller. This is a configuration change &mdash; no new operators, no architecture changes. Notebooks idle beyond the threshold (e.g., 60 minutes) are automatically stopped and their GPUs released. Recovers 22 A10G GPUs immediately.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why first:</strong> Zero risk. Zero cost. Immediate measurable result. Builds credibility with leadership before touching production workloads.</p>
+        </div>
+        <span class="step-deliverable">Recovers: ~22 GPUs &middot; Effort: 1 day &middot; Risk: None</span>
+      </div>
+    </div>
+
+    <!-- PHASE 2 -->
+    <div class="step-item">
+      <div class="step-dot">2</div>
+      <div class="step-content">
+        <div class="step-title">MIG Slicing for Small Models</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: 14 A100s running 1&ndash;3GB guard models at 2.5% VRAM</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Enable MIG on A100 nodes via the NVIDIA GPU Operator MIG Manager. Partition each A100 into 7x 1g.10gb slices. Redeploy the 14 content safety models onto MIG slices. 14 full GPUs collapse to 2 GPUs with MIG &mdash; freeing 12 A100s back to the fleet.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why second:</strong> Highest dollar-value recovery per unit of effort. MIG is hardware-isolated &mdash; no noisy-neighbor risk. Content safety models are non-latency-critical, making them the safest workload to migrate first. Requires NVIDIA GPU Operator (already installed) with MIG Manager enabled.</p>
+        </div>
+        <span class="step-deliverable">Recovers: ~12 A100s &middot; Effort: 1&ndash;2 weeks &middot; Risk: Low</span>
+      </div>
+    </div>
+
+    <div class="phase-label" style="color:var(--l2-mechanisms);">Foundation &mdash; Enable Type-Aware Scheduling</div>
+
+    <!-- PHASE 3 -->
+    <div class="step-item">
+      <div class="step-dot">3</div>
+      <div class="step-content">
+        <div class="step-title">DRA Enablement</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: <code>nvidia.com/gpu: 1</code> &mdash; no GPU type, memory, or MIG awareness</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Install the NVIDIA DRA driver alongside the GPU Operator (with legacy device plugin disabled). Label DRA-targeted nodes with <code>nvidia.com/dra-kubelet-plugin=true</code>. Define DeviceClasses for each GPU type (H100, A100, A10G) and MIG profiles. Teams can now request specific GPU types and MIG slices declaratively via ResourceClaimTemplates instead of opaque integers.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why third:</strong> DRA is the foundation for type-aware GPU scheduling. Everything after this step depends on the cluster knowing <em>what kind</em> of GPU a workload needs, not just <em>how many</em>. DRA GA in RHOAI is targeted for 3.6/3.7 (requires OpenShift 4.21+ / Kubernetes 1.34).</p>
+        </div>
+        <span class="step-deliverable">Enables: Type-aware GPU claims &middot; Effort: 1&ndash;2 weeks &middot; Prereq: OCP 4.21+</span>
+      </div>
+    </div>
+
+    <div class="phase-label" style="color:var(--l4-ai-aware);">Inference Optimization &mdash; Make Every GPU Work Harder</div>
+
+    <!-- PHASE 4 -->
+    <div class="step-item">
+      <div class="step-dot">4</div>
+      <div class="step-content">
+        <div class="step-title">Inference Optimization with llm-d</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: LLM replicas serve duplicate context, no KV-cache reuse across requests</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Deploy llm-d with the Endpoint Picker (EPP) and KV-Cache Indexer. The EPP routes each request to the replica that already has the most relevant context in its KV-cache. Disaggregated prefill/decode separates prompt processing from token generation. Prefix caching reuses shared system prompts across agentic chains. Combined, these reduce per-request latency and enable higher throughput per GPU.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why fourth:</strong> Now that the cluster knows GPU types (DRA), llm-d can request the right GPUs for inference pools. llm-d makes each GPU work harder &mdash; getting more throughput from the same hardware before you need to scale out. Requires RHOAI 3.5+ with Red Hat Connectivity Link and Leader Worker Set operators.</p>
+        </div>
+        <span class="step-deliverable">Improves: Inference throughput per GPU &middot; Effort: 2&ndash;3 weeks &middot; Prereq: RHOAI 3.5</span>
+      </div>
+    </div>
+
+    <!-- PHASE 5 -->
+    <div class="step-item">
+      <div class="step-dot">5</div>
+      <div class="step-content">
+        <div class="step-title">Scale-to-Zero for Inference</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: 36 H100s reserved overnight serving zero requests</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Configure KServe autoscaling with scale-to-zero on model endpoints. Models that receive no traffic for a configurable period (e.g., 15 minutes) release their GPUs entirely. When a new request arrives, KServe cold-starts the model. Pair with KEDA for queue-depth-based scale-up to prevent cold-start latency from reaching users. WVA&rsquo;s <code>minReplicas: 0</code> enables variant-level scale-to-zero.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why fifth:</strong> Scale-to-zero is the biggest single GPU recovery &mdash; 36 H100s overnight. But it requires KServe and llm-d to be in place so that cold-start is manageable and requests route correctly during scale-up. This is where the fleet starts breathing.</p>
+        </div>
+        <span class="step-deliverable">Recovers: ~36 H100s overnight &middot; Effort: 1 week &middot; Prereq: KServe + llm-d</span>
+      </div>
+    </div>
+
+    <!-- PHASE 6 -->
+    <div class="step-item">
+      <div class="step-dot">6</div>
+      <div class="step-content">
+        <div class="step-title">Autoscaling for Bursty APIs</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: GenAI platform provisioned for peak (16 A100s), averages 25% utilization</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Deploy KEDA (Custom Metrics Autoscaler) with WVA for inference-aware scaling. KEDA watches queue depth and WVA&rsquo;s <code>wva_desired_replicas</code> metric. API endpoints scale from 2 replicas at trough to 12 at market open &mdash; automatically. No manual provisioning for peak.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why sixth:</strong> Autoscaling amplifies scale-to-zero. Together they create a fully elastic inference layer: zero at night, minimal at trough, scaled at peak. KEDA GA for llm-d is targeted in RHOAI 3.6. Requires KEDA operator + User Workload Monitoring for Prometheus metrics.</p>
+        </div>
+        <span class="step-deliverable">Recovers: ~12 A100s (peak-to-avg gap) &middot; Effort: 1&ndash;2 weeks &middot; Prereq: KEDA + monitoring</span>
+      </div>
+    </div>
+
+    <div class="phase-label" style="color:var(--l3-governance);">Governance &mdash; Sharing, Fairness, Cost Visibility</div>
+
+    <!-- PHASE 7 -->
+    <div class="step-item">
+      <div class="step-dot">7</div>
+      <div class="step-content">
+        <div class="step-title">Fair-Share Governance with Kueue</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: Training jobs saturate the cluster weekly, inference latency spikes 10x</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Install the Red Hat build of Kueue Operator. Define ResourceFlavors for each GPU type. Create ClusterQueues with guaranteed quotas for inference (high priority, no preemption) and training (lower priority, can borrow from inference when idle, preemptible). Configure cohort-level borrowing so idle inference GPUs flow to training automatically, but reclaim instantly when inference demand returns.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why seventh:</strong> Now that inference is elastic (steps 4&ndash;6), there are regularly idle GPUs to share. Kueue makes that sharing safe. Without elastic inference first, there&rsquo;s nothing to share &mdash; every GPU is statically claimed. Set Kueue to <code>Unmanaged</code> in the DataScienceCluster CR so the standalone Kueue Operator manages scheduling.</p>
+        </div>
+        <span class="step-deliverable">Solves: Training/inference contention &middot; Effort: 2&ndash;3 weeks &middot; Prereq: RH build of Kueue</span>
+      </div>
+    </div>
+
+    <!-- PHASE 8 -->
+    <div class="step-item">
+      <div class="step-dot">8</div>
+      <div class="step-content">
+        <div class="step-title">GPU FinOps &mdash; Metering &amp; Showback</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: Nobody knows what their GPU usage costs</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Enable DCGM Exporter for GPU telemetry. Configure Kueue GPU credit transformations to normalize heterogeneous GPU types (H100 = 100 credits, A100 = 60, MIG slice = 10). Build showback dashboards showing each team&rsquo;s allocated cost, active compute, and idle waste. Start with visibility &mdash; teams change behavior when they can see their cost.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why eighth:</strong> FinOps requires Kueue (for credit normalization) and DCGM (for utilization metrics). Both must be in place first. Start with showback, not chargeback &mdash; let 1&ndash;2 quarters of data build trust before enforcing billing.</p>
+        </div>
+        <span class="step-deliverable">Enables: Cost visibility &middot; Effort: 2 weeks &middot; Prereq: Kueue + DCGM</span>
+      </div>
+    </div>
+
+    <div class="phase-label" style="color:var(--l5-self-service);">Scale &mdash; Training, Self-Service, Multi-Cluster</div>
+
+    <!-- PHASE 9 -->
+    <div class="step-item">
+      <div class="step-dot">9</div>
+      <div class="step-content">
+        <div class="step-title">KubeRay: Training + Ray Serve Inference</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: Training jobs are ad-hoc; multi-model inference needs built-in autoscaling</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Enable the Ray component in the DataScienceCluster CR. <strong>For training:</strong> submit RayJob or RayCluster specs for fine-tuning, hyperparameter sweeps, and distributed training. KubeRay manages multi-node GPU scheduling, auto-scales worker pools, and integrates with Kueue for fair-share admission. <strong>For inference:</strong> Ray Serve wraps vLLM with 3-tier autoscaling &mdash; application-level replicas scale on <code>target_ongoing_requests</code>, the Ray Autoscaler adjusts worker pods, and the cluster autoscaler provisions GPU nodes. Multiple models share a single RayService cluster with independent scaling policies.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why ninth:</strong> Training orchestration depends on Kueue for admission control and fair sharing. Ray Serve inference is an alternative to KServe+llm-d for teams that need multi-node tensor-parallel serving or multi-model multiplexing from a single cluster. Set <code>ray: Managed</code> in the DataScienceCluster CR.</p>
+        </div>
+        <span class="step-deliverable">Enables: Governed distributed training &middot; Effort: 1&ndash;2 weeks &middot; Prereq: Kueue + RHOAI</span>
+      </div>
+    </div>
+
+    <!-- PHASE 10 -->
+    <div class="step-item">
+      <div class="step-dot">10</div>
+      <div class="step-content">
+        <div class="step-title">Self-Service &amp; Multi-Cluster</div>
+        <div class="step-detail">
+          <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Problem solved: GPU access via ServiceNow ticket (3&ndash;5 day turnaround) + no cross-cluster visibility</p>
+          <p style="font-size:0.8rem;color:var(--text-secondary);">Deploy Accelerator Profiles (available now) and Compute Profiles (targeted RHOAI 3.7) so data scientists select GPU sizes from the RHOAI dashboard &mdash; no YAML, no tickets. Deploy Red Hat ACM for fleet-wide GPU visibility, policy-based workload placement, and GitOps-driven configuration consistency across production, staging, and dev clusters. Transition from showback to chargeback once data has built organizational trust.</p>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;"><strong>Why last:</strong> Self-service requires all the guardrails to be in place first &mdash; Kueue quotas, DRA type-awareness, MIG slicing, cost visibility. Without them, self-service means uncontrolled GPU consumption. ACM extends the single-cluster wins across the fleet.</p>
+        </div>
+        <span class="step-deliverable">Enables: Self-service + fleet management &middot; Effort: 3&ndash;4 weeks &middot; Prereq: All above</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="insight-box" style="margin-top:24px;">
+    <strong>The logic of the order:</strong> Steps 1&ndash;2 are zero-risk quick wins that recover GPUs immediately and build organizational confidence. Step 3 (DRA) is the foundation every later step depends on. Steps 4&ndash;6 make inference elastic, creating idle capacity to share. Step 7 (Kueue) makes that sharing safe and fair. Step 8 makes the value visible. Steps 9&ndash;10 open the platform to everyone &mdash; but only after the guardrails are in place.
+  </div>

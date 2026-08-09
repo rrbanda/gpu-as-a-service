@@ -1,0 +1,175 @@
+  <span class="section-label">Recommended Architecture</span>
+  <h2>Production-Friendly GPUaaS Architecture</h2>
+  <p style="margin-bottom:24px;">Guarantee the production envelope first. Then let llm-d/WVA dynamically allocate inside it.</p>
+
+  <!-- Architecture Tree Diagram -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:32px;">
+
+    <!-- GPU Fleet -->
+    <div style="padding:12px 40px;border:2px solid var(--green);border-radius:8px;font-weight:700;font-size:0.95rem;color:var(--green);text-align:center;">GPU FLEET</div>
+    <div style="font-size:0.7rem;color:var(--text-muted);margin:4px 0;">infrastructure capacity policy &#8595;</div>
+
+    <!-- Two branches -->
+    <div style="display:flex;gap:48px;width:100%;max-width:700px;justify-content:center;margin-top:8px;">
+
+      <!-- Left: Production Reservation -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;">
+        <div style="padding:10px 20px;border:2px solid var(--red);border-radius:8px;font-weight:600;font-size:0.85rem;color:var(--red);text-align:center;width:100%;">Prod Reservation</div>
+        <div style="color:var(--text-muted);font-size:0.8rem;">&#8595;</div>
+        <div style="padding:8px 16px;border:2px solid var(--red);border-radius:8px;font-size:0.82rem;color:var(--red);text-align:center;width:100%;">Inference Capacity</div>
+        <div style="color:var(--text-muted);font-size:0.8rem;">&#8595;</div>
+        <div style="padding:10px 20px;background:rgba(6,182,212,0.12);border:2px solid var(--l2-mechanisms);border-radius:8px;font-weight:600;font-size:0.85rem;color:var(--l2-mechanisms);text-align:center;width:100%;">llm-d &rarr; WVA</div>
+        <div style="color:var(--text-muted);font-size:0.8rem;">&#8595;</div>
+        <div style="display:flex;gap:8px;justify-content:center;width:100%;">
+          <div style="padding:8px 16px;background:rgba(34,197,94,0.12);border:1px solid var(--green);border-radius:6px;font-size:0.78rem;color:var(--green);text-align:center;">Model A<br><span style="font-size:0.65rem;color:var(--text-muted);">x replicas</span></div>
+          <div style="padding:8px 16px;background:rgba(34,197,94,0.12);border:1px solid var(--green);border-radius:6px;font-size:0.78rem;color:var(--green);text-align:center;">B<br><span style="font-size:0.65rem;color:var(--text-muted);">x replicas</span></div>
+          <div style="padding:8px 16px;background:rgba(34,197,94,0.12);border:1px solid var(--green);border-radius:6px;font-size:0.78rem;color:var(--green);text-align:center;">C<br><span style="font-size:0.65rem;color:var(--text-muted);">x replicas</span></div>
+        </div>
+      </div>
+
+      <!-- Right: Elastic Pool -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;">
+        <div style="padding:10px 20px;border:2px solid var(--l2-mechanisms);border-radius:8px;font-weight:600;font-size:0.85rem;color:var(--l2-mechanisms);text-align:center;width:100%;position:relative;">
+          Elastic Pool
+          <span style="position:absolute;right:-90px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);font-style:italic;">guaranteed<br>capacity</span>
+        </div>
+        <div style="color:var(--text-muted);font-size:0.8rem;">&#8595;</div>
+        <div style="padding:10px 20px;border:2px dashed var(--l3-governance);border-radius:8px;font-size:0.82rem;color:var(--l3-governance);text-align:center;width:100%;position:relative;">
+          Kueue &mdash; batch / training
+          <span style="position:absolute;right:-90px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);font-style:italic;">borrowable /<br>preemptible</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Chargeback bar -->
+    <div style="margin-top:20px;padding:10px 32px;border:1px solid var(--green);border-radius:6px;font-size:0.78rem;color:var(--green);text-align:center;width:100%;max-width:700px;background:rgba(34,197,94,0.05);">
+      CHARGEBACK / SHOWBACK &mdash; who caused capacity to be held?
+    </div>
+  </div>
+
+  <!-- Component → Question Table -->
+  <h3 style="margin-bottom:12px;">Each Component Answers One Question</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th style="width:35%;">Component</th><th>Question It Answers</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>llm-d EPP</strong></td><td>Where should this <em>request</em> go?</td></tr>
+        <tr><td><strong>WVA / KEDA / HPA</strong></td><td>How many serving <em>replicas</em> are needed?</td></tr>
+        <tr><td><strong>Kueue</strong></td><td>What <em>capacity envelope</em> or admission policy applies?</td></tr>
+        <tr><td><strong>kube-scheduler</strong></td><td>Which actual <em>nodes/GPUs</em> should run the Pods?</td></tr>
+        <tr><td><strong>Cluster Autoscaler</strong></td><td>Do more <em>GPU nodes</em> need to be provisioned?</td></tr>
+        <tr><td><strong>MIG / DRA / Device Plugins</strong></td><td>Which physical GPU <em>device/slice</em> is assigned?</td></tr>
+        <tr><td><strong>Chargeback / Showback</strong></td><td>Who caused capacity to be <em>held</em>, and how efficiently?</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-box" style="margin-top:16px;">
+    <strong>Key insight:</strong> The left path (Prod Reservation) is latency-sensitive &mdash; llm-d routes in milliseconds, WVA scales in seconds. The right path (Elastic Pool) is throughput-oriented &mdash; Kueue queues jobs for minutes to hours and allows borrowing from idle production capacity.
+  </div>
+
+  <!-- Pattern Variations -->
+  <h3 style="margin-top:32px;margin-bottom:12px;">Pattern Variations</h3>
+  <div class="toggle-group">
+    <button class="toggle-btn active" data-pattern="dedicated">Dedicated Inference Pool</button>
+    <button class="toggle-btn" data-pattern="shared">Shared Cluster</button>
+  </div>
+
+  <div class="pattern-view active" id="pattern-dedicated">
+    <h3>Pattern A: Dedicated Inference Pool</h3>
+    <div class="flow-diagram">
+      <span class="flow-node">Request Traffic</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node cyan">llm-d EPP (ms)</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node pink">WVA (sec-min)</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node">kube-scheduler</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node blue">GPU Pool (inference only)</span>
+    </div>
+    <div class="insight-box">
+      <strong>Note:</strong> No Kueue in the path. WVA distributes capacity across models directly. Simpler, lower latency.
+    </div>
+  </div>
+
+  <div class="pattern-view" id="pattern-shared">
+    <h3>Pattern B: Shared Cluster</h3>
+    <div class="flow-diagram">
+      <span class="flow-node blue">GPU Pool (128 H100s)</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node purple">Kueue Governance</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node pink">Inference Pool (60% quota, WVA + llm-d)</span>
+    </div>
+    <div class="flow-diagram" style="margin-top:8px;">
+      <span class="flow-node blue">GPU Pool (128 H100s)</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node purple">Kueue Governance</span>
+      <span class="flow-arrow">&#8594;</span>
+      <span class="flow-node amber">Training Pool (40% quota, batch jobs)</span>
+    </div>
+    <div class="insight-box">
+      <strong>Note:</strong> Kueue prevents training from starving inference. WVA operates freely inside the inference envelope.
+    </div>
+  </div>
+  <!-- WHY NOT JUST KUBERAY? -->
+  <h3 style="margin-top:32px;margin-bottom:12px;">Why Not Just KubeRay?</h3>
+  <p style="margin-bottom:16px;">Ray Serve is an excellent inference engine. In 2026, it supports prefix-aware routing (consistent hashing), disaggregated prefill/decode, and multi-LoRA multiplexing with LRU eviction. For a single team serving models on dedicated GPUs, it may be all you need. The gap emerges at the <strong>platform</strong> level.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th style="width:30%;">Enterprise problem</th><th style="width:35%;">What Ray Serve does</th><th style="width:35%;">What&rsquo;s needed beyond it</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Request routing</strong></td>
+          <td>Consistent hashing for session affinity; prefix-aware routing via <code>session_id</code></td>
+          <td><strong>llm-d EPP</strong> &mdash; precise KV-cache indexing via real-time model server events (ZeroMQ), modular scorer pipeline (prefix + load + latency + LoRA-affinity), deep Kubernetes Gateway API integration</td>
+        </tr>
+        <tr>
+          <td><strong>Prefill/decode disaggregation</strong></td>
+          <td>Supported &mdash; Ray Serve LLM handles P/D with similar TTFT improvements</td>
+          <td><strong>llm-d + NIXL</strong> &mdash; zero-copy GPU-to-GPU KV transfer via RDMA (IB, RoCE, EFA). Bidirectional D&rarr;P pull for multi-turn reuse. Production-grade on OpenShift with InferencePool CRD</td>
+        </tr>
+        <tr>
+          <td><strong>Multi-tenant GPU quotas</strong></td>
+          <td>Not addressed &mdash; Ray manages one cluster for one team</td>
+          <td><strong>Kueue</strong> &mdash; fair-share quotas, borrowing, preemption, priority classes across 4+ teams sharing a GPU fleet</td>
+        </tr>
+        <tr>
+          <td><strong>GPU partitioning</strong></td>
+          <td>Not addressed &mdash; allocates whole GPUs per replica</td>
+          <td><strong>MIG + DRA</strong> &mdash; carve one A100 into 7 isolated slices for small models (guard rails, embeddings). Hardware-isolated, no noisy neighbors</td>
+        </tr>
+        <tr>
+          <td><strong>Cost attribution</strong></td>
+          <td>No concept of GPU credits or showback</td>
+          <td><strong>FinOps layer</strong> &mdash; DCGM telemetry + Kueue GPU credit normalization + showback/chargeback dashboards</td>
+        </tr>
+        <tr>
+          <td><strong>Self-service abstractions</strong></td>
+          <td>Requires YAML (RayService manifests, serveConfigV2)</td>
+          <td><strong>Compute Profiles</strong> &mdash; data scientists pick &ldquo;Small GPU&rdquo; from a dropdown; the platform maps it to the right GPU type, MIG profile, and queue</td>
+        </tr>
+        <tr>
+          <td><strong>Air-gapped &amp; regulated</strong></td>
+          <td>Assumes network access for image pulls, model downloads</td>
+          <td><strong>OpenShift</strong> &mdash; disconnected mirror registries, FIPS 140-2 crypto, signed OCI artifacts, FedRAMP-capable control plane</td>
+        </tr>
+        <tr>
+          <td><strong>Multi-cluster orchestration</strong></td>
+          <td>Single-cluster only</td>
+          <td><strong>ACM</strong> &mdash; policy-based workload placement, fleet-wide GPU visibility, GitOps across clusters</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-box" style="margin-top:16px;">
+    <strong>When Ray Serve IS the right choice:</strong> You need multi-node tensor parallelism (model too large for one node). You want to serve many fine-tuned LoRA variants from a shared replica pool (<code>dynamic_lora_loading_path</code> with LRU eviction, <code>max_num_adapters_per_replica</code>). Your team already uses Ray for training and wants a unified platform. In these cases, KubeRay + Kueue is a strong combination &mdash; Ray handles the inference/training plane, Kueue governs the capacity.
+  </div>

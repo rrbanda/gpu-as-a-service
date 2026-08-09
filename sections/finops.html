@@ -1,0 +1,100 @@
+  <span class="section-label">GPU FinOps</span>
+  <h2>GPU FinOps &mdash; Chargeback</h2>
+  <p style="font-size:0.8rem;color:var(--amber);margin-bottom:16px;font-style:italic;">&#9889; Think: your electricity bill &mdash; you see exactly how many kilowatt-hours each department consumed, when peak usage happened, and what it cost. Start by showing the bill (showback). Enforce payment (chargeback) once everyone trusts the numbers.</p>
+
+  <h3 style="margin-top:20px;">Metering Pipeline</h3>
+  <div class="flow-diagram" style="margin-bottom:24px;">
+    <span class="flow-node amber">Metering (what consumed?)</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node purple">Rating (what rate?)</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node cyan">Allocation (who pays?)</span>
+  </div>
+
+  <h3>Two Core Principles</h3>
+  <div class="grid-2" style="margin:16px 0 24px;">
+    <div class="card">
+      <h3 style="font-size:0.95rem;">Charge for allocation, not utilization</h3>
+      <p>Tying billing to utilization makes costs unpredictable and incentivizes gaming &mdash; teams run busy loops to look efficient.</p>
+    </div>
+    <div class="card">
+      <h3 style="font-size:0.95rem;">Billable share = max(compute share, memory share)</h3>
+      <p>A model using 20% compute but 70% VRAM is billed at 70%.</p>
+    </div>
+  </div>
+
+  <h3>What Gets Charged vs What Gets Shown</h3>
+  <div class="grid-2" style="margin:16px 0 24px;">
+    <div class="card" style="border-left:3px solid var(--red);">
+      <h3 style="font-size:0.95rem; color:var(--red);">Charge For</h3>
+      <ul style="margin:8px 0 0;padding-left:18px;font-size:0.85rem;">
+        <li>Allocated GPU-hours (reserved capacity)</li>
+        <li>Burst / borrowing above guaranteed quota</li>
+        <li>Premium priority tier surcharge</li>
+        <li>Dedicated topology reservation (NVLink groups)</li>
+        <li>Token throughput (API-style billing)</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green);">
+      <h3 style="font-size:0.95rem; color:var(--green);">Show (Don&rsquo;t Charge)</h3>
+      <ul style="margin:8px 0 0;padding-left:18px;font-size:0.85rem;">
+        <li>Queue wait time (scheduler delay)</li>
+        <li>Platform maintenance windows</li>
+        <li>Failed placement attempts</li>
+        <li>Idle allocation visibility (optimization signal)</li>
+        <li>Cross-team borrowing credits returned</li>
+      </ul>
+    </div>
+  </div>
+  <div class="insight-box" style="margin-bottom:24px;">
+    <strong>Why separate them?</strong> Charging for queue wait punishes teams for platform-level capacity gaps. Showing it drives FinOps conversations about fleet sizing. Charging for failed placements creates perverse incentives to avoid experimentation.
+  </div>
+
+  <h3>FOCUS Specification</h3>
+  <div class="card" style="margin-bottom:24px;border-left:3px solid var(--amber);">
+    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;"><strong>FOCUS v1.4</strong> (FinOps Open Cost and Usage Specification) standardizes billing datasets across cloud and Kubernetes environments. Key for GPU chargeback: provides a common schema for GPU-hours, resource attribution, and multi-vendor cost normalization. Version 1.5 will add AI token-level cost breakdown &mdash; essential for MaaS billing.</p>
+    <p style="font-size:0.78rem;color:var(--text-muted);margin-top:8px;"><strong>Implementation path:</strong> Start with 90-day showback &rarr; enforce label taxonomy (app.kubernetes.io/name, team, cost-centre) via OPA Gatekeeper &rarr; correlate DCGM metrics with K8s metadata &rarr; graduate to chargeback once data is trusted.</p>
+  </div>
+
+  <h3>Showback Dashboard</h3>
+  <div class="dashboard-mock">
+    <div class="dashboard-header">
+      <span class="dashboard-title">Team: Model Engineering</span>
+      <span class="dashboard-period">July 2026</span>
+    </div>
+    <div class="dashboard-metrics">
+      <div class="dashboard-metric">
+        <div class="value" style="color:var(--red);">$42K</div>
+        <div class="label">Allocated Cost</div>
+      </div>
+      <div class="dashboard-metric">
+        <div class="value" style="color:var(--green);">$24K</div>
+        <div class="label">Active Compute</div>
+      </div>
+      <div class="dashboard-metric">
+        <div class="value" style="color:var(--amber);">$18K</div>
+        <div class="label">Idle Allocation</div>
+      </div>
+    </div>
+    <div class="dashboard-stats">
+      <div class="dashboard-stat"><div class="val">57%</div><div class="lbl">GPU Utilization</div></div>
+      <div class="dashboard-stat"><div class="val">81%</div><div class="lbl">VRAM Utilization</div></div>
+      <div class="dashboard-stat"><div class="val">320</div><div class="lbl">Queue Wait (GPU-hrs)</div></div>
+      <div class="dashboard-stat"><div class="val">16</div><div class="lbl">Dedicated H100s</div></div>
+    </div>
+    <div class="dashboard-insight">$18,000 idle capacity &mdash; optimization opportunity. Data Science team flagged: 25% efficiency (idle notebooks).</div>
+  </div>
+
+  <h3>Three Billing Modes</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Mode</th><th>What&rsquo;s Metered</th><th>Pricing Model</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Dedicated allocation</td><td>GPU-hours reserved (used or not)</td><td>Flat hourly rate per GPU type</td></tr>
+        <tr><td>Burst / borrowing</td><td>GPU-hours above guaranteed quota</td><td>Premium rate (1.5&ndash;2x)</td></tr>
+        <tr><td>Token-based API</td><td>Input + output tokens consumed</td><td>Per-1K-token rate by model size</td></tr>
+      </tbody>
+    </table>
+  </div>

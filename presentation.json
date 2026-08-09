@@ -1,0 +1,44 @@
+{
+  "title": "GPU as a Service",
+  "subtitle": "Architecture Deep Dive on Red Hat OpenShift AI",
+  "sections": [
+    { "id": "hero",       "file": "sections/hero.html",       "navLabel": "Opening" },
+    { "id": "gpu101",     "file": "sections/gpu101.html",     "navLabel": "Why GPUs?" },
+    { "id": "vocab",      "file": "sections/vocab.html",      "navLabel": "Concepts" },
+    { "id": "discovery",  "file": "sections/discovery.html",  "navLabel": "Environment" },
+    { "id": "challenges", "file": "sections/challenges.html", "navLabel": "Challenges" },
+    { "id": "layers",     "file": "sections/layers.html",     "navLabel": "Five Layers" },
+    { "id": "loops",      "file": "sections/loops.html",      "navLabel": "Control Loops" },
+    { "id": "mechanisms", "file": "sections/mechanisms.html",  "navLabel": "GPU Mechanisms" },
+    { "id": "governance", "file": "sections/governance.html",  "navLabel": "Governance" },
+    { "id": "maas",       "file": "sections/maas.html",       "navLabel": "MaaS & GenAI" },
+    { "id": "training",   "file": "sections/training.html",   "navLabel": "Training" },
+    { "id": "finops",     "file": "sections/finops.html",     "navLabel": "GPU FinOps" },
+    { "id": "patterns",   "file": "sections/patterns.html",   "navLabel": "Patterns" },
+    { "id": "decision",   "file": "sections/decision.html",   "navLabel": "Decision Tree" },
+    { "id": "stack",      "file": "sections/stack.html",      "navLabel": "Tech Stack" },
+    { "id": "results",    "file": "sections/results.html",    "navLabel": "Benchmarks" },
+    { "id": "usecases",   "file": "sections/usecases.html",   "navLabel": "Use Cases" },
+    { "id": "personas",   "file": "sections/personas.html",   "navLabel": "Personas" },
+    { "id": "roadmap",    "file": "sections/roadmap.html",    "navLabel": "RHOAI Roadmap" },
+    { "id": "nextsteps",  "file": "sections/nextsteps.html",  "navLabel": "Implementation" },
+    { "id": "appendix",   "file": "sections/appendix.html",   "navLabel": "Appendix" }
+  ],
+  "agenda": [
+    { "num": "01", "title": "Why GPUs?", "desc": "The power grid analogy & $401B problem", "target": "gpu101", "accent": "var(--l1-fleet)" },
+    { "num": "02", "title": "Concepts + Problems", "desc": "DRA, MIG, Kueue, llm-d & why GPUs sit idle", "target": "vocab", "accent": "var(--l2-mechanisms)" },
+    { "num": "03", "title": "The Architecture", "desc": "Seven layers + three control loops", "target": "layers", "accent": "var(--l4-ai-aware)" },
+    { "num": "04", "title": "AI Workloads", "desc": "MaaS, llm-d, training, GenAI Studio", "target": "maas", "accent": "var(--l3-governance)" },
+    { "num": "05", "title": "Roadmap & FinOps", "desc": "RHOAI 3.5\u20133.8, cost attribution", "target": "roadmap", "accent": "var(--l5-self-service)" },
+    { "num": "06", "title": "Implementation Plan", "desc": "10-step deployment roadmap", "target": "nextsteps", "accent": "var(--green)" }
+  ],
+  "presenterGroups": [
+    ["challenges", "layers"],
+    ["loops", "mechanisms"],
+    ["governance", "maas", "training", "finops"]
+  ],
+  "footer": {
+    "title": "GPU as a Service \u2014 Architecture Deep Dive",
+    "text": "Built on open source. KServe (CNCF Incubating) \u00b7 llm-d (CNCF Sandbox) \u00b7 Kueue (K8s SIG) \u00b7 vLLM (Community)"
+  }
+}

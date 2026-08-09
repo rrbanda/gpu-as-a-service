@@ -124,6 +124,22 @@ main {
   padding: 0 24px 80px;
 }
 
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-size: 1rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+body.loading #side-nav,
+body.loading #presenter-toggle,
+body.loading .presenter-hint,
+body.loading footer { opacity: 0; }
+body:not(.loading) .loading-indicator { display: none; }
+
 .section {
   opacity: 0;
   transform: translateY(30px);

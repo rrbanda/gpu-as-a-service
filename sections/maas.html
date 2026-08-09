@@ -1,0 +1,112 @@
+  <span class="section-label">Layer 5 Deep Dive &mdash; AI Workload Surface</span>
+  <h2>Models-as-a-Service &amp; GenAI Studio</h2>
+  <p style="margin-bottom:24px;">GPU infrastructure exists to serve AI workloads. MaaS provides governed access to LLMs with token quotas and API key management. GenAI Studio adds discovery, playground, and agentic tool orchestration.</p>
+
+  <h3>MaaS Governance Model (GA in RHOAI 3.4)</h3>
+  <div class="flow-diagram" style="margin-bottom:20px;">
+    <span class="flow-node">API Request</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node purple">MaaSAuthPolicy (model access)</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node amber">MaaSSubscription (token quota)</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node cyan">Rate Limit Check</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node">Inference Server</span>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div class="card" style="border-left:3px solid var(--l3-governance);">
+      <h3 style="font-size:0.9rem;color:var(--l3-governance);">MaaSSubscription</h3>
+      <p style="font-size:0.82rem;color:var(--text-secondary);">Defines per-group token quotas with rate limiting. Each subscription specifies which models a group can access, with configurable windows (per hour, per day) and maximum token counts. Enables showback by tracking consumption per subscription.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--l4-ai-aware);">
+      <h3 style="font-size:0.9rem;color:var(--l4-ai-aware);">MaaSAuthPolicy</h3>
+      <p style="font-size:0.82rem;color:var(--text-secondary);">Controls which groups can access which models, independent of quota. Combined with subscription-based quotas, this provides fine-grained access control: Team A can use Llama-3 with 100K tokens/hour; Team B cannot access Llama-3 at all.</p>
+    </div>
+  </div>
+
+  <details class="yaml-toggle">
+    <summary>MaaSSubscription &mdash; team token quota with rate limiting</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">maas.opendatahub.io/v1alpha1</span>
+<span class="key">kind:</span> <span class="str">MaaSSubscription</span>
+<span class="key">metadata:</span>
+  <span class="key">name:</span> <span class="str">team-a-premium</span>
+  <span class="key">namespace:</span> <span class="str">models-as-a-service</span>
+<span class="key">spec:</span>
+  <span class="key">owners:</span>
+  - <span class="key">kind:</span> <span class="str">Group</span>
+    <span class="key">name:</span> <span class="str">team-a</span>
+  <span class="key">models:</span>
+  - <span class="key">name:</span> <span class="str">llama-3-70b</span>
+    <span class="key">namespace:</span> <span class="str">model-serving</span>
+    <span class="key">rateLimits:</span>
+    - <span class="key">window:</span> <span class="str">1h</span>
+      <span class="key">maxTokens:</span> <span class="num">100000</span>
+  - <span class="key">name:</span> <span class="str">qwen3-8b</span>
+    <span class="key">namespace:</span> <span class="str">model-serving</span>
+    <span class="key">rateLimits:</span>
+    - <span class="key">window:</span> <span class="str">24h</span>
+      <span class="key">maxTokens:</span> <span class="num">1000000</span></pre></div>
+  </details>
+
+  <h3 style="margin-top:32px;">GenAI Studio</h3>
+  <div class="grid-3" style="margin-top:12px;margin-bottom:24px;">
+    <div class="card" style="text-align:center;border-top:3px solid var(--l4-ai-aware);">
+      <h4 style="font-size:0.85rem;margin:8px 0 4px;">AI Hub</h4>
+      <p style="font-size:0.78rem;color:var(--text-secondary);">Centralized discovery of models, tools, and MCP servers. Browse, search, and deploy models from a curated catalog.</p>
+    </div>
+    <div class="card" style="text-align:center;border-top:3px solid var(--l2-mechanisms);">
+      <h4 style="font-size:0.85rem;margin:8px 0 4px;">Playground</h4>
+      <p style="font-size:0.78rem;color:var(--text-secondary);">Interactive, stateless environment for prompt testing and parameter tuning. Compare model outputs side by side.</p>
+    </div>
+    <div class="card" style="text-align:center;border-top:3px solid var(--l3-governance);">
+      <h4 style="font-size:0.85rem;margin:8px 0 4px;">MCP Catalog &amp; Gateway</h4>
+      <p style="font-size:0.78rem;color:var(--text-secondary);">Curated catalog of MCP servers with lifecycle operator for declarative deployment. MCP Gateway provides identity-aware routing and per-tool metrics for agentic workflows.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:32px;">llm-d &mdash; Disaggregated Inference</h3>
+  <p style="margin-bottom:16px;">llm-d (CNCF Sandbox) separates compute-intensive prefill from latency-sensitive decode, enabling independent scaling and hardware optimization.</p>
+
+  <div class="flow-diagram" style="margin-bottom:16px;">
+    <span class="flow-node">Request</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node cyan">Gateway</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node pink">EPP Router</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node purple">Prefill Pool</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node amber">KV Cache Transfer (NIXL)</span>
+    <span class="flow-arrow">&#8594;</span>
+    <span class="flow-node green">Decode Pool</span>
+  </div>
+
+  <details class="yaml-toggle">
+    <summary>LLMInferenceService &mdash; single CR for model deployment with llm-d</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">serving.kserve.io/v1alpha1</span>
+<span class="key">kind:</span> <span class="str">LLMInferenceService</span>
+<span class="key">metadata:</span>
+  <span class="key">name:</span> <span class="str">qwen3-8b</span>
+<span class="key">spec:</span>
+  <span class="key">replicas:</span> <span class="num">2</span>
+  <span class="key">model:</span>
+    <span class="key">uri:</span> <span class="str">hf://RedHatAI/Qwen3-8B-FP8-dynamic</span>
+    <span class="key">name:</span> <span class="str">RedHatAI/Qwen3-8B-FP8-dynamic</span>
+  <span class="key">router:</span>
+    <span class="key">route:</span> {}
+    <span class="key">gateway:</span> {}
+    <span class="key">scheduler:</span> {}
+  <span class="key">template:</span>
+    <span class="key">containers:</span>
+    - <span class="key">name:</span> <span class="str">main</span>
+      <span class="key">resources:</span>
+        <span class="key">limits:</span>
+          <span class="key">nvidia.com/gpu:</span> <span class="str">"1"</span>
+          <span class="key">memory:</span> <span class="str">32Gi</span></pre></div>
+  </details>
+
+  <div class="insight-box">
+    <strong>Key insight:</strong> llm-d&rsquo;s EPP checks existing KV-cache state in each replica before routing. For agentic workloads chaining 10&ndash;20 LLM calls with shared system prompts, prefix caching avoids redundant computation across requests.
+  </div>

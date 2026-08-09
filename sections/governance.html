@@ -1,0 +1,85 @@
+  <span class="section-label">Layer 3 Deep Dive &mdash; Governance</span>
+  <h2>Kueue Configuration</h2>
+  <p style="margin-bottom:12px;">When Kueue applies &mdash; and when it doesn&rsquo;t. Do not add Kueue merely because GPUs are involved.</p>
+  <p style="font-size:0.8rem;color:var(--l3-governance);margin-bottom:24px;font-style:italic;">&#9889; Think: the grid operator during peak demand &mdash; decides which district gets power, lets idle capacity flow to neighbors, and sheds non-critical load before the grid fails. GPU scheduling is a business policy problem, not a Kubernetes configuration problem.</p>
+
+  <h3>Decision Framework</h3>
+  <div class="grid-3" style="margin-top:12px;margin-bottom:32px;">
+    <div class="scenario-card">
+      <h3 style="font-size:0.9rem;">Scenario A: Dedicated Inference Pool</h3>
+      <p>WVA optimizes the pool directly. No multi-tenant contention.</p>
+      <span class="scenario-verdict no">Kueue: NO</span>
+    </div>
+    <div class="scenario-card">
+      <h3 style="font-size:0.9rem;">Scenario B: Inference + Training Shared</h3>
+      <p>Prevents training from starving production inference.</p>
+      <span class="scenario-verdict yes">Kueue: YES</span>
+    </div>
+    <div class="scenario-card">
+      <h3 style="font-size:0.9rem;">Scenario C: Service-Tier Boundaries</h3>
+      <p>Critical (48 GPUs guaranteed, no preempt) / Standard (32, best-effort, can borrow) / Elastic (16, preemptible, spot-like)</p>
+      <span class="scenario-verdict yes">Kueue: YES</span>
+    </div>
+  </div>
+
+  <h3>ResourceFlavor</h3>
+  <details class="yaml-toggle">
+    <summary>ResourceFlavor &mdash; labeling H100 nodes for Kueue scheduling</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">kueue.x-k8s.io/v1beta2</span>
+<span class="key">kind:</span> <span class="str">ResourceFlavor</span>
+<span class="key">metadata:</span>
+  <span class="key">name:</span> <span class="str">h100-80gb</span>
+<span class="key">spec:</span>
+  <span class="key">nodeLabels:</span>
+    <span class="key">nvidia.com/gpu.product:</span> <span class="str">NVIDIA-H100-80GB-HBM3</span></pre></div>
+  </details>
+
+  <h3>ClusterQueue with Cohort</h3>
+  <details class="yaml-toggle">
+    <summary>ClusterQueue &mdash; 16 H100 quota, borrowing up to 8 more, fair-share weight 2</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">kueue.x-k8s.io/v1beta2</span>
+<span class="key">kind:</span> <span class="str">ClusterQueue</span>
+<span class="key">metadata:</span>
+  <span class="key">name:</span> <span class="str">team-llm-serving</span>
+<span class="key">spec:</span>
+  <span class="key">namespaceSelector:</span> {}
+  <span class="key">cohortName:</span> <span class="str">gpu-shared-pool</span>
+  <span class="key">resourceGroups:</span>
+  - <span class="key">coveredResources:</span> [<span class="str">"cpu"</span>, <span class="str">"memory"</span>, <span class="str">"nvidia.com/gpu"</span>]
+    <span class="key">flavors:</span>
+    - <span class="key">name:</span> <span class="str">h100-80gb</span>
+      <span class="key">resources:</span>
+      - <span class="key">name:</span> <span class="str">"nvidia.com/gpu"</span>
+        <span class="key">nominalQuota:</span> <span class="num">16</span>
+        <span class="key">borrowingLimit:</span> <span class="num">8</span>
+  <span class="key">preemption:</span>
+    <span class="key">withinClusterQueue:</span> <span class="str">LowerPriority</span>
+    <span class="key">reclaimWithinCohort:</span> <span class="str">Any</span>
+  <span class="key">fairSharing:</span>
+    <span class="key">weight:</span> <span class="num">2</span></pre></div>
+  </details>
+
+  <h3>GPU Credit System</h3>
+  <details class="yaml-toggle">
+    <summary>Kueue Resource Transformations &mdash; H100 = 100 credits, A100 = 60, MIG = 10</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">config.kueue.x-k8s.io/v1beta2</span>
+<span class="key">kind:</span> <span class="str">Configuration</span>
+<span class="key">resources:</span>
+  <span class="key">transformations:</span>
+  - <span class="key">input:</span> <span class="str">nvidia.com/gpu-h100</span>
+    <span class="key">strategy:</span> <span class="str">Replace</span>
+    <span class="key">outputs:</span>
+      <span class="key">gpu_credits:</span> <span class="num">100</span>   <span class="comment"># H100 @ $3.20/hr</span>
+  - <span class="key">input:</span> <span class="str">nvidia.com/gpu-a100</span>
+    <span class="key">strategy:</span> <span class="str">Replace</span>
+    <span class="key">outputs:</span>
+      <span class="key">gpu_credits:</span> <span class="num">60</span>    <span class="comment"># A100 @ $1.92/hr</span>
+  - <span class="key">input:</span> <span class="str">nvidia.com/gpu-a100-mig-1g</span>
+    <span class="key">strategy:</span> <span class="str">Replace</span>
+    <span class="key">outputs:</span>
+      <span class="key">gpu_credits:</span> <span class="num">10</span>    <span class="comment"># MIG 1g.10gb slice</span></pre></div>
+  </details>
+
+  <div class="insight-box">
+    <strong>Note:</strong> 600 credits buys 6 H100s or 10 A100s or 60 MIG slices. GPU credits normalize cost across heterogeneous GPU types.
+  </div>

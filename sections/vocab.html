@@ -1,0 +1,240 @@
+  <span class="section-label">Building Blocks</span>
+  <h2>Key Concepts &mdash; Tap to Flip</h2>
+  <p style="margin-bottom:4px;">Four building blocks you&rsquo;ll see throughout this session. Tap any card to see the definition.</p>
+
+  <div class="flashcard-grid">
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l2-mechanisms);">
+          <h4>MIG</h4>
+          <div class="flashcard-hint">Multi-Instance GPU</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l2-mechanisms);">
+          <p>Hardware-level GPU partitioning. Carves one A100 into up to 7 isolated slices, each with dedicated compute, memory, and cache. Like splitting one large office into 7 soundproof private offices &mdash; each tenant gets their own key, walls, and power meter.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l3-governance);">
+          <h4>Kueue</h4>
+          <div class="flashcard-hint">Fair-share GPU scheduling</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l3-governance);">
+          <p>Fair-share GPU scheduler. GPU scheduling is a business policy problem, not merely a Kubernetes configuration. Kueue enforces that policy &mdash; quotas, borrowing, preemption, and priority across teams. Like the grid operator that decides which district gets power during peak demand.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l4-ai-aware);">
+          <h4>KServe</h4>
+          <div class="flashcard-hint">Model serving &amp; scale-to-zero</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
+          <p>CNCF Incubating project for model lifecycle &mdash; deploy, version, scale, and monitor. Provides scale-to-zero: idle models release GPUs entirely, cold-start on demand. The electricity meter stops when you turn off the lights &mdash; and starts instantly when you flip the switch.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l5-self-service);">
+          <h4>GPU Credits</h4>
+          <div class="flashcard-hint">Normalized cost abstraction</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l5-self-service);">
+          <p>A unit that normalizes different GPU types into a common currency. H100 = 100 credits, A100 = 60, MIG slice = 10. Like kilowatt-hours on your electricity bill &mdash; you don&rsquo;t care which generator produced the power, you care about consumption. Teams get credit budgets, not GPU counts.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details style="margin-top:16px;">
+    <summary style="font-size:0.85rem;cursor:pointer;color:var(--text-muted);font-weight:600;">More concepts &mdash; we&rsquo;ll introduce these as we go &#9662;</summary>
+    <div class="flashcard-grid" style="margin-top:12px;">
+
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l2-mechanisms);">
+          <h4>DRA</h4>
+          <div class="flashcard-hint">Dynamic Resource Allocation</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l2-mechanisms);">
+          <p>Kubernetes API that replaces <code>nvidia.com/gpu: 1</code> with rich, declarative GPU claims. Saying <code>nvidia.com/gpu: 1</code> is like telling a recruiter &ldquo;hire me two people.&rdquo; DRA is like saying &ldquo;hire me two engineers with Go experience, Kubernetes knowledge, and 5 years backend&rdquo; &mdash; GPU type, memory, MIG profile, topology, all in one request.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l4-ai-aware);">
+          <h4>llm-d</h4>
+          <div class="flashcard-hint">Distributed inference middleware</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
+          <p>CNCF project (Red Hat, Google, IBM, NVIDIA) that adds KV-cache-aware routing, disaggregated prefill/decode, and prefix caching on top of vLLM. Turns LLM serving into a stateful routing problem.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l4-ai-aware);">
+          <h4>WVA</h4>
+          <div class="flashcard-hint">Workload Variant Autoscaler</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
+          <p>llm-d&rsquo;s inference-aware autoscaler. Scales replicas based on queue depth, KV-cache pressure, and token throughput &mdash; not generic CPU/memory. Supports <code>minReplicas: 0</code> for scale-to-zero and cost-optimized variant selection.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l4-ai-aware);">
+          <h4>EPP</h4>
+          <div class="flashcard-hint">Endpoint Picker</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
+          <p>llm-d&rsquo;s routing brain. For each incoming request, EPP checks the KV-Cache Indexer to find which replica already has the most relevant context loaded &mdash; then routes there. Avoids redundant prompt recomputation.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l4-ai-aware);">
+          <h4>KEDA</h4>
+          <div class="flashcard-hint">Event-Driven Autoscaling</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l4-ai-aware);">
+          <p>Kubernetes autoscaler that scales on external metrics &mdash; queue depth, custom Prometheus queries, or WVA&rsquo;s <code>wva_desired_replicas</code> metric. Bridges the gap between &ldquo;no demand&rdquo; and &ldquo;full auto-scale.&rdquo;</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l5-self-service);">
+          <h4>Compute Profiles</h4>
+          <div class="flashcard-hint">Self-service GPU abstraction</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l5-self-service);">
+          <p>Evolution of Hardware Profiles &mdash; admin-defined GPU &ldquo;t-shirt sizes&rdquo; that data scientists select from a dropdown. Instead of writing YAML, users pick &ldquo;Small GPU&rdquo; or &ldquo;Large Inference&rdquo; &mdash; the platform maps this to the right GPU type, MIG profile, and Kueue queue. Targeted for RHOAI 3.7.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-front" style="border-top:3px solid var(--l1-fleet);">
+          <h4>KubeRay</h4>
+          <div class="flashcard-hint">Kubernetes operator for Ray</div>
+          <div class="flashcard-tap">tap to flip</div>
+        </div>
+        <div class="flashcard-back" style="border-top:3px solid var(--l1-fleet);">
+          <p>Manages Ray clusters on Kubernetes. Ray Serve enables multi-model LLM inference with built-in replica autoscaling (min/max replicas per model, target_ongoing_requests). Also handles distributed training, fine-tuning, and multi-node GPU jobs via RayJob/RayCluster.</p>
+          <div class="flashcard-tap">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+  </details>
+
+  <hr id="problems" style="border:none;border-top:1px solid var(--border-subtle);margin:32px 0 24px;">
+  <span class="section-label">Why GPUaaS for AI Is Different</span>
+  <h2 style="margin-bottom:0;">The Three Problems</h2>
+
+  <div class="grid-3" style="margin-top:24px;">
+    <div class="card">
+      <h3>Problem 1: Memory Claimed &#8800; Demand Served</h3>
+      <p>Serving frameworks claim GPU memory upfront regardless of actual work. A 2 GB model on an 80 GB GPU is like parking a bicycle in a semi-truck spot &mdash; the space is &ldquo;taken,&rdquo; but 97% of it is empty.</p>
+
+      <div class="gpu-bars" id="gpu-bars">
+        <div class="gpu-bar-row">
+          <span class="gpu-bar-label">LLM</span>
+          <div class="gpu-bar-track">
+            <div class="gpu-bar-mem" data-w="90"></div>
+            <div class="gpu-bar-req" data-w="5"></div>
+          </div>
+          <span class="gpu-bar-pct">90/5%</span>
+        </div>
+        <div class="gpu-bar-row">
+          <span class="gpu-bar-label">Guard Rail</span>
+          <div class="gpu-bar-track">
+            <div class="gpu-bar-mem" data-w="100"></div>
+            <div class="gpu-bar-req" data-w="2"></div>
+          </div>
+          <span class="gpu-bar-pct">100/2%</span>
+        </div>
+        <div class="gpu-bar-row">
+          <span class="gpu-bar-label">Notebook</span>
+          <div class="gpu-bar-track">
+            <div class="gpu-bar-mem" data-w="60"></div>
+            <div class="gpu-bar-req" data-w="0"></div>
+          </div>
+          <span class="gpu-bar-pct">60/0%</span>
+        </div>
+        <div class="gpu-bar-row">
+          <span class="gpu-bar-label">Embeddings</span>
+          <div class="gpu-bar-track">
+            <div class="gpu-bar-mem" data-w="100"></div>
+            <div class="gpu-bar-req" data-w="15"></div>
+          </div>
+          <span class="gpu-bar-pct">100/15%</span>
+        </div>
+      </div>
+      <div class="bar-legend">
+        <span><span class="dot red"></span> Memory claimed</span>
+        <span><span class="dot green"></span> Actual load</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Problem 2: GPU Scheduling Is a Business Policy Problem</h3>
+      <p>Kubernetes treats GPUs as opaque integer counters &mdash; <code>nvidia.com/gpu: 1</code>. No type, no memory, no slicing. Four teams sharing a cluster have no mechanism for fair-share allocation, quota enforcement, or cost attribution. This isn&rsquo;t a scheduler tuning problem &mdash; it&rsquo;s an enterprise service policy that doesn&rsquo;t exist yet.</p>
+    </div>
+
+    <div class="card">
+      <h3>Problem 3: Regulated Industries Add Hard Constraints</h3>
+      <p>Air-gapped deployment, audit trails, multi-vendor GPU procurement policies, FIPS compliance, and disconnected operation are non-negotiable for financial services. Many AI infrastructure tools assume cloud connectivity.</p>
+    </div>
+  </div>
+
+  <details class="yaml-toggle" style="margin-top:16px;">
+    <summary>How the Platform Addresses Regulatory Constraints</summary>
+    <div style="padding:16px;font-size:0.85rem;color:var(--text-secondary);">
+      <ul style="margin:0;padding-left:18px;line-height:1.8;">
+        <li><strong>FIPS 140-2 validated cryptography</strong> &mdash; all TLS, certificate, and key management uses FIPS-validated modules</li>
+        <li><strong>Signed OCI artifacts</strong> &mdash; every container image, Helm chart, and operator bundle is signed with cosign and verified at deploy time</li>
+        <li><strong>Supply chain integrity</strong> &mdash; SLSA provenance for all Red Hat-built images; SBOM generation for audit</li>
+        <li><strong>Disconnected / air-gapped operation</strong> &mdash; full mirror registry support; no outbound network required post-install</li>
+        <li><strong>FedRAMP-capable architecture</strong> &mdash; OpenShift has achieved FedRAMP High authorization; AI services inherit the control plane</li>
+        <li><strong>Dedicated Product Security team</strong> &mdash; vulnerability scanning, CVE response SLAs, and proactive security advisories</li>
+      </ul>
+    </div>
+  </details>

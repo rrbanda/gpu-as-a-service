@@ -1,0 +1,55 @@
+  <span class="section-label">What Makes AI GPUaaS Different From Traditional IaaS</span>
+  <h2>Seven AI-Specific Challenges</h2>
+
+  <div class="grid-3" style="margin-top:24px;">
+    <div class="card">
+      <h3>1. Wildly Different Workload Shapes</h3>
+      <p>0.25 GPU notebook for 4 hours, 4-GPU fine-tune for 2 hours, 64-GPU training for 3 days, always-on 8-GPU LLM &mdash; all at the same time. This is the packing problem.</p>
+    </div>
+    <div class="card">
+      <h3>2. GPUs Are Not Fungible</h3>
+      <p>&ldquo;8 GPUs&rdquo; is never a complete request. GPU model, memory size (24 GB vs 80 GB vs 141 GB), connection speed, and driver version all matter. Asking for &ldquo;a GPU&rdquo; is like booking &ldquo;a room&rdquo; without specifying bed size or floor.</p>
+    </div>
+    <div class="card">
+      <h3>3. Topology Matters Enormously</h3>
+      <p>8 GPUs on one machine (connected at 900 GB/s) vs 4+4 split across two servers connected by slower network. Same GPU count, dramatically different performance.</p>
+    </div>
+    <div class="card">
+      <h3>4. Queues, Quotas, Fairness</h3>
+      <p>100 GPUs, 150 requested. Who gets what, when? This is business policy, not merely a technical scheduler. It requires admission control.</p>
+    </div>
+    <div class="card">
+      <h3>5. Training &#8800; Inference</h3>
+      <div class="comparison-grid">
+        <div class="comparison-col">
+          <h4>Training</h4>
+          <ul>
+            <li>Queue jobs</li>
+            <li>Can wait</li>
+            <li>Hours/days</li>
+            <li>Throughput matters</li>
+            <li>Scheduler-oriented</li>
+          </ul>
+        </div>
+        <div class="comparison-col">
+          <h4>Inference</h4>
+          <ul>
+            <li>Serve requests</li>
+            <li>Usually can&rsquo;t wait</li>
+            <li>Persistent</li>
+            <li>Latency/SLO matters</li>
+            <li>Autoscaling/routing-oriented</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>6. LLM Inference Is Unique</h3>
+      <p>Large language models have performance characteristics that generic autoscalers can&rsquo;t handle. The shift: from &ldquo;give me 8 GPUs&rdquo; to &ldquo;deploy Llama at 500 requests/sec.&rdquo;</p>
+      <details style="margin-top:8px;"><summary style="font-size:0.75rem;cursor:pointer;color:var(--text-muted);">Technical details</summary><p style="font-size:0.75rem;color:var(--text-secondary);margin-top:6px;">KV cache management, prefill vs decode phases, token throughput, time-to-first-token (TTFT), LoRA adapter routing, and continuous batching all require inference-aware scheduling.</p></details>
+    </div>
+    <div class="card">
+      <h3>7. Self-Service Abstractions Needed</h3>
+      <p>Data scientists want &ldquo;Large Fine-Tuning&rdquo; not <code>nvidia.com/gpu: 4</code>. The translation layer from human intent to hardware configuration is core infrastructure.</p>
+    </div>
+  </div>

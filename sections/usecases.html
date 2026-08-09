@@ -1,0 +1,188 @@
+  <span class="section-label">The Complete Picture</span>
+  <h2>Use Cases &rarr; Capabilities &rarr; Platform Features</h2>
+  <p style="margin-bottom:24px;">Each persona has specific use cases. Each use case needs specific capabilities. Each capability maps to a specific RHOAI feature with a known maturity level.</p>
+
+  <!-- LLM SERVING -->
+  <div class="mapping-persona">
+    <div class="mapping-persona-header">
+      <div class="persona-icon">&#129302;</div>
+      <div>
+        <h3>LLM Serving / NLP</h3>
+        <p style="font-size:0.78rem;margin:0;">Over-replication, 70B models on 4&ndash;8 GPUs each, idle at night</p>
+      </div>
+    </div>
+    <div class="mapping-rows">
+      <div class="mapping-row mapping-row-header">
+        <div class="mapping-cell">Use Case</div>
+        <div class="mapping-cell">Capability Needed</div>
+        <div class="mapping-cell">RHOAI Feature</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Optimize LLM inference</strong><br>Reduce per-request latency, reuse context across calls</div>
+        <div class="mapping-cell" data-label="Capability">KV-cache-aware routing, prefix caching, disaggregated prefill/decode</div>
+        <div class="mapping-cell" data-label="Feature">llm-d (EPP + KV-Cache Indexer)</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Auto-scale inference replicas</strong><br>Scale on inference signals, not CPU/memory</div>
+        <div class="mapping-cell" data-label="Capability">Inference-aware autoscaling (queue depth, token throughput, KV pressure)</div>
+        <div class="mapping-cell" data-label="Feature">WVA + KEDA</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Scale to zero at night</strong><br>Release GPUs when no traffic arrives</div>
+        <div class="mapping-cell" data-label="Capability">Model idle detection, cold-start on demand</div>
+        <div class="mapping-cell" data-label="Feature">KServe scale-to-zero + WVA minReplicas:0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENAI PLATFORM -->
+  <div class="mapping-persona">
+    <div class="mapping-persona-header">
+      <div class="persona-icon">&#9889;</div>
+      <div>
+        <h3>GenAI Platform / APIs</h3>
+        <p style="font-size:0.78rem;margin:0;">Bursty traffic, provisioned for peak, idle at trough</p>
+      </div>
+    </div>
+    <div class="mapping-rows">
+      <div class="mapping-row mapping-row-header">
+        <div class="mapping-cell">Use Case</div>
+        <div class="mapping-cell">Capability Needed</div>
+        <div class="mapping-cell">RHOAI Feature</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Multi-tenant GPU sharing</strong><br>Multiple teams share a GPU cluster fairly</div>
+        <div class="mapping-cell" data-label="Capability">Quotas, borrowing, preemption, fair-share scheduling</div>
+        <div class="mapping-cell" data-label="Feature">Kueue (ClusterQueue + Cohort)</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Burst scaling for API traffic</strong><br>Handle 10x traffic spikes without pre-provisioning</div>
+        <div class="mapping-cell" data-label="Capability">Event-driven autoscaling on queue depth</div>
+        <div class="mapping-cell" data-label="Feature">KEDA + Custom Metrics Autoscaler</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>GPU chargeback per team</strong><br>Show each team what they consumed and what it cost</div>
+        <div class="mapping-cell" data-label="Capability">GPU metering, credit normalization, showback dashboards</div>
+        <div class="mapping-cell" data-label="Feature">Kueue GPU Credits + DCGM metering</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT SAFETY -->
+  <div class="mapping-persona">
+    <div class="mapping-persona-header">
+      <div class="persona-icon">&#128737;</div>
+      <div>
+        <h3>Content Safety / Guards</h3>
+        <p style="font-size:0.78rem;margin:0;">2GB model on 80GB GPU = 2.5% VRAM. Dozens of such pods</p>
+      </div>
+    </div>
+    <div class="mapping-rows">
+      <div class="mapping-row mapping-row-header">
+        <div class="mapping-cell">Use Case</div>
+        <div class="mapping-cell">Capability Needed</div>
+        <div class="mapping-cell">RHOAI Feature</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Fractional GPU allocation</strong><br>Run small models on GPU slices, not whole GPUs</div>
+        <div class="mapping-cell" data-label="Capability">Hardware-isolated GPU partitioning with dedicated compute/memory</div>
+        <div class="mapping-cell" data-label="Feature">MIG + DRA (ResourceClaimTemplate)</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Deploy guard models at scale</strong><br>7 guard models on 1 GPU instead of 7 GPUs</div>
+        <div class="mapping-cell" data-label="Capability">MIG slicing (1g.10gb profiles), declarative GPU claims</div>
+        <div class="mapping-cell" data-label="Feature">NVIDIA GPU Operator (MIG Manager) + DRA</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA SCIENCE -->
+  <div class="mapping-persona">
+    <div class="mapping-persona-header">
+      <div class="persona-icon">&#128300;</div>
+      <div>
+        <h3>Data Science / Experimentation</h3>
+        <p style="font-size:0.78rem;margin:0;">Hold GPUs with 0 bytes used for hours (meetings, lunch, gone for day)</p>
+      </div>
+    </div>
+    <div class="mapping-rows">
+      <div class="mapping-row mapping-row-header">
+        <div class="mapping-cell">Use Case</div>
+        <div class="mapping-cell">Capability Needed</div>
+        <div class="mapping-cell">RHOAI Feature</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Idle GPU reclamation</strong><br>Reclaim GPUs from abandoned notebooks automatically</div>
+        <div class="mapping-cell" data-label="Capability">Idle detection, configurable cull timers</div>
+        <div class="mapping-cell" data-label="Feature">NOTEBOOK_CULL_IDLE_TIME + notebook controller</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Self-service GPU access</strong><br>Data scientists pick GPU sizes from a menu, not YAML</div>
+        <div class="mapping-cell" data-label="Capability">Admin-defined GPU profiles, dashboard integration</div>
+        <div class="mapping-cell" data-label="Feature">Compute Profiles + Accelerator Profiles</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Fair sharing with inference teams</strong><br>Training jobs don&rsquo;t starve production inference</div>
+        <div class="mapping-cell" data-label="Capability">Cross-workload-type quotas, preemption policies</div>
+        <div class="mapping-cell" data-label="Feature">Kueue (priority classes + preemption)</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Distributed training &amp; fine-tuning</strong><br>Multi-node GPU jobs for model training, hyperparameter sweeps</div>
+        <div class="mapping-cell" data-label="Capability">Ray cluster orchestration, multi-node GPU scheduling, fault-tolerant checkpointing</div>
+        <div class="mapping-cell" data-label="Feature">KubeRay (RayCluster + RayJob)</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Multi-model LLM inference with Ray Serve</strong><br>Serve multiple models from one cluster with per-model autoscaling</div>
+        <div class="mapping-cell" data-label="Capability">Built-in 3-tier autoscaling (app replicas, worker pods, GPU nodes), model multiplexing, multi-node tensor parallelism</div>
+        <div class="mapping-cell" data-label="Feature">KubeRay (RayService) + vLLM</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Fast model loading &amp; cold-start reduction</strong><br>Sub-minute scale-out for large models (70B+)</div>
+        <div class="mapping-cell" data-label="Capability">Shared NAS/PVC (RWX), accelerated loaders (Run:ai Streamer, Tensorizer), torch compile caching</div>
+        <div class="mapping-cell" data-label="Feature">RWX PVC + vLLM load-format options + RHOAI Model Registry (<code>pvc://</code> URIs)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CROSS-CUTTING -->
+  <div class="mapping-persona">
+    <div class="mapping-persona-header" style="border-left:3px solid var(--l3-governance);">
+      <div class="persona-icon" style="font-size:1rem;">&#127760;</div>
+      <div>
+        <h3>Cross-Cutting (Platform Ops)</h3>
+        <p style="font-size:0.78rem;margin:0;">Infrastructure concerns that span all personas</p>
+      </div>
+    </div>
+    <div class="mapping-rows">
+      <div class="mapping-row mapping-row-header">
+        <div class="mapping-cell">Use Case</div>
+        <div class="mapping-cell">Capability Needed</div>
+        <div class="mapping-cell">RHOAI Feature</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Multi-cluster GPU orchestration</strong><br>Unified view and policy across GPU clusters</div>
+        <div class="mapping-cell" data-label="Capability">Fleet visibility, policy-based placement, GitOps config</div>
+        <div class="mapping-cell" data-label="Feature">Red Hat ACM</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>Air-gapped / regulated deployment</strong><br>Run in disconnected environments with full compliance</div>
+        <div class="mapping-cell" data-label="Capability">FIPS crypto, signed OCI, mirror registry, FedRAMP</div>
+        <div class="mapping-cell" data-label="Feature">OpenShift (FIPS + disconnected) + RHOAI Operator</div>
+      </div>
+      <div class="mapping-row">
+        <div class="mapping-cell" data-label="Use Case"><strong>GPU fleet observability</strong><br>Real-time utilization, waste detection, capacity planning</div>
+        <div class="mapping-cell" data-label="Capability">GPU telemetry, per-model metering, dashboard integration</div>
+        <div class="mapping-cell" data-label="Feature">DCGM Exporter + OpenShift Monitoring + Showback</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <strong>Reading this map:</strong> Start from your team (left column). Find your pain point (Use Case). The Capability column tells you <em>what</em> you need. The Feature column tells you <em>what to deploy</em>.
+  </div>
+
+  <div id="wb-vote-summary" class="wb-vote-summary">
+    <h4>Prioritized Use Cases (by votes)</h4>
+    <ol><li>No votes yet</li></ol>
+  </div>
+

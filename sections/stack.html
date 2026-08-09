@@ -1,0 +1,106 @@
+  <span class="section-label">Technology Stack</span>
+  <h2>Technology Stack</h2>
+
+  <div class="grid-3" style="margin-top:24px;">
+    <div class="tech-card">
+      <div class="tech-name">KServe</div>
+      <div class="tech-org">CNCF Incubating</div>
+      <div class="tech-desc">Model serving framework with scale-to-zero, versioning, and canary rollouts</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">vLLM</div>
+      <div class="tech-org">Community (UC Berkeley)</div>
+      <div class="tech-desc">High-throughput LLM inference engine with PagedAttention</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">llm-d</div>
+      <div class="tech-org">CNCF Sandbox</div>
+      <div class="tech-desc">Distributed inference middleware &mdash; KV-cache routing, disaggregated P/D, prefix caching. Co-created by Red Hat, Google, IBM, CoreWeave, NVIDIA</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">WVA</div>
+      <div class="tech-org">Part of llm-d</div>
+      <div class="tech-desc">Inference-aware autoscaler &mdash; scales replicas on queue depth, KV-cache pressure, token throughput</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">Kueue</div>
+      <div class="tech-org">K8s SIG Scheduling</div>
+      <div class="tech-desc">Fair-share GPU scheduling &mdash; quotas, borrowing, preemption, GPU credit normalization</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">NVIDIA GPU Operator</div>
+      <div class="tech-org">NVIDIA Certified</div>
+      <div class="tech-desc">GPU lifecycle management &mdash; drivers, MIG Manager, DCGM, device plugin</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">DRA</div>
+      <div class="tech-org">Kubernetes (RHOAI GA targeted 3.6/3.7)</div>
+      <div class="tech-desc">Dynamic Resource Allocation &mdash; declarative, attribute-based GPU claims replacing opaque integers</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">KubeRay</div>
+      <div class="tech-org">CNCF / Ray Community</div>
+      <div class="tech-desc">Kubernetes operator for Ray clusters &mdash; Ray Serve for multi-model LLM inference with built-in autoscaling, distributed training, fine-tuning</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">KEDA</div>
+      <div class="tech-org">CNCF Graduated (GA for llm-d in RHOAI 3.6)</div>
+      <div class="tech-desc">Event-driven autoscaling &mdash; scales on queue depth, custom Prometheus metrics, WVA signals</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">Compute Profiles</div>
+      <div class="tech-org">Red Hat (targeted RHOAI 3.7)</div>
+      <div class="tech-desc">Evolution of Hardware Profiles &mdash; admin-defined GPU t-shirt sizes for data scientists</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-name">Red Hat ACM</div>
+      <div class="tech-org">Red Hat</div>
+      <div class="tech-desc">Multi-cluster fleet management &mdash; GPU visibility, policy-based placement, GitOps</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:32px;">Fleet Orchestration with ACM</h3>
+  <div class="card" style="margin-bottom:24px;">
+    <p>Red Hat Advanced Cluster Management (ACM) extends GPUaaS across multiple OpenShift clusters, providing capabilities critical for enterprise GPU operations:</p>
+    <div class="grid-2" style="margin-top:12px;">
+      <div>
+        <p style="font-size:0.82rem;"><strong style="color:var(--l3-governance);">Fleet-wide GPU Visibility</strong></p>
+        <p style="font-size:0.78rem;color:var(--text-secondary);">Unified dashboard showing GPU availability, utilization, and queue depth across all clusters. Operators see a single pane of glass for all GPU resources &mdash; dev, staging, production, and burst clusters.</p>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;"><strong style="color:var(--l4-ai-aware);">Policy-Based Workload Placement</strong></p>
+        <p style="font-size:0.78rem;color:var(--text-secondary);">Placement rules route workloads to clusters with matching GPU topology, data locality, and compliance zone. Training goes to clusters with NVLink; inference goes to clusters closest to users.</p>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;"><strong style="color:var(--l2-mechanisms);">GitOps Configuration</strong></p>
+        <p style="font-size:0.78rem;color:var(--text-secondary);">Consistent Kueue policies, ResourceFlavors, and DRA DeviceClasses across all clusters via ArgoCD or OpenShift GitOps. Changes are auditable, version-controlled, and rollback-ready.</p>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;"><strong style="color:var(--l5-self-service);">Environment Promotion</strong></p>
+        <p style="font-size:0.78rem;color:var(--text-secondary);">Models validated in dev clusters are promoted to production clusters through policy-gated pipelines. Same model, same config, different GPU topology &mdash; no manual reconfiguration.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px;">
+    <h3 style="text-align:center;">Multi-Vendor GPU Support</h3>
+    <p style="text-align:center;margin-bottom:16px;">llm-d supports NVIDIA CUDA, AMD ROCm, Intel Gaudi, and IBM Spyre accelerators.</p>
+    <div class="vendor-pills" style="justify-content:center;margin-bottom:16px;">
+      <span class="vendor-pill">NVIDIA CUDA</span>
+      <span class="vendor-pill">AMD ROCm</span>
+      <span class="vendor-pill">Intel Gaudi</span>
+      <span class="vendor-pill">IBM Spyre</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Vendor</th><th>Operator</th><th>Partitioning</th><th>Resource Name</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>NVIDIA</strong></td><td>NVIDIA GPU Operator</td><td>MIG, Time-slicing, MPS, VFIO, DRA</td><td><code>nvidia.com/gpu</code></td></tr>
+          <tr><td><strong>AMD</strong></td><td>AMD GPU Operator</td><td>DCM (CPX + NPS4) &mdash; 8 MI300X &rarr; 64 resources</td><td><code>amd.com/gpu</code></td></tr>
+          <tr><td><strong>Intel</strong></td><td>Gaudi Base Operator</td><td>Full device (no partitioning)</td><td><code>habana.ai/gaudi</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>

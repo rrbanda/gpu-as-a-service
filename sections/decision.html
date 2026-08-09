@@ -1,0 +1,61 @@
+  <span class="section-label">Architecture Selection</span>
+  <h2>What Pattern Fits You?</h2>
+  <p style="margin-bottom:8px;">Three questions determine your starting architecture. Click the answer that matches your environment.</p>
+
+  <div class="decision-tree">
+    <div class="decision-node" id="q1">
+      <div class="decision-question-text">Q1: Do training and inference share the same GPU cluster?</div>
+      <div class="decision-options">
+        <div class="decision-option" data-question="q1" data-value="shared">
+          <div class="decision-option-label">Yes &mdash; Shared cluster</div>
+          <div class="decision-option-result">Training jobs compete with live inference for GPU time</div>
+        </div>
+        <div class="decision-option" data-question="q1" data-value="dedicated">
+          <div class="decision-option-label">No &mdash; Dedicated pools</div>
+          <div class="decision-option-result">Inference runs on its own GPU fleet, training is separate</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-connector"></div>
+
+    <div class="decision-node" id="q2">
+      <div class="decision-question-text">Q2: Do you serve many small models (&lt;10GB) alongside large LLMs?</div>
+      <div class="decision-options">
+        <div class="decision-option" data-question="q2" data-value="mixed">
+          <div class="decision-option-label">Yes &mdash; Mixed model sizes</div>
+          <div class="decision-option-result">Guard models, embeddings, classifiers alongside 70B+ LLMs</div>
+        </div>
+        <div class="decision-option" data-question="q2" data-value="large">
+          <div class="decision-option-label">No &mdash; Mostly large models</div>
+          <div class="decision-option-result">Primary workload is 13B+ parameter models requiring full GPUs</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-connector"></div>
+
+    <div class="decision-node" id="q3">
+      <div class="decision-question-text">Q3: Do you need to show teams what their GPU usage costs?</div>
+      <div class="decision-options">
+        <div class="decision-option" data-question="q3" data-value="yes">
+          <div class="decision-option-label">Yes &mdash; Showback or chargeback</div>
+          <div class="decision-option-result">Finance, leadership, or teams need cost visibility</div>
+        </div>
+        <div class="decision-option" data-question="q3" data-value="no">
+          <div class="decision-option-label">Not yet &mdash; Focus on efficiency first</div>
+          <div class="decision-option-result">Primary goal is utilization, billing comes later</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-connector"></div>
+
+    <!-- RESULT -->
+    <div id="decision-result" style="display:none;">
+      <div class="card" style="border-left:3px solid var(--l2-mechanisms); margin-top:8px;">
+        <h3 style="color:var(--l2-mechanisms); margin-bottom:12px;" id="result-title">Your Recommended Architecture</h3>
+        <div id="result-body"></div>
+      </div>
+    </div>
+  </div>

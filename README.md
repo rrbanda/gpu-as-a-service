@@ -1,6 +1,6 @@
 # GPU as a Service — Interactive Architecture Deep Dive
 
-An interactive, single-page whiteboard experience that walks through GPU-as-a-Service architecture on Kubernetes. From "why are enterprise GPUs 30-50% idle?" to a production-ready implementation roadmap.
+An interactive, modular whiteboard experience that walks through GPU-as-a-Service architecture on Kubernetes. From "why are enterprise GPUs at 5% utilization?" to a production-ready implementation roadmap.
 
 **[Live Demo](https://rrbanda.github.io/gpu-as-a-service/)**
 
@@ -8,89 +8,119 @@ An interactive, single-page whiteboard experience that walks through GPU-as-a-Se
 
 ## What This Is
 
-A self-contained, zero-dependency interactive page designed for:
+A zero-dependency interactive presentation designed for:
 
-- **Whiteboarding sessions** with enterprise customers evaluating GPU infrastructure
 - **Technical deep dives** into GPU scheduling, partitioning, and governance on OpenShift AI
-- **Reusable sales engineering asset** — fork, customize colors/content, present
+- **Whiteboarding sessions** with enterprise platform engineers, ML engineers, and architects
+- **Reusable asset** — fork, swap section files, edit the config, present
 
 Built with vanilla HTML, CSS, and JavaScript. No frameworks, no build step, no npm.
 
 ## Quick Start
 
+Since the presentation loads section files via `fetch()`, you need an HTTP server for local development:
+
 ```bash
 git clone https://github.com/rrbanda/gpu-as-a-service.git
 cd gpu-as-a-service
-open index.html    # macOS
-# or: xdg-open index.html (Linux)
-# or: start index.html (Windows)
+
+# Any of these work:
+python3 -m http.server 8000        # Python (built-in)
+npx serve .                        # Node.js (npx, no install)
+php -S localhost:8000               # PHP (built-in)
 ```
 
-That's it. No install, no build, no server.
+Open `http://localhost:8000` in your browser. The live GitHub Pages deployment works without any server setup.
 
-## Content Sections
+## Architecture
 
-The page follows a logical whiteboarding flow — each section builds on the last:
-
-| # | Section | What It Covers |
-|---|---------|----------------|
-| 1 | **Opening Hook** | "30-50% idle" stat, 5-step agenda grid, 8 pain-point cards |
-| 2 | **GPU 101** | Hotel analogy — why GPUs need a new abstraction layer |
-| 3 | **Vocabulary** | 11 interactive flip cards (MIG, DRA, Kueue, llm-d, KServe, etc.) |
-| 4 | **Three Problems** | Why generic IaaS doesn't work for AI GPUs |
-| 5 | **Enterprise Environment** | Example GPU fleet — 256 GPUs, 4 teams, $85K/month waste |
-| 6 | **AI Challenges** | 7 AI-specific scheduling problems |
-| 7 | **Five-Layer Architecture** | Expandable layer cards from physical GPUs to self-service |
-| 8 | **Control Loops** | Three concentric loops: scheduling, serving, governance |
-| 9 | **GPU Mechanisms** | MIG slicing, scale-to-zero, DRA claims |
-| 10 | **Governance** | Kueue configuration — when to use it and when not to |
-| 11 | **GPU FinOps** | Metering pipeline, showback dashboards, chargeback comparison |
-| 12 | **Architecture Patterns** | Dedicated Inference Pool vs. Shared Cluster — toggle between them |
-| 13 | **Decision Tree** | 3-question interactive quiz → personalized architecture recommendation |
-| 14 | **Industry Data** | Achievable improvements based on published data and platform capabilities |
-| 15 | **Tech Stack** | Open-source components with provenance (KServe, llm-d, Kueue, etc.) |
-| 16 | **Use Case Mapping** | Persona → Use Case → Capability → RHOAI Feature table (with voting) |
-| 17 | **Persona Summary** | 4 team personas with waste patterns and fixes |
-| 18 | **Solution Roadmap** | 10-step implementation plan ordered by dependency and ROI |
-
-## Presenter Mode
-
-Press **P** to enter Presenter Mode — designed for live whiteboarding sessions:
-
-- **Progressive reveal:** Sections are hidden until you press → (right arrow). Some sections reveal in groups (e.g., Three Problems + Enterprise Environment together) to reduce key presses.
-- **Pain-point cards:** 8 common pain points are visible in the hero section. Click **"+ Add Your Own"** to add custom pain points live.
-- **Editable environment:** Click any highlighted number in the Enterprise Environment section to type customer-specific GPU counts — the idle count and percentage update automatically.
-- **Use case voting:** Click the ▲ vote buttons on use cases as the audience raises hands. Top-voted items highlight in green with a ranked summary.
-- **Decision tree:** Walk through 3 interactive questions to generate a personalized architecture recommendation.
-
-Arrow keys are disabled while editing contenteditable fields or text inputs, so you can type freely without accidentally advancing sections.
-
-Press **P** again or click the toggle button to exit Presenter Mode.
-
-## Project Structure
+The presentation is **config-driven**. A single `presentation.json` file defines section order, navigation labels, agenda cards, and presenter mode groupings. Sections are individual HTML fragment files loaded at runtime.
 
 ```
 gpu-as-a-service/
-├── index.html              # Page content (HTML only — no inline CSS/JS)
+├── index.html              # Thin shell (~45 lines) — head, nav, main, footer
+├── presentation.json       # Section order, nav labels, agenda, presenter groups
+├── sections/               # One HTML fragment per topic
+│   ├── hero.html           #   Opening hook + agenda grid placeholder
+│   ├── gpu101.html         #   GPU fundamentals
+│   ├── vocab.html          #   11 interactive flashcards
+│   ├── discovery.html      #   Example environment + waste analysis
+│   ├── challenges.html     #   7 AI-specific scheduling challenges
+│   ├── layers.html         #   Five-layer architecture (expandable cards)
+│   ├── loops.html          #   Three concentric control loops
+│   ├── mechanisms.html     #   MIG, DRA, scale-to-zero deep dive
+│   ├── governance.html     #   Kueue configuration + YAML examples
+│   ├── maas.html           #   MaaS, GenAI Studio, llm-d
+│   ├── training.html       #   KFTv2, JIT checkpointing, CodeFlare
+│   ├── finops.html         #   GPU FinOps + showback dashboards
+│   ├── patterns.html       #   Architecture patterns (toggle view)
+│   ├── decision.html       #   Interactive 3-question decision tree
+│   ├── stack.html          #   Technology stack components
+│   ├── results.html        #   Industry benchmark data
+│   ├── usecases.html       #   Use case → capability → feature mapping
+│   ├── personas.html       #   Team persona summary
+│   ├── roadmap.html        #   RHOAI 3.5–3.8 product roadmap
+│   ├── nextsteps.html      #   10-step implementation plan
+│   └── appendix.html       #   Collapsible landscape comparison + product portfolio
 ├── css/
-│   └── main.css            # All styles — tokens, layout, components,
-│                           #   animations, responsive, print
+│   └── main.css            # Global styles — tokens, layout, components, responsive, print
 ├── js/
-│   └── main.js             # All interactions — progress bar, scroll reveal,
-│                           #   GPU animations, layer toggle, decision tree
-├── README.md
+│   ├── loader.js           # Reads config, fetches sections, builds nav/arrows/agenda
+│   └── interactions.js     # Scroll reveal, animations, presenter mode, decision tree
+├── images/
+│   └── og-preview.png      # OpenGraph preview image
+├── KNOWLEDGE_BASE.md       # Consolidated research reference (7 layers)
+├── SPEAKER_NOTES.md        # Talking points + Q&A preparation
+├── CHEAT_SHEET.md          # Quick-reference stats, YAML snippets, CLI commands
 ├── CONTRIBUTING.md
-├── LICENSE                  # Apache 2.0
+├── LICENSE                 # Apache 2.0
 └── .github/
     └── workflows/
-        └── pages.yml        # GitHub Pages auto-deploy
+        └── pages.yml       # GitHub Pages auto-deploy
 ```
+
+## How It Works
+
+1. `index.html` loads `js/loader.js`
+2. `loader.js` fetches `presentation.json` for the config
+3. All section HTML files are fetched in parallel via `Promise.all`
+4. The loader builds the side-nav, wraps each fragment in `<section>` tags, appends navigation arrows, populates agenda cards and footer
+5. After DOM is populated, `js/interactions.js` is loaded to initialize scroll animations, observers, presenter mode, and the decision tree
 
 ## Customization Guide
 
+### Reorder Sections
+
+Edit `presentation.json` — change the array order in `sections`. Navigation, section arrows, and the entire flow update automatically.
+
+### Add a New Topic
+
+1. Create `sections/newtopic.html` with your content (pure HTML fragment, no `<section>` wrapper)
+2. Add an entry to the `sections` array in `presentation.json`:
+   ```json
+   { "id": "newtopic", "file": "sections/newtopic.html", "navLabel": "New Topic" }
+   ```
+3. Done — the loader handles the `<section>` wrapper, nav dot, and navigation arrow
+
+### Remove a Topic
+
+Delete the entry from `presentation.json`. The section file can stay on disk.
+
+### Change Navigation Labels
+
+Edit the `navLabel` field in `presentation.json`.
+
+### Change Agenda Cards
+
+Edit the `agenda` array in `presentation.json`. Each card has: `num`, `title`, `desc`, `target` (section ID to link to), and `accent` (CSS color variable).
+
+### Change Presenter Groups
+
+Edit the `presenterGroups` array in `presentation.json`. Sections in a group are revealed together with a single arrow key press.
+
 ### Change Colors
 
-Edit `css/main.css`. All 23 design tokens are CSS custom properties at the top of the file:
+Edit `css/main.css`. All design tokens are CSS custom properties at the top:
 
 ```css
 :root {
@@ -99,68 +129,45 @@ Edit `css/main.css`. All 23 design tokens are CSS custom properties at the top o
   --text: #f1f5f9;         /* Primary text */
   --l1-fleet: #3b82f6;     /* Layer 1 accent (blue) */
   --l2-mechanisms: #06b6d4; /* Layer 2 accent (cyan) */
-  --red: #ef4444;          /* Warning / waste indicators */
-  --green: #10b981;        /* Success / fix indicators */
   /* ... see file for all tokens */
 }
 ```
 
-### Add a New Section
+### Fork for a Different Talk
 
-1. Add HTML in `index.html` using the `<section id="your-id" class="section">` pattern
-2. Add a nav dot in `<nav id="side-nav">`: `<a href="#your-id" data-label="Your Label"></a>`
-3. Add a `↓` arrow in the preceding section: `<a href="#your-id" class="section-arrow">↓</a>`
-4. Style new components in `css/main.css`
+Copy the repo, swap section files, edit the config. The same shell, CSS, and JS work with completely different content.
 
-### Modify Content
+## Presenter Mode
 
-All content lives in `index.html`. Search for section IDs to find what you need:
-- `#hero` — Opening hook and agenda
-- `#discovery` — Enterprise environment narrative
-- `#nextsteps` — Solution roadmap (10 steps)
+Press **P** to enter Presenter Mode:
 
-### Add Customer-Specific Data
+- **Progressive reveal:** Sections hidden until → (right arrow). Related sections reveal in groups.
+- **Pain-point cards:** 8 common pain points in the hero. Click **"+ Add Your Own"** live.
+- **Editable environment:** Click highlighted numbers in the discovery section — idle counts auto-update.
+- **Use case voting:** ▲ buttons on use cases for audience polling. Top-voted items highlight.
+- **Decision tree:** 3 interactive questions generate a personalized architecture recommendation.
 
-The enterprise environment section (`#discovery`) uses generic data. To customize:
-1. Replace GPU counts, types, and team names in the `#discovery` section
-2. Update the waste calculations in the insight box
-3. Adjust the Solution Roadmap steps to match the customer's priorities
+Press **P** again to exit.
 
 ## Deployment
 
 ### GitHub Pages (recommended)
 
-The included workflow (`.github/workflows/pages.yml`) auto-deploys on push to `main`.
-
-1. Go to **Settings → Pages** in your repo
-2. Set Source to **GitHub Actions**
-3. Push to `main` — the site deploys automatically
+The included workflow auto-deploys on push to `main`. Go to **Settings → Pages**, set Source to **GitHub Actions**, and push.
 
 ### Any Static Host
 
-Copy the entire repo to any web server. No build step required. Works on:
-- Netlify (drag-and-drop)
-- Vercel (import repo)
-- AWS S3 + CloudFront
-- Any nginx/Apache server
-
-### Embed in MkDocs
-
-Add to your `mkdocs.yml` navigation:
-
-```yaml
-nav:
-  - GPUaaS Deep Dive: https://rrbanda.github.io/gpu-as-a-service/
-```
+Copy the entire repo to any web server. Works on Netlify, Vercel, AWS S3 + CloudFront, nginx, Apache — no build step.
 
 ## Technical Details
 
 - **Zero dependencies** — no npm, no build tools, no frameworks
-- **~148 KB total** — loads instantly, works offline after first visit
-- **Accessible** — semantic HTML, keyboard navigable, print stylesheet included
+- **Modular** — 21 independent section files, config-driven assembly
+- **Config-driven** — reorder, add, remove sections via JSON
 - **Dark theme** — designed for projection in meeting rooms
-- **Mobile responsive** — side nav hides, grids reflow, touch-friendly cards
-- **Print friendly** — `@media print` stylesheet strips animations and backgrounds
+- **Mobile responsive** — side nav hides, grids reflow, touch-friendly
+- **Print friendly** — `@media print` stylesheet strips animations
+- **Accessible** — semantic HTML, keyboard navigable
 
 ## License
 

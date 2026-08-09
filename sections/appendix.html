@@ -1,0 +1,75 @@
+  <span class="section-label">Reference Material</span>
+  <h2>Appendix</h2>
+  <p style="margin-bottom:24px;">Supplementary reference for Q&amp;A and follow-up conversations. Click any section to expand.</p>
+
+  <details class="yaml-toggle" style="margin-bottom:16px;">
+    <summary>Landscape Comparison &mdash; Alternative Approaches to GPU Management</summary>
+    <div style="padding:16px;">
+
+    <h3 style="margin-bottom:12px;">Run:AI / KAI Scheduler vs. Kueue-based Approach</h3>
+    <div class="table-wrap" style="margin-bottom:24px;">
+      <table>
+        <thead>
+          <tr><th style="width:25%;">Dimension</th><th style="width:37%;">Run:AI / KAI</th><th style="width:38%;">Kueue (RHOAI)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>GPU vendors</strong></td><td>NVIDIA-only (post-acquisition)</td><td>NVIDIA + AMD + Intel</td></tr>
+          <tr><td><strong>Scheduling</strong></td><td>KAI Scheduler (proprietary + OSS core)</td><td>Kueue (Kubernetes-native, CNCF)</td></tr>
+          <tr><td><strong>GPU isolation</strong></td><td>Enforced memory isolation (NOT open-sourced)</td><td>MIG (hardware), DRA, namespace isolation</td></tr>
+          <tr><td><strong>Dashboard</strong></td><td>Full GPU dashboard with idle detection</td><td>GPU Topology Dashboard (3.5), expanding 3.6&ndash;3.7</td></tr>
+          <tr><td><strong>Hierarchical quotas</strong></td><td>Departments &rarr; Projects with borrowing</td><td>Cohort-based borrowing (flat, not hierarchical yet)</td></tr>
+          <tr><td><strong>Chargeback</strong></td><td>Consumption reports across org units</td><td>Showback dashboard (3.5 TP), export in 3.6</td></tr>
+          <tr><td><strong>Pricing</strong></td><td>$4,500/GPU/year</td><td>Included with RHOAI subscription</td></tr>
+          <tr><td><strong>AI lifecycle</strong></td><td>GPU scheduling only</td><td>Full: notebooks &rarr; training &rarr; serving &rarr; monitoring</td></tr>
+          <tr><td><strong>Vendor coupling</strong></td><td>NVIDIA hardware + proprietary control plane</td><td>Open source, multi-vendor, Kubernetes-native</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-bottom:12px;">Rafay</h3>
+    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;">Role-segmented dashboards and SKU Studio for GPU management. Strength: UX-first approach with clear persona separation. Tradeoff: narrower AI lifecycle coverage &mdash; focuses on infrastructure management rather than the full training-to-serving pipeline.</p>
+
+    <h3 style="margin-bottom:12px;">On-Premises (OpenShift) vs. Cloud-Managed (EKS / AKS / GKE)</h3>
+    <div class="table-wrap" style="margin-bottom:16px;">
+      <table>
+        <thead>
+          <tr><th style="width:30%;">Dimension</th><th style="width:35%;">On-Premises / Hybrid</th><th style="width:35%;">Cloud-Managed</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>GPU supply</strong></td><td>Fixed fleet, capital expenditure</td><td>Elastic, near-infinite on demand</td></tr>
+          <tr><td><strong>Data residency</strong></td><td>Full control, on-prem sovereignty</td><td>Subject to cloud region policies</td></tr>
+          <tr><td><strong>Operations</strong></td><td>Team manages GPU operators, drivers, upgrades</td><td>Managed by cloud provider</td></tr>
+          <tr><td><strong>Portability</strong></td><td>Same stack across environments</td><td>Cloud-specific GPU management tools</td></tr>
+          <tr><td><strong>Cost model</strong></td><td>CapEx + OpEx, amortized</td><td>OpEx only, spot/preemptible available</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="insight-box">
+      <strong>Tradeoff summary:</strong> Run:AI has a more mature GPU dashboard and hierarchical quota UX today. Cloud providers offer elastic scale. The Kueue-based approach trades dashboard maturity for multi-vendor support, Kubernetes-native primitives, and full AI lifecycle integration. Dashboard and scheduling explainability are on the RHOAI 3.6&ndash;3.7 roadmap.
+    </div>
+
+    </div>
+  </details>
+
+  <details class="yaml-toggle" style="margin-bottom:16px;">
+    <summary>Red Hat Product Portfolio for GPU Workloads</summary>
+    <div style="padding:16px;">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th style="width:35%;">Product</th><th>Role in GPU Workloads</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Red Hat OpenShift AI</strong></td><td>Core AI platform: workbenches, training, serving, monitoring, MaaS</td></tr>
+          <tr><td><strong>Red Hat AI Inference</strong></td><td>Standalone inference stack (vLLM + llm-d), runs on OCP or any managed K8s (AKS, CKS)</td></tr>
+          <tr><td><strong>Red Hat AI Factory with NVIDIA</strong></td><td>Co-engineered stack: RHOAI + NVIDIA AI Enterprise, optimized for NVIDIA hardware</td></tr>
+          <tr><td><strong>Red Hat Build of Kueue</strong></td><td>Batch scheduling, quotas, fair sharing, multi-tenancy</td></tr>
+          <tr><td><strong>Red Hat Advanced Cluster Management</strong></td><td>Multi-cluster GPU fleet management, MultiKueue add-on</td></tr>
+          <tr><td><strong>OpenShift Container Platform</strong></td><td>Foundation: GPU Operator, DRA, node management, Prometheus</td></tr>
+        </tbody>
+      </table>
+    </div>
+    </div>
+  </details>
+

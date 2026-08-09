@@ -1,0 +1,61 @@
+  <div class="hero-headline">
+    <h1>GPU as a Service</h1>
+    <div class="hero-stat-row">
+      <span class="hook-stat">5% average utilization</span>
+      <span class="hook-sep">&mdash;</span>
+      <span class="hook-followup">enterprise GPUs are 20x overprovisioned. 86% of organizations run GPUs at &le;50% capacity. Kubernetes-native GPU management is still maturing.</span>
+    </div>
+  </div>
+
+  <!-- EMBEDDED AGENDA -->
+  <div id="agenda" class="hero-agenda">
+    <div class="agenda-header">
+      <span class="section-label" style="margin-bottom:0;">Session Roadmap</span>
+    </div>
+
+    <div id="agenda-grid" class="agenda-grid"></div>
+  </div>
+
+  <!-- PAIN POINTS — shiny flash cards -->
+  <div class="pain-zone">
+    <p style="font-size:1rem;color:var(--text-secondary);margin-bottom:20px;">These are the pain points we hear most often. Do any sound familiar?</p>
+    <div class="pain-grid">
+      <div class="pain-card" style="--accent:var(--red);">
+        <span class="pain-icon">&#9201;</span>
+        <span class="pain-text">Provisioning takes days &mdash; tickets, approvals, wait</span>
+      </div>
+      <div class="pain-card" style="--accent:var(--amber);">
+        <span class="pain-icon">&#127769;</span>
+        <span class="pain-text">GPUs sit idle overnight but are still reserved</span>
+      </div>
+      <div class="pain-card" style="--accent:var(--l3-governance);">
+        <span class="pain-icon">&#128065;</span>
+        <span class="pain-text">No visibility into who is using what</span>
+      </div>
+      <div class="pain-card" style="--accent:var(--l2-mechanisms);">
+        <span class="pain-icon">&#128167;</span>
+        <span class="pain-text">Small models get a full GPU &mdash; massive waste</span>
+      </div>
+      <div class="pain-card" style="--accent:var(--l4-ai-aware);">
+        <span class="pain-icon">&#9889;</span>
+        <span class="pain-text">Training jobs crash inference with no warning</span>
+      </div>
+      <div class="pain-card" style="--accent:var(--l1-fleet);">
+        <span class="pain-icon">&#128274;</span>
+        <span class="pain-text">No way to share GPUs across teams</span>
+      </div>
+      <div class="pain-card" style="--accent:var(--green);">
+        <span class="pain-icon">&#128176;</span>
+        <span class="pain-text">Cost attribution is impossible &mdash; no showback</span>
+      </div>
+      <div class="pain-card" style="--accent:var(--l5-self-service);">
+        <span class="pain-icon">&#128203;</span>
+        <span class="pain-text">Data scientists hoard GPUs in idle notebooks</span>
+      </div>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:8px;align-items:center;">
+      <button id="wb-sticky-add" class="wb-sticky-btn" style="background:var(--raised);color:var(--text);border:1px solid var(--border);">+ Add Your Own</button>
+      <input id="wb-sticky-input" class="wb-sticky-input" type="text" placeholder="Type a pain point and press Enter&hellip;" style="display:none;" />
+      <div id="wb-sticky-board" class="wb-sticky-board"></div>
+    </div>
+  </div>

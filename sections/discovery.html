@@ -1,0 +1,124 @@
+  <span class="section-label">The Starting Point</span>
+  <h2>An Example Enterprise GPU Environment</h2>
+  <p style="margin-bottom:24px;">This is what we typically see when we walk into a large enterprise running AI workloads. The names change. The patterns don&rsquo;t. Four teams consume the majority; the remainder covers staging, CI/CD pipelines, and an unallocated buffer pool.</p>
+
+  <!-- GPU FLEET OVERVIEW -->
+  <h3>The Fleet</h3>
+  <div class="grid-3" style="margin-top:12px;margin-bottom:24px;">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;font-weight:800;color:var(--l1-fleet);"><span class="wb-editable" contenteditable="false" data-field="total-gpus" data-default="256">256</span></div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);">Total GPUs across <span class="wb-editable" contenteditable="false" data-field="num-clusters" data-default="3">3</span> clusters</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Production &middot; Staging &middot; Dev/Experiment</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;font-weight:800;color:var(--amber);"><span class="wb-editable" contenteditable="false" data-field="gpu-types" data-default="3 types">3 types</span></div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);">Heterogeneous GPU mix</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;"><span class="wb-editable" contenteditable="false" data-field="gpu-mix" data-default="64x H100 SXM &middot; 128x A100 80GB &middot; 64x A10G">64x H100 SXM &middot; 128x A100 80GB &middot; 64x A10G</span></div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;font-weight:800;color:var(--red);"><span class="wb-editable" contenteditable="false" data-field="avg-util" data-default="~38%">~38%</span></div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);">Average GPU compute utilization</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Despite &ldquo;no GPUs available&rdquo; in ticket queue</div>
+    </div>
+  </div>
+
+  <!-- TEAMS AND WORKLOADS -->
+  <h3>The Teams</h3>
+  <div class="grid-2" style="margin-top:12px;margin-bottom:24px;">
+    <div class="card">
+      <h3 style="font-size:0.9rem;color:var(--l4-ai-aware);">LLM Serving Team</h3>
+      <p style="font-size:0.8rem;">Runs 5 production models: a 70B flagship model (4 GPUs per replica, 3 replicas for HA), two 13B domain models, and two 7B models. Statically provisioned 48 H100s. Traffic is 90% daytime U.S. hours; at night, 36 GPUs sit idle but reserved.</p>
+      <div style="margin-top:8px;">
+        <span class="signal-tag">48 top-tier GPUs reserved 24/7</span>
+        <span class="signal-tag">~75% sit idle overnight</span>
+        <span class="signal-tag">models never shut down when idle</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:0.9rem;color:var(--l4-ai-aware);">GenAI Platform Team</h3>
+      <p style="font-size:0.8rem;">Exposes models as APIs to 12 internal applications. Traffic is bursty &mdash; 3x spikes during market open, near-zero on weekends. Provisioned for peak at all times: 16 A100s dedicated, using 4 on average. Each API consumer gets a full GPU regardless of load.</p>
+      <div style="margin-top:8px;">
+        <span class="signal-tag">16 GPUs reserved full-time</span>
+        <span class="signal-tag">only 25% used on average</span>
+        <span class="signal-tag">sized for busiest hour, idle the rest</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:0.9rem;color:var(--l2-mechanisms);">Content Safety Team</h3>
+      <p style="font-size:0.8rem;">Deploys 14 guard models &mdash; toxicity filters, PII detectors, prompt injection classifiers. Each model is 1&ndash;3GB but runs on a full A100 (80GB) because Kubernetes only supports <code>nvidia.com/gpu: 1</code>. 14 GPUs, 2.5% VRAM utilization each.</p>
+      <div style="margin-top:8px;">
+        <span class="signal-tag">14 full GPUs for 14 tiny models</span>
+        <span class="signal-tag">each model uses 2.5% of the GPU</span>
+        <span class="signal-tag">no way to share one GPU among them</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:0.9rem;color:var(--l5-self-service);">Data Science &amp; Experimentation</h3>
+      <p style="font-size:0.8rem;">40 data scientists with Jupyter notebooks. Each notebook requests 1 GPU on launch. On a typical Tuesday: 30 notebooks running, 8 are active experiments, 12 are idle (user in meetings), 10 haven&rsquo;t been touched since last week. No culling configured. No visibility into who&rsquo;s using what.</p>
+      <div style="margin-top:8px;">
+        <span class="signal-tag">30 GPUs held by notebooks</span>
+        <span class="signal-tag">only 27% actually computing</span>
+        <span class="signal-tag">no auto-shutdown for idle sessions</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW GPUS ARE MANAGED TODAY -->
+  <h3>How GPUs Are Managed Today</h3>
+  <div class="card" style="margin-top:12px;margin-bottom:24px;">
+    <div class="grid-2" style="gap:16px;">
+      <div>
+        <p style="font-size:0.82rem;font-weight:600;color:var(--red);margin-bottom:6px;">Current State</p>
+        <ul style="font-size:0.78rem;color:var(--text-secondary);padding-left:16px;">
+          <li>Static namespace quotas — each team gets a fixed GPU count at the start of quarter</li>
+          <li>No borrowing — if Team A has 10 idle GPUs and Team B is queued, Team B waits</li>
+          <li>GPU allocation via ServiceNow ticket — 3&ndash;5 day turnaround</li>
+          <li><code>nvidia.com/gpu: 1</code> is the only resource request — no GPU type, no memory, no MIG</li>
+          <li>No cost visibility — nobody knows what their GPU usage costs</li>
+          <li>Training jobs run on the same cluster as inference with no priority separation</li>
+          <li>Once a week, a training job saturates the cluster and inference latency spikes to 10x</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;font-weight:600;color:var(--green);margin-bottom:6px;">Technical Requirements</p>
+        <ul style="font-size:0.78rem;color:var(--text-secondary);padding-left:16px;">
+          <li>Self-service GPU access for data scientists — no tickets</li>
+          <li>Small models on GPU slices, not whole GPUs</li>
+          <li>Inference GPUs that scale up during market hours and release at night</li>
+          <li>Training can use idle inference capacity without affecting production SLAs</li>
+          <li>Dashboard showing each team&rsquo;s GPU cost so leadership can optimize spend</li>
+          <li>Air-gapped deployment — all clusters are disconnected, FIPS required</li>
+          <li>Single management plane across all 3 clusters</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE WASTE SUMMARY -->
+  <h3>The Waste</h3>
+  <div class="grid-4" style="margin-top:12px;">
+    <div class="card" style="text-align:center;border-top:3px solid var(--red);">
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);"><span class="wb-editable" contenteditable="false" data-field="idle-gpus" data-default="~98">~98</span></div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">GPUs idle right now</div>
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;" id="wb-idle-pct">38% of 256 fleet</div>
+    </div>
+    <div class="card" style="text-align:center;border-top:3px solid var(--red);">
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);"><span class="wb-editable" contenteditable="false" data-field="wasted-a100s" data-default="12">12</span></div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">A100s wasted on 2GB models</div>
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Could be 2 GPUs with MIG</div>
+    </div>
+    <div class="card" style="text-align:center;border-top:3px solid var(--red);">
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);"><span class="wb-editable" contenteditable="false" data-field="idle-h100s" data-default="36">36</span></div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">H100s idle overnight</div>
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">No scale-to-zero</div>
+    </div>
+    <div class="card" style="text-align:center;border-top:3px solid var(--red);">
+      <div style="font-size:1.4rem;font-weight:800;color:var(--red);"><span class="wb-editable" contenteditable="false" data-field="idle-notebooks" data-default="22">22</span></div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">Notebooks idle &gt;24 hours</div>
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">No cull timer</div>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-top:24px;">
+    <strong>The math:</strong> At $3.20/hr per H100 and $1.90/hr per A100 (on-demand equivalent), the recoverable waste &mdash; GPUs reserved but serving zero requests during their idle periods &mdash; runs roughly <strong><span class="wb-editable" contenteditable="false" data-field="monthly-waste" data-default="$85,000/month">$85,000/month</span></strong>. That&rsquo;s over <span class="wb-editable" contenteditable="false" data-field="yearly-waste" data-default="$1M/year">$1M/year</span> &mdash; before counting the opportunity cost of teams waiting in a ticket queue for GPUs that are already idle one cluster over.
+  </div>

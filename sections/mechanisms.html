@@ -1,0 +1,123 @@
+  <span class="section-label">Layer 2 Deep Dive</span>
+  <h2>GPU Mechanisms</h2>
+
+  <h3 style="margin-top:24px;">MIG Slicing Visualization</h3>
+  <p>A 2GB content-safety model on an 80GB A100 uses 2.5% of VRAM &mdash; parking a bicycle in a semi-truck spot. MIG carves the GPU into hardware-isolated partitions.</p>
+  <p style="font-size:0.8rem;color:var(--l2-mechanisms);margin-top:4px;font-style:italic;">&#127970; Think: one large office split into 7 soundproof private offices &mdash; each tenant gets their own walls, their own power meter, no noisy neighbors.</p>
+
+  <div class="mig-viz">
+    <div class="mig-gpu">
+      <div class="mig-gpu-label">Before: Single A100 (80GB)</div>
+      <div class="mig-full-bar">
+        <div class="model-usage"></div>
+      </div>
+      <p style="font-size:0.75rem;margin-top:8px;text-align:center;">2.5% VRAM efficiency</p>
+    </div>
+    <div class="mig-arrow">&#10132;</div>
+    <div class="mig-slices-container">
+      <div class="mig-gpu-label">After: 7 MIG Partitions (1g.10gb each &mdash; 1 compute slice, 10 GB memory)</div>
+      <div class="mig-slices" id="mig-slices">
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+        <div class="mig-slice">1g<br>10gb</div>
+      </div>
+      <p style="font-size:0.75rem;margin-top:8px;text-align:center;">7 guard models that each needed a full GPU &#8594; 1 GPU with 7 MIG slices (2.5% VRAM waste per model)</p>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-bottom:24px;">
+    <strong>Production-proven:</strong> content safety models on MIG 2g.20gb slices achieve 42&ndash;88% streaming multiprocessor utilization &mdash; the highest compute efficiency in enterprise deployments.
+  </div>
+
+  <h3>DRA Resource Claim (Dynamic Resource Allocation) &mdash; GA in OCP 4.21 / K8s 1.34</h3>
+  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--l2-mechanisms);">
+    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">DRA replaces <code>nvidia.com/gpu: 1</code> with attribute-based CEL expressions. Drivers publish device attributes via <strong>ResourceSlice</strong>. Users request devices via <strong>ResourceClaim</strong> with selectors for GPU model, memory, architecture, and MIG profile. <strong>DeviceClass</strong> defines device categories. DRA supports <strong>partitionable devices</strong> (dynamic MIG without pre-config), <strong>device taints</strong> (mark degraded hardware), and <strong>shared counters</strong> (prevent overlapping MIG allocations).</p>
+  </div>
+  <details class="yaml-toggle">
+    <summary>ResourceClaimTemplate &mdash; requesting a MIG slice by GPU type and profile</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">resource.k8s.io/v1</span>
+<span class="key">kind:</span> <span class="str">ResourceClaimTemplate</span>
+<span class="key">metadata:</span>
+  <span class="key">name:</span> <span class="str">a100-mig-slice</span>
+  <span class="key">namespace:</span> <span class="str">content-safety</span>
+<span class="key">spec:</span>
+  <span class="key">spec:</span>
+    <span class="key">devices:</span>
+      <span class="key">requests:</span>
+      - <span class="key">name:</span> <span class="str">mig</span>
+        <span class="key">exactly:</span>
+          <span class="key">deviceClassName:</span> <span class="str">mig.nvidia.com</span>
+          <span class="key">selectors:</span>
+          - <span class="key">cel:</span>
+              <span class="key">expression:</span> <span class="str">|</span>
+                <span class="str">device.attributes['gpu.nvidia.com'].productName == 'NVIDIA A100 80GB PCIe'</span>
+                <span class="str">&amp;&amp; device.attributes['gpu.nvidia.com'].profile == '1g.10gb'</span></pre></div>
+  </details>
+
+  <details class="yaml-toggle">
+    <summary>ResourceClaimTemplate &mdash; requesting a Hopper GPU with 80GB+ memory</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">resource.k8s.io/v1</span>
+<span class="key">kind:</span> <span class="str">ResourceClaimTemplate</span>
+<span class="key">metadata:</span>
+  <span class="key">name:</span> <span class="str">hopper-gpu</span>
+  <span class="key">namespace:</span> <span class="str">llm-serving</span>
+<span class="key">spec:</span>
+  <span class="key">spec:</span>
+    <span class="key">devices:</span>
+      <span class="key">requests:</span>
+      - <span class="key">name:</span> <span class="str">gpu</span>
+        <span class="key">exactly:</span>
+          <span class="key">deviceClassName:</span> <span class="str">gpu.nvidia.com</span>
+          <span class="key">selectors:</span>
+          - <span class="key">cel:</span>
+              <span class="key">expression:</span> <span class="str">|</span>
+                <span class="str">device.attributes['gpu.nvidia.com'].architecture == 'Hopper'</span>
+                <span class="str">&amp;&amp; device.capacity['gpu.nvidia.com'].memory.isGreaterThan(quantity("80Gi"))</span></pre></div>
+  </details>
+
+  <div class="insight-box">
+    <strong>Compare with the legacy approach:</strong> <code style="color:var(--red);">nvidia.com/gpu: 1</code> &mdash; an opaque integer with no awareness of GPU type, memory, or MIG capability.
+  </div>
+
+  <h3 style="margin-top:32px;">Scale-to-Zero: Releasing Idle GPUs</h3>
+  <p>MIG and DRA improve utilization of <em>active</em> GPUs. Scale-to-zero solves the other half: GPUs reserved by models that aren&rsquo;t serving any traffic at all.</p>
+  <p style="font-size:0.8rem;color:var(--green);margin-top:4px;font-style:italic;">&#9889; Think: the electricity meter stops when you turn off the lights &mdash; and starts instantly when you flip the switch. You pay only for power you actually consume.</p>
+  <div class="loop-cards" style="grid-template-columns:1fr;">
+    <div class="loop-card" style="border-left:3px solid var(--l4-ai-aware);">
+      <p><strong>How it works:</strong> KServe provides Knative-based autoscaling including scale-to-zero for model endpoints. When a model receives no inference requests for a configurable idle period, its pods are terminated and GPUs are returned to the cluster. When a new request arrives, KServe cold-starts the model &mdash; pulling it from cache (seconds) or downloading weights (minutes).</p>
+      <p style="margin-top:12px;"><strong>Combined with KEDA:</strong> KEDA watches queue depth and custom inference metrics to trigger scale-up before latency degrades. Together, KServe + KEDA bridge the gap between &ldquo;no demand&rdquo; and &ldquo;auto-scaling to meet demand&rdquo; without manual GPU reservation.</p>
+      <p style="margin-top:12px;"><strong>WVA adds intelligence:</strong> WVA&rsquo;s <code>minReplicas: 0</code> setting enables scale-to-zero for specific model variants, while optimizing cost by preferring cheaper GPU variants first during scale-up.</p>
+    </div>
+  </div>
+  <div class="insight-box">
+    <strong>Why it matters:</strong> Without scale-to-zero, a data science team with 20 deployed models keeps 20+ GPUs reserved even when only 3 models are actively serving. Scale-to-zero recovers 85% of idle capacity automatically.
+  </div>
+
+  <h3 style="margin-top:32px;">Faster Model Loading: Making Scale-to-Zero Practical</h3>
+  <p>Scale-to-zero only works if cold-start is fast. A 70B model downloading weights from object storage takes 5&ndash;30 minutes &mdash; unacceptable for production. The solution is a layered approach to storage and loading.</p>
+
+  <div class="loop-cards" style="grid-template-columns: 1fr 1fr;">
+    <div class="loop-card" style="border-left:3px solid var(--l1-fleet);">
+      <h4 style="font-size:0.85rem;margin-bottom:8px;color:var(--l1-fleet);">Shared Storage (NAS / PVC)</h4>
+      <p style="font-size:0.78rem;"><strong>Download once, infer everywhere.</strong> Store model weights on a ReadWriteMany (RWX) persistent volume &mdash; NFS, GPFS, or Lustre. New pods mount the same volume and load weights directly into GPU memory. The download step is eliminated entirely.</p>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;"><strong>Pattern:</strong> An init container checks if the cache is warm. If yes, it exits immediately. If not, it downloads the model once. All subsequent replicas skip the download. KServe + RHOAI model registry supports <code>pvc://</code> URIs for this pattern.</p>
+    </div>
+    <div class="loop-card" style="border-left:3px solid var(--l4-ai-aware);">
+      <h4 style="font-size:0.85rem;margin-bottom:8px;color:var(--l4-ai-aware);">Accelerated Loading (vLLM)</h4>
+      <p style="font-size:0.78rem;">Even from fast storage, default sequential loading leaves 80% of bandwidth unused. vLLM supports multiple accelerated loaders:</p>
+      <ul style="font-size:0.75rem;margin-top:6px;padding-left:16px;color:var(--text-secondary);line-height:1.7;">
+        <li><strong>Run:ai Model Streamer</strong> &mdash; concurrent multi-threaded reads of safetensors, streaming directly to GPU memory (<code>--load-format runai_streamer</code>)</li>
+        <li><strong>CoreWeave Tensorizer</strong> &mdash; custom serialization that bypasses CPU staging, loads 40&ndash;50% faster than safetensors (<code>--load-format tensorizer</code>)</li>
+        <li><strong>Prefetch mode</strong> &mdash; pre-warms OS page cache in background threads while workers parse tensors (<code>--safetensors-load-strategy prefetch</code>)</li>
+        <li><strong>Torch compile cache</strong> &mdash; set <code>VLLM_CACHE_ROOT</code> to persistent storage to avoid recompilation on restart</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <strong>Combined impact:</strong> Shared NAS + accelerated loader reduces cold-start from 5&ndash;30 minutes to 30&ndash;90 seconds for a 70B model. This makes scale-to-zero viable even for latency-sensitive endpoints.
+  </div>

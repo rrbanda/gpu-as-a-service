@@ -1,0 +1,29 @@
+  <span class="section-label">Quick Reference</span>
+  <h2>Persona Waste &amp; Fix Summary</h2>
+
+  <div class="grid-2" style="margin-top:24px;">
+    <div class="persona-card">
+      <div class="persona-icon">&#129302;</div>
+      <h3>LLM Serving / NLP</h3>
+      <div class="persona-waste">Over-replication, 70B models on 4&ndash;8 GPUs each, idle at night.</div>
+      <div class="persona-fix">llm-d KV-cache routing + WVA scale-to-demand + scale-to-zero.</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-icon">&#9889;</div>
+      <h3>GenAI Platform / APIs</h3>
+      <div class="persona-waste">Bursty traffic, provisioned for peak, idle at trough.</div>
+      <div class="persona-fix">KEDA autoscaling on queue depth, fractional GPU via MIG.</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-icon">&#128737;</div>
+      <h3>Content Safety / Guards</h3>
+      <div class="persona-waste">2GB model on 80GB GPU = 2.5% VRAM. Dozens of such pods.</div>
+      <div class="persona-fix">MIG slicing &mdash; 1 A100 serves 7 guard models instead of 7 full GPUs.</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-icon">&#128300;</div>
+      <h3>Data Science / Experimentation</h3>
+      <div class="persona-waste">Hold GPUs with 0 bytes used for hours (meetings, lunch, gone for day).</div>
+      <div class="persona-fix">Idle GPU culling (NOTEBOOK_CULL_IDLE_TIME) + chargeback visibility.</div>
+    </div>
+  </div>

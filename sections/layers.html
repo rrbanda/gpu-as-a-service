@@ -1,0 +1,111 @@
+  <span class="section-label">The Solution Framework</span>
+  <h2>The Five-Layer Architecture</h2>
+  <p style="margin-bottom:24px;">GPU-as-a-Service is not one product &mdash; it is five distinct abstraction layers, each solving a different problem. Click any layer to explore.</p>
+
+  <div class="layer-stack">
+    <div class="layer-card" data-layer="5">
+      <div class="layer-header">
+        <div class="layer-num">5</div>
+        <div>
+          <div class="layer-title">Self-Service Experience</div>
+          <div class="layer-subtitle">Compute profiles, accelerator catalog, chargeback dashboards</div>
+        </div>
+        <span class="layer-expand-icon">&#9662;</span>
+      </div>
+      <div class="layer-detail">
+        <p>A data scientist should never write Kubernetes YAML. They pick &ldquo;Large Fine-Tuning&rdquo; from a catalog. Compute Profiles abstract GPU complexity into named profiles. Accelerator Profiles define which GPU types are available. Chargeback dashboards show each team their consumption.</p>
+        <div class="component-pills">
+          <span class="component-pill">Compute Profiles</span>
+          <span class="component-pill">Accelerator Profiles</span>
+          <span class="component-pill">Dashboard UI</span>
+          <span class="component-pill">Showback/Chargeback</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card" data-layer="4">
+      <div class="layer-header">
+        <div class="layer-num">4</div>
+        <div>
+          <div class="layer-title">AI-Aware Services</div>
+          <div class="layer-subtitle">llm-d intelligent routing, WVA autoscaling, KServe model serving</div>
+        </div>
+        <span class="layer-expand-icon">&#9662;</span>
+      </div>
+      <div class="layer-detail">
+        <p>llm-d (CNCF Sandbox, co-created by Red Hat, Google, IBM, CoreWeave, NVIDIA) is distributed inference middleware. Its Endpoint Picker (EPP) routes each request to the replica with the most relevant KV-cache already loaded via a KV-Cache Indexer that maintains a near-real-time block-key-to-pods mapping. llm-d adds three capabilities: (1) KV-cache-aware routing &mdash; directs requests to replicas that already have relevant context cached, avoiding redundant computation; (2) Disaggregated prefill/decode &mdash; separates compute-intensive prompt processing from memory-intensive token generation across different GPU pools; (3) Tiered prefix caching &mdash; reuses shared system prompts and tool definitions across requests, particularly valuable for agentic workloads chaining 10&ndash;20 LLM calls. WVA (Workload Variant Autoscaler) scales model replicas based on inference-specific signals: queue depth, KV-cache pressure, token throughput, latency percentiles.</p>
+        <div class="component-pills">
+          <span class="component-pill">llm-d</span>
+          <span class="component-pill">WVA</span>
+          <span class="component-pill">KServe</span>
+          <span class="component-pill">vLLM</span>
+          <span class="component-pill">KEDA</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card" data-layer="3">
+      <div class="layer-header">
+        <div class="layer-num">3</div>
+        <div>
+          <div class="layer-title">Governance</div>
+          <div class="layer-subtitle">Kueue quotas, fair-share scheduling, borrowing, preemption</div>
+        </div>
+        <span class="layer-expand-icon">&#9662;</span>
+      </div>
+      <div class="layer-detail">
+        <p>When 4 teams want 150 GPUs but only 100 exist, Kueue makes the allocation policy. Each team gets a nominalQuota (guaranteed entitlement), can burst via borrowing from peers&rsquo; unused capacity, and capacity is reclaimed via preemption. NUANCE: Kueue is not always needed. A dedicated inference cluster with a single tenant gets no value from admission control &mdash; it only adds latency.</p>
+        <div class="component-pills">
+          <span class="component-pill">Kueue</span>
+          <span class="component-pill">ClusterQueue</span>
+          <span class="component-pill">LocalQueue</span>
+          <span class="component-pill">ResourceFlavor</span>
+          <span class="component-pill">Workload Priority</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card" data-layer="2">
+      <div class="layer-header">
+        <div class="layer-num">2</div>
+        <div>
+          <div class="layer-title">GPU Mechanisms</div>
+          <div class="layer-subtitle">MIG partitioning, DRA, time-slicing, device plugins</div>
+        </div>
+        <span class="layer-expand-icon">&#9662;</span>
+      </div>
+      <div class="layer-detail">
+        <p>MIG (Multi-Instance GPU) carves a single A100 or H100 into hardware-isolated partitions with dedicated memory bandwidth and compute cores. DRA (Dynamic Resource Allocation) replaces opaque <code>nvidia.com/gpu: 1</code> requests with attribute-based claims. NVIDIA donated the DRA GPU driver to CNCF at KubeCon Europe 2026. DRA GA in RHOAI is targeted for 3.6/3.7.</p>
+        <div class="component-pills">
+          <span class="component-pill">NVIDIA GPU Operator</span>
+          <span class="component-pill">MIG Manager</span>
+          <span class="component-pill">DRA (K8s 1.34+)</span>
+          <span class="component-pill">Device Plugin</span>
+          <span class="component-pill">DCGM Exporter</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card" data-layer="1">
+      <div class="layer-header">
+        <div class="layer-num">1</div>
+        <div>
+          <div class="layer-title">GPU Fleet</div>
+          <div class="layer-subtitle">Physical accelerators, topology, networking</div>
+        </div>
+        <span class="layer-expand-icon">&#9662;</span>
+      </div>
+      <div class="layer-detail">
+        <p>Physical GPUs are not fungible. An H100 with NVLink at 900 GB/s between 8 GPUs on a single NVSwitch domain is fundamentally different from 4+4 split across servers connected by InfiniBand. Node Feature Discovery (NFD) labels every node with hardware metadata &mdash; GPU model, memory capacity, PCIe generation, NUMA affinity.</p>
+        <div class="component-pills">
+          <span class="component-pill">H100/H200/B200</span>
+          <span class="component-pill">A100</span>
+          <span class="component-pill">L40S/L4</span>
+          <span class="component-pill">AMD MI300X</span>
+          <span class="component-pill">Intel Gaudi 3</span>
+          <span class="component-pill">NVSwitch/NVLink</span>
+          <span class="component-pill">NFD</span>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,30 @@
+  <span class="section-label">The Centerpiece</span>
+  <h2>Three Control Loops</h2>
+  <p style="margin-bottom:12px;">GPU workload management is not one scheduling problem. It is three problems operating at three different timescales. Conflating them creates oscillation &mdash; the autoscaler and the quota manager fight each other.</p>
+
+  <div class="control-loops-visual">
+    <div class="rings-container">
+      <div class="ring ring-outer"></div>
+      <div class="ring ring-middle"></div>
+      <div class="ring ring-inner"></div>
+      <div class="ring-center-label">Three<br>Timescales</div>
+    </div>
+    <div class="loop-cards">
+      <div class="loop-card outer">
+        <h4 style="color:var(--l3-governance);">Outer Loop: Kueue &mdash; Entitlement</h4>
+        <p><strong>Minutes&ndash;hours.</strong> Which team is entitled to GPU capacity? Manages quotas, fair-share weights, borrowing, preemption.</p>
+      </div>
+      <div class="loop-card middle">
+        <h4 style="color:var(--l4-ai-aware);">Middle Loop: WVA/KEDA &mdash; Scaling</h4>
+        <p><strong>Seconds&ndash;minutes.</strong> How many replicas does this model need? Scales based on queue depth, KV-cache pressure, token throughput, latency.</p>
+      </div>
+      <div class="loop-card inner">
+        <h4 style="color:var(--l2-mechanisms);">Inner Loop: llm-d EPP &mdash; Routing</h4>
+        <p><strong>Milliseconds.</strong> Which replica handles this request? Routes to the replica with the most relevant KV-cache via KV-Cache Indexer.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <strong>Insight:</strong> Kueue sets the ceiling. WVA scales within it. llm-d routes within the live replicas.
+  </div>

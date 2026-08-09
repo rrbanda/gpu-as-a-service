@@ -1,0 +1,59 @@
+  <span class="section-label">Layer 5 Deep Dive &mdash; Training</span>
+  <h2>Training, Fine-tuning &amp; Distributed Workloads</h2>
+
+  <h3 style="margin-top:16px;">Kubeflow Trainer v2 (TrainJob API)</h3>
+  <p style="margin-bottom:16px;">GA with native Kueue integration. The TrainJob API simplifies distributed training by abstracting away PyTorch, TensorFlow, and other framework boilerplate.</p>
+
+  <details class="yaml-toggle">
+    <summary>TrainJob &mdash; distributed fine-tuning with Kueue admission</summary>
+    <div class="code-block"><pre><span class="key">apiVersion:</span> <span class="str">trainer.kubeflow.org/v1</span>
+<span class="key">kind:</span> <span class="str">TrainJob</span>
+<span class="key">metadata:</span>
+  <span class="key">name:</span> <span class="str">llama-finetune</span>
+  <span class="key">labels:</span>
+    <span class="key">kueue.x-k8s.io/queue-name:</span> <span class="str">team-a-queue</span>
+    <span class="key">kueue.x-k8s.io/priority-class:</span> <span class="str">production</span>
+<span class="key">spec:</span>
+  <span class="key">runtimeRef:</span>
+    <span class="key">name:</span> <span class="str">torch-distributed</span>
+  <span class="key">trainer:</span>
+    <span class="key">image:</span> <span class="str">quay.io/rhoai/training:latest</span>
+    <span class="key">numProcPerNode:</span> <span class="str">"4"</span>
+    <span class="key">resourcesPerNode:</span>
+      <span class="key">requests:</span>
+        <span class="key">nvidia.com/gpu:</span> <span class="str">"4"</span>
+        <span class="key">memory:</span> <span class="str">128Gi</span></pre></div>
+  </details>
+
+  <h3 style="margin-top:32px;">JIT Checkpointing &mdash; Survive Preemption</h3>
+  <div class="card" style="border-left:3px solid var(--green);margin-bottom:24px;">
+    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">When Kueue preempts a training job, the pod receives SIGTERM. JIT checkpointing intercepts this signal, pauses training after the current optimizer step, and asynchronously saves model state to PVC or S3. On restart, training automatically resumes from the latest valid checkpoint.</p>
+    <div class="grid-3" style="margin-top:16px;">
+      <div style="text-align:center;">
+        <div style="font-size:0.85rem;font-weight:600;color:var(--green);">Step 1</div>
+        <p style="font-size:0.75rem;color:var(--text-muted);">SIGTERM received &rarr; handler pauses after current optimizer step</p>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:0.85rem;font-weight:600;color:var(--amber);">Step 2</div>
+        <p style="font-size:0.75rem;color:var(--text-muted);">Async save via CUDA streams to PVC or S3 with sentinel file</p>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:0.85rem;font-weight:600;color:var(--l2-mechanisms);">Step 3</div>
+        <p style="font-size:0.75rem;color:var(--text-muted);">On restart, resume from latest valid checkpoint automatically</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>CodeFlare SDK + KubeRay</h3>
+  <div class="card" style="margin-bottom:16px;">
+    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">Python-native distributed workload submission. Data scientists submit training jobs, hyperparameter sweeps, and Ray Serve deployments from Jupyter notebooks without writing Kubernetes YAML. Integrates with Kueue for fair-share admission.</p>
+  </div>
+
+  <h3 style="margin-top:32px;">GPUDirect RDMA &mdash; Topology-Aware Training</h3>
+  <div class="card" style="border-left:3px solid var(--l1-fleet);margin-bottom:16px;">
+    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;"><strong>Demonstrated result:</strong> 3x training speedup (5 hours &rarr; 1 hour 40 minutes) for distributed fine-tuning on OpenShift AI by enabling GPU-to-GPU communication over RoCE/InfiniBand, bypassing CPU entirely. Topology-aware scheduling ensures multi-GPU jobs land on nodes connected via NVLink or high-bandwidth fabric.</p>
+  </div>
+
+  <div class="insight-box">
+    <strong>Why training matters for GPUaaS:</strong> Without fair-share scheduling (Kueue) and preemption-safe checkpointing (JIT), training jobs are either starved for GPUs or they monopolize the cluster. KFTv2 + Kueue + JIT checkpointing makes training a first-class, preemptible citizen of the GPU fleet.
+  </div>

@@ -1,0 +1,106 @@
+  <span class="section-label">Product Evolution</span>
+  <h2>RHOAI GPUaaS Roadmap</h2>
+  <p style="margin-bottom:24px;">GPU-as-a-Service capabilities are delivered incrementally across RHOAI releases. This roadmap shows the progression from visibility to governance to self-service.</p>
+
+  <div class="steps-timeline">
+    <div class="phase-label" style="color:var(--green);">See &mdash; Make GPUs Visible</div>
+
+    <div class="step-item">
+      <div class="step-dot" style="background:var(--green);">3.5</div>
+      <div class="step-content">
+        <div class="step-title">RHOAI 3.5 (Aug 2026)</div>
+        <div class="step-detail">
+          <ul style="font-size:0.82rem;color:var(--text-secondary);padding-left:18px;">
+            <li>GPU Topology and Utilization Dashboard (Admin)</li>
+            <li>Kueue scheduling info in Workbenches</li>
+            <li>MaaS observability dashboard: token usage, rate limits (TP)</li>
+            <li>MLflow GA: experiment tracking, agent tracing, model registry</li>
+            <li>llm-d observability: Prometheus metrics + distributed tracing</li>
+          </ul>
+        </div>
+        <span class="step-deliverable">Theme: Visibility &mdash; see what GPUs are doing</span>
+      </div>
+    </div>
+
+    <div class="phase-label" style="color:var(--l3-governance);">Govern &mdash; Establish Policy</div>
+
+    <div class="step-item">
+      <div class="step-dot" style="background:var(--l3-governance);">3.6</div>
+      <div class="step-content">
+        <div class="step-title">RHOAI 3.6 (Nov 2026)</div>
+        <div class="step-detail">
+          <ul style="font-size:0.82rem;color:var(--text-secondary);padding-left:18px;">
+            <li>Kueue Quota Dashboard</li>
+            <li>Workload Observability Dashboard</li>
+            <li>DRA support (Developer Preview)</li>
+            <li>Per-tenant GPU usage export (showback)</li>
+            <li>Compute Profiles v1</li>
+            <li>KEDA GA for llm-d autoscaling</li>
+          </ul>
+        </div>
+        <span class="step-deliverable">Theme: Governance &mdash; control who gets what</span>
+      </div>
+    </div>
+
+    <div class="phase-label" style="color:var(--l5-self-service);">Act &mdash; Enable Self-Service</div>
+
+    <div class="step-item">
+      <div class="step-dot" style="background:var(--l5-self-service);">3.7</div>
+      <div class="step-content">
+        <div class="step-title">RHOAI 3.7 (~Q1 2027)</div>
+        <div class="step-detail">
+          <ul style="font-size:0.82rem;color:var(--text-secondary);padding-left:18px;">
+            <li>Scheduling explainability (&ldquo;why am I pending?&rdquo;)</li>
+            <li>Self-service GPU allocation via calendar view</li>
+            <li>GPU cost attribution per team</li>
+            <li>Advanced Compute Profiles (software stack, cost, queue info)</li>
+          </ul>
+        </div>
+        <span class="step-deliverable">Theme: Self-service &mdash; users act without admin tickets</span>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-dot" style="background:var(--l4-ai-aware);">3.8</div>
+      <div class="step-content">
+        <div class="step-title">RHOAI 3.8 (~Q2 2027)</div>
+        <div class="step-detail">
+          <ul style="font-size:0.82rem;color:var(--text-secondary);padding-left:18px;">
+            <li>Self-service GPU pool wizard</li>
+            <li>GPU slice provisioning with quota enforcement</li>
+            <li>Idle GPU detection + automatic reclamation</li>
+          </ul>
+        </div>
+        <span class="step-deliverable">Theme: Automation &mdash; platform acts proactively</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-top:16px;">
+    <strong>Strategic framework: See &rarr; Govern &rarr; Act.</strong> RHOAI 3.5 makes GPUs visible. 3.6 adds governance controls. 3.7&ndash;3.8 enable self-service and automation. Each release builds on the previous &mdash; you cannot govern what you cannot see, and you cannot enable self-service without governance guardrails.
+  </div>
+
+  <h3 style="margin-top:32px;">Hardware Profiles &rarr; Compute Profiles</h3>
+  <div class="grid-2" style="margin-top:12px;">
+    <div class="card" style="border-left:3px solid var(--red);">
+      <h3 style="font-size:0.9rem;color:var(--red);">Hardware Profile (Today)</h3>
+      <ul style="margin:8px 0 0;padding-left:18px;font-size:0.82rem;color:var(--text-secondary);">
+        <li>GPU count, tolerations, node selectors</li>
+        <li>No GPU type metadata</li>
+        <li>No software stack info</li>
+        <li>No cost info</li>
+        <li>No queue/availability info</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green);">
+      <h3 style="font-size:0.9rem;color:var(--green);">Compute Profile (Target)</h3>
+      <ul style="margin:8px 0 0;padding-left:18px;font-size:0.82rem;color:var(--text-secondary);">
+        <li>GPU model, memory, architecture, MIG slice</li>
+        <li>Default runtime, compatible workbench images</li>
+        <li>Allowed groups, team-scoped visibility</li>
+        <li>Per-GPU-hour rate, chargeback code</li>
+        <li>ClusterQueue assignment, availability (&ldquo;2/8 used&rdquo;), priority</li>
+      </ul>
+    </div>
+  </div>
+
