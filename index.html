@@ -30,59 +30,12 @@
 <button id="presenter-toggle" class="presenter-toggle">Press P &mdash; Presenter Mode</button>
 <div class="presenter-hint">&#8592; &#8594; arrow keys to reveal sections &middot; P to exit</div>
 
-<!-- PERSONA GATE — mandatory audience selection before presentation -->
-<div id="persona-gate" class="persona-gate">
-  <div class="persona-gate-inner">
-    <h1 class="persona-gate-title">GPU as a Service</h1>
-    <p class="persona-gate-subtitle">Architecture Deep Dive on Red Hat OpenShift AI</p>
-    <div class="persona-gate-divider"></div>
-    <p class="persona-gate-prompt">Who are you presenting to?</p>
-    <div class="persona-gate-grid">
-      <button class="persona-gate-card" data-audience="csuite">
-        <span class="persona-gate-icon">&#128188;</span>
-        <span class="persona-gate-name">C-Suite / Business Leaders</span>
-        <span class="persona-gate-detail">ROI, competitive landscape, strategic framework</span>
-        <span class="persona-gate-time">~15 minutes &middot; 8 sections</span>
-      </button>
-      <button class="persona-gate-card" data-audience="platform">
-        <span class="persona-gate-icon">&#9881;</span>
-        <span class="persona-gate-name">Platform Engineers / IT Ops</span>
-        <span class="persona-gate-detail">Architecture, DRA, Kueue, deployment, day-2 ops</span>
-        <span class="persona-gate-time">~45 minutes &middot; 17 sections</span>
-      </button>
-      <button class="persona-gate-card" data-audience="datascience">
-        <span class="persona-gate-icon">&#128300;</span>
-        <span class="persona-gate-name">Data Scientists / ML Engineers</span>
-        <span class="persona-gate-detail">Self-service, MaaS, training, workload submission</span>
-        <span class="persona-gate-time">~30 minutes &middot; 10 sections</span>
-      </button>
-      <button class="persona-gate-card" data-audience="architect">
-        <span class="persona-gate-icon">&#128736;</span>
-        <span class="persona-gate-name">Solution Architects / Pre-Sales</span>
-        <span class="persona-gate-detail">End-to-end architecture, competitive, customer mapping</span>
-        <span class="persona-gate-time">~60 minutes &middot; 21 sections</span>
-      </button>
-    </div>
-    <button class="persona-gate-all" data-audience="all">Show all sections (full deck)</button>
-  </div>
-</div>
-
-<!-- Floating audience switcher (visible after gate is dismissed) -->
-<div id="audience-selector" class="audience-selector">
-  <span class="audience-label">Audience:</span>
-  <button class="audience-btn" data-audience="csuite">C-Suite</button>
-  <button class="audience-btn" data-audience="platform">Platform Eng</button>
-  <button class="audience-btn" data-audience="datascience">Data Science</button>
-  <button class="audience-btn" data-audience="architect">Solution Arch</button>
-  <button class="audience-btn" data-audience="all">All</button>
-</div>
-
 <nav id="side-nav">
   <a href="#hero" data-label="Opening" class="active"></a>
   <a href="#gpu101" data-label="Why GPUs?"></a>
-  <a href="#vocab" data-label="Concepts + Problems"></a>
-  <a href="#discovery" data-label="The Environment"></a>
-  <a href="#challenges" data-label="AI Challenges"></a>
+  <a href="#vocab" data-label="Concepts"></a>
+  <a href="#discovery" data-label="Environment"></a>
+  <a href="#challenges" data-label="Challenges"></a>
   <a href="#layers" data-label="Five Layers"></a>
   <a href="#loops" data-label="Control Loops"></a>
   <a href="#mechanisms" data-label="GPU Mechanisms"></a>
@@ -90,15 +43,15 @@
   <a href="#maas" data-label="MaaS &amp; GenAI"></a>
   <a href="#training" data-label="Training"></a>
   <a href="#finops" data-label="GPU FinOps"></a>
-  <a href="#patterns" data-label="Architecture"></a>
-  <a href="#decision" data-label="Your Pattern"></a>
-  <a href="#competitive" data-label="Competitive"></a>
-  <a href="#results" data-label="Opportunity"></a>
+  <a href="#patterns" data-label="Patterns"></a>
+  <a href="#decision" data-label="Decision Tree"></a>
   <a href="#stack" data-label="Tech Stack"></a>
+  <a href="#results" data-label="Benchmarks"></a>
   <a href="#usecases" data-label="Use Cases"></a>
   <a href="#personas" data-label="Personas"></a>
   <a href="#roadmap" data-label="RHOAI Roadmap"></a>
-  <a href="#nextsteps" data-label="Solution Roadmap"></a>
+  <a href="#nextsteps" data-label="Implementation"></a>
+  <a href="#appendix" data-label="Appendix"></a>
 </nav>
 
 <main>
@@ -110,7 +63,7 @@
     <div class="hero-stat-row">
       <span class="hook-stat">5% average utilization</span>
       <span class="hook-sep">&mdash;</span>
-      <span class="hook-followup">enterprise GPUs are 20x overprovisioned. 86% of organizations run GPUs at &le;50% capacity. The abstraction layer doesn&rsquo;t exist yet.</span>
+      <span class="hook-followup">enterprise GPUs are 20x overprovisioned. 86% of organizations run GPUs at &le;50% capacity. Kubernetes-native GPU management is still maturing.</span>
     </div>
   </div>
 
@@ -141,15 +94,15 @@
         <span class="agenda-title">AI Workloads</span>
         <span class="agenda-desc">MaaS, llm-d, training, GenAI Studio</span>
       </a>
-      <a href="#competitive" class="agenda-card" style="--card-accent:var(--l5-self-service);">
+      <a href="#roadmap" class="agenda-card" style="--card-accent:var(--l5-self-service);">
         <span class="agenda-num">05</span>
-        <span class="agenda-title">Competitive &amp; Roadmap</span>
-        <span class="agenda-desc">vs. Run:AI, RHOAI 3.5&ndash;3.8</span>
+        <span class="agenda-title">Roadmap &amp; FinOps</span>
+        <span class="agenda-desc">RHOAI 3.5&ndash;3.8, cost attribution</span>
       </a>
       <a href="#nextsteps" class="agenda-card" style="--card-accent:var(--green);">
         <span class="agenda-num">06</span>
-        <span class="agenda-title">Solution Roadmap</span>
-        <span class="agenda-desc">10-step implementation plan</span>
+        <span class="agenda-title">Implementation Plan</span>
+        <span class="agenda-desc">10-step deployment roadmap</span>
       </a>
     </div>
   </div>
@@ -567,7 +520,7 @@
         </ul>
       </div>
       <div>
-        <p style="font-size:0.82rem;font-weight:600;color:var(--green);margin-bottom:6px;">What They Want</p>
+        <p style="font-size:0.82rem;font-weight:600;color:var(--green);margin-bottom:6px;">Technical Requirements</p>
         <ul style="font-size:0.78rem;color:var(--text-secondary);padding-left:16px;">
           <li>Self-service GPU access for data scientists — no tickets</li>
           <li>Small models on GPU slices, not whole GPUs</li>
@@ -1572,124 +1525,12 @@
       </div>
     </div>
   </div>
-  <a href="#competitive" class="section-arrow" title="Next: Competitive Positioning">&#8595;</a>
-</section>
-
-<!-- COMPETITIVE POSITIONING -->
-<section id="competitive" class="section">
-  <span class="section-label">Know the Landscape</span>
-  <h2>Competitive Positioning</h2>
-  <p style="margin-bottom:24px;">GPU management is a growing market. Knowing where RHOAI fits &mdash; and where competitors have advantages &mdash; is essential for credible expert positioning.</p>
-
-  <h3>vs. Run:AI / KAI Scheduler</h3>
-  <div class="table-wrap" style="margin-bottom:24px;">
-    <table>
-      <thead>
-        <tr><th style="width:25%;">Dimension</th><th style="width:37%;">Run:AI</th><th style="width:38%;">RHOAI</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><strong>GPU vendors</strong></td><td>NVIDIA-only (post-acquisition)</td><td style="color:var(--green);">NVIDIA + AMD + Intel</td></tr>
-        <tr><td><strong>Scheduling</strong></td><td>KAI Scheduler (proprietary + OSS core)</td><td>Kueue (Kubernetes-native, CNCF)</td></tr>
-        <tr><td><strong>GPU isolation</strong></td><td>Enforced memory isolation (NOT open-sourced)</td><td>MIG (hardware), DRA, namespace isolation</td></tr>
-        <tr><td><strong>Dashboard</strong></td><td style="color:var(--green);">Full GPU dashboard with idle detection</td><td>GPU Topology Dashboard (3.5), expanding 3.6&ndash;3.7</td></tr>
-        <tr><td><strong>Hierarchical quotas</strong></td><td style="color:var(--green);">Departments &rarr; Projects with borrowing</td><td>Cohort-based borrowing (flat, not hierarchical yet)</td></tr>
-        <tr><td><strong>Chargeback</strong></td><td style="color:var(--green);">Consumption reports across org units</td><td>Showback dashboard (3.5 TP), export in 3.6</td></tr>
-        <tr><td><strong>Pricing</strong></td><td style="color:var(--red);">$4,500/GPU/year</td><td style="color:var(--green);">Included with RHOAI subscription</td></tr>
-        <tr><td><strong>AI lifecycle</strong></td><td>GPU scheduling only</td><td style="color:var(--green);">Full: notebooks &rarr; training &rarr; serving &rarr; monitoring</td></tr>
-        <tr><td><strong>Lock-in</strong></td><td style="color:var(--red);">NVIDIA hardware + proprietary control plane</td><td style="color:var(--green);">Open source, multi-vendor, K8s-native</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>vs. Rafay</h3>
-  <div class="card" style="margin-bottom:24px;border-left:3px solid var(--l3-governance);">
-    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">Rafay offers role-segmented dashboards and SKU Studio for GPU management. Strength: UX-first approach with clear persona separation. RHOAI advantage: deeper AI lifecycle integration (training, serving, model registry, MaaS) and Kubernetes-native scheduling via Kueue rather than a proprietary control plane.</p>
-  </div>
-
-  <h3>vs. Cloud-Native (EKS / AKS / GKE)</h3>
-  <div class="grid-2" style="margin-bottom:16px;">
-    <div class="card" style="border-left:3px solid var(--green);">
-      <h3 style="font-size:0.9rem;color:var(--green);">RHOAI Advantages</h3>
-      <ul style="margin:8px 0 0;padding-left:18px;font-size:0.82rem;color:var(--text-secondary);">
-        <li><strong>Portability</strong> &mdash; same platform across on-prem, cloud, edge</li>
-        <li><strong>Data sovereignty</strong> &mdash; keep data on-premises for regulated industries</li>
-        <li><strong>No vendor lock-in</strong> &mdash; avoid cloud-specific GPU management tools</li>
-        <li><strong>Consistent operations</strong> &mdash; same RBAC, monitoring, CI/CD everywhere</li>
-      </ul>
-    </div>
-    <div class="card" style="border-left:3px solid var(--amber);">
-      <h3 style="font-size:0.9rem;color:var(--amber);">Cloud Advantages</h3>
-      <ul style="margin:8px 0 0;padding-left:18px;font-size:0.82rem;color:var(--text-secondary);">
-        <li><strong>Scale elasticity</strong> &mdash; near-infinite GPU supply on demand</li>
-        <li><strong>Managed services</strong> &mdash; less operational overhead</li>
-        <li><strong>Spot/preemptible instances</strong> &mdash; lower cost for batch workloads</li>
-        <li><strong>Pre-built AI services</strong> &mdash; faster time to first experiment</li>
-      </ul>
-    </div>
-  </div>
-
-  <h3 style="margin-top:24px;">Red Hat AI Factory with NVIDIA</h3>
-  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--l1-fleet);">
-    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">Co-engineered stack: RHOAI + NVIDIA AI Enterprise. Pre-validated, certified, and optimized for NVIDIA hardware. For NVIDIA-centric customers, AI Factory provides a trusted alternative to Run:AI at lower cost &mdash; full AI lifecycle included in the RHOAI subscription, not $4,500/GPU/year extra.</p>
-  </div>
-
-  <h3>Red Hat AI Inference (Standalone)</h3>
-  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--l4-ai-aware);">
-    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">For organizations that only need inference (not the full RHOAI platform), Red Hat AI Inference provides vLLM + llm-d as a standalone stack. Runs on OpenShift or any managed Kubernetes (AKS, CKS). Enables GPU-efficient inference without the full AI platform investment.</p>
-  </div>
-
-  <div class="insight-box">
-    <strong>The structural advantage:</strong> Run:AI/Rafay solve GPU scheduling only. Cloud providers lock you in. RHOAI provides the full lifecycle (notebooks &rarr; training &rarr; serving &rarr; monitoring &rarr; MaaS) on any infrastructure, with multi-vendor GPU support. The product gap is not primitives &mdash; it&rsquo;s UX (dashboards, scheduling explainability), which is on the 3.6&ndash;3.7 roadmap.
-  </div>
-  <a href="#results" class="section-arrow" title="Next: Results">&#8595;</a>
-</section>
-
-<!-- VALIDATED RESULTS -->
-<section id="results" class="section">
-  <span class="section-label">The Opportunity</span>
-  <h2>What the Industry Data Shows</h2>
-
-  <div class="stat-grid" style="margin-top:24px;">
-    <div class="stat-card">
-      <div class="stat-number amber" data-target="5" data-suffix="%">0%</div>
-      <div class="stat-label">Average GPU utilization</div>
-      <div class="stat-source">Cast AI 2026 Kubernetes Report</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number red" data-target="86" data-suffix="%">0%</div>
-      <div class="stat-label">Enterprises at &le;50% GPU capacity</div>
-      <div class="stat-source">VentureBeat survey (573 tech leaders)</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number green" data-target="7" data-suffix="x">0x</div>
-      <div class="stat-label">MIG density improvement</div>
-      <div class="stat-source">7 guard models on 1 A100 vs. 7 GPUs</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number green" data-target="85" data-suffix="%">0%</div>
-      <div class="stat-label">Idle capacity recoverable</div>
-      <div class="stat-source">Scale-to-zero on low-traffic models</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number red" data-target="401" data-prefix="$" data-suffix="B">$0B</div>
-      <div class="stat-label">Global AI infra spending (2026)</div>
-      <div class="stat-source">Gartner</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number green" data-target="3" data-suffix="x">0x</div>
-      <div class="stat-label">Training speedup with GPUDirect RDMA</div>
-      <div class="stat-source">Red Hat on RoCE/InfiniBand</div>
-    </div>
-  </div>
-  <div class="insight-box" style="margin-top:16px;">
-    <strong>Note:</strong> These figures represent industry patterns and architectural capabilities, not customer-specific benchmarks. Actual results depend on workload mix, GPU types, and organizational readiness.
-  </div>
-  <a href="#stack" class="section-arrow" title="Next: Tech Stack">&#8595;</a>
+  <a href="#stack" class="section-arrow" title="Next: Technology Stack">&#8595;</a>
 </section>
 
 <!-- TECHNOLOGY STACK -->
 <section id="stack" class="section">
-  <span class="section-label">Open Source, No Lock-In</span>
+  <span class="section-label">Technology Stack</span>
   <h2>Technology Stack</h2>
 
   <div class="grid-3" style="margin-top:24px;">
@@ -1794,6 +1635,49 @@
         </tbody>
       </table>
     </div>
+  </div>
+  <a href="#results" class="section-arrow" title="Next: Industry Benchmarks">&#8595;</a>
+</section>
+
+<!-- INDUSTRY BENCHMARKS -->
+<section id="results" class="section">
+  <span class="section-label">Industry Benchmarks</span>
+  <h2>What the Industry Data Shows</h2>
+
+  <div class="stat-grid" style="margin-top:24px;">
+    <div class="stat-card">
+      <div class="stat-number amber" data-target="5" data-suffix="%">0%</div>
+      <div class="stat-label">Average GPU utilization</div>
+      <div class="stat-source">Cast AI 2026 Kubernetes Report</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number red" data-target="86" data-suffix="%">0%</div>
+      <div class="stat-label">Enterprises at &le;50% GPU capacity</div>
+      <div class="stat-source">VentureBeat survey (573 tech leaders)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number green" data-target="7" data-suffix="x">0x</div>
+      <div class="stat-label">MIG density improvement</div>
+      <div class="stat-source">7 guard models on 1 A100 vs. 7 GPUs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number green" data-target="85" data-suffix="%">0%</div>
+      <div class="stat-label">Idle capacity recoverable</div>
+      <div class="stat-source">Scale-to-zero on low-traffic models</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number red" data-target="401" data-prefix="$" data-suffix="B">$0B</div>
+      <div class="stat-label">Global AI infra spending (2026)</div>
+      <div class="stat-source">Gartner</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number green" data-target="3" data-suffix="x">0x</div>
+      <div class="stat-label">Training speedup with GPUDirect RDMA</div>
+      <div class="stat-source">Red Hat on RoCE/InfiniBand</div>
+    </div>
+  </div>
+  <div class="insight-box" style="margin-top:16px;">
+    <strong>Note:</strong> These figures represent industry patterns and architectural capabilities, not customer-specific benchmarks. Actual results depend on workload mix, GPU types, and organizational readiness.
   </div>
   <a href="#usecases" class="section-arrow" title="Next: Use Cases">&#8595;</a>
 </section>
@@ -2133,7 +2017,7 @@
     </div>
   </div>
 
-  <a href="#nextsteps" class="section-arrow" title="Next: Solution Roadmap">&#8595;</a>
+  <a href="#nextsteps" class="section-arrow" title="Next: Implementation Roadmap">&#8595;</a>
 </section>
 
 <!-- SOLUTION ROADMAP -->
@@ -2299,6 +2183,86 @@
   <div class="insight-box" style="margin-top:24px;">
     <strong>The logic of the order:</strong> Steps 1&ndash;2 are zero-risk quick wins that recover GPUs immediately and build organizational confidence. Step 3 (DRA) is the foundation every later step depends on. Steps 4&ndash;6 make inference elastic, creating idle capacity to share. Step 7 (Kueue) makes that sharing safe and fair. Step 8 makes the value visible. Steps 9&ndash;10 open the platform to everyone &mdash; but only after the guardrails are in place.
   </div>
+  <a href="#appendix" class="section-arrow" title="Next: Appendix">&#8595;</a>
+</section>
+
+<!-- APPENDIX -->
+<section id="appendix" class="section">
+  <span class="section-label">Reference Material</span>
+  <h2>Appendix</h2>
+  <p style="margin-bottom:24px;">Supplementary reference for Q&amp;A and follow-up conversations. Click any section to expand.</p>
+
+  <details class="yaml-toggle" style="margin-bottom:16px;">
+    <summary>Landscape Comparison &mdash; Alternative Approaches to GPU Management</summary>
+    <div style="padding:16px;">
+
+    <h3 style="margin-bottom:12px;">Run:AI / KAI Scheduler vs. Kueue-based Approach</h3>
+    <div class="table-wrap" style="margin-bottom:24px;">
+      <table>
+        <thead>
+          <tr><th style="width:25%;">Dimension</th><th style="width:37%;">Run:AI / KAI</th><th style="width:38%;">Kueue (RHOAI)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>GPU vendors</strong></td><td>NVIDIA-only (post-acquisition)</td><td>NVIDIA + AMD + Intel</td></tr>
+          <tr><td><strong>Scheduling</strong></td><td>KAI Scheduler (proprietary + OSS core)</td><td>Kueue (Kubernetes-native, CNCF)</td></tr>
+          <tr><td><strong>GPU isolation</strong></td><td>Enforced memory isolation (NOT open-sourced)</td><td>MIG (hardware), DRA, namespace isolation</td></tr>
+          <tr><td><strong>Dashboard</strong></td><td>Full GPU dashboard with idle detection</td><td>GPU Topology Dashboard (3.5), expanding 3.6&ndash;3.7</td></tr>
+          <tr><td><strong>Hierarchical quotas</strong></td><td>Departments &rarr; Projects with borrowing</td><td>Cohort-based borrowing (flat, not hierarchical yet)</td></tr>
+          <tr><td><strong>Chargeback</strong></td><td>Consumption reports across org units</td><td>Showback dashboard (3.5 TP), export in 3.6</td></tr>
+          <tr><td><strong>Pricing</strong></td><td>$4,500/GPU/year</td><td>Included with RHOAI subscription</td></tr>
+          <tr><td><strong>AI lifecycle</strong></td><td>GPU scheduling only</td><td>Full: notebooks &rarr; training &rarr; serving &rarr; monitoring</td></tr>
+          <tr><td><strong>Vendor coupling</strong></td><td>NVIDIA hardware + proprietary control plane</td><td>Open source, multi-vendor, Kubernetes-native</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-bottom:12px;">Rafay</h3>
+    <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;">Role-segmented dashboards and SKU Studio for GPU management. Strength: UX-first approach with clear persona separation. Tradeoff: narrower AI lifecycle coverage &mdash; focuses on infrastructure management rather than the full training-to-serving pipeline.</p>
+
+    <h3 style="margin-bottom:12px;">On-Premises (OpenShift) vs. Cloud-Managed (EKS / AKS / GKE)</h3>
+    <div class="table-wrap" style="margin-bottom:16px;">
+      <table>
+        <thead>
+          <tr><th style="width:30%;">Dimension</th><th style="width:35%;">On-Premises / Hybrid</th><th style="width:35%;">Cloud-Managed</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>GPU supply</strong></td><td>Fixed fleet, capital expenditure</td><td>Elastic, near-infinite on demand</td></tr>
+          <tr><td><strong>Data residency</strong></td><td>Full control, on-prem sovereignty</td><td>Subject to cloud region policies</td></tr>
+          <tr><td><strong>Operations</strong></td><td>Team manages GPU operators, drivers, upgrades</td><td>Managed by cloud provider</td></tr>
+          <tr><td><strong>Portability</strong></td><td>Same stack across environments</td><td>Cloud-specific GPU management tools</td></tr>
+          <tr><td><strong>Cost model</strong></td><td>CapEx + OpEx, amortized</td><td>OpEx only, spot/preemptible available</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="insight-box">
+      <strong>Tradeoff summary:</strong> Run:AI has a more mature GPU dashboard and hierarchical quota UX today. Cloud providers offer elastic scale. The Kueue-based approach trades dashboard maturity for multi-vendor support, Kubernetes-native primitives, and full AI lifecycle integration. Dashboard and scheduling explainability are on the RHOAI 3.6&ndash;3.7 roadmap.
+    </div>
+
+    </div>
+  </details>
+
+  <details class="yaml-toggle" style="margin-bottom:16px;">
+    <summary>Red Hat Product Portfolio for GPU Workloads</summary>
+    <div style="padding:16px;">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th style="width:35%;">Product</th><th>Role in GPU Workloads</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Red Hat OpenShift AI</strong></td><td>Core AI platform: workbenches, training, serving, monitoring, MaaS</td></tr>
+          <tr><td><strong>Red Hat AI Inference</strong></td><td>Standalone inference stack (vLLM + llm-d), runs on OCP or any managed K8s (AKS, CKS)</td></tr>
+          <tr><td><strong>Red Hat AI Factory with NVIDIA</strong></td><td>Co-engineered stack: RHOAI + NVIDIA AI Enterprise, optimized for NVIDIA hardware</td></tr>
+          <tr><td><strong>Red Hat Build of Kueue</strong></td><td>Batch scheduling, quotas, fair sharing, multi-tenancy</td></tr>
+          <tr><td><strong>Red Hat Advanced Cluster Management</strong></td><td>Multi-cluster GPU fleet management, MultiKueue add-on</td></tr>
+          <tr><td><strong>OpenShift Container Platform</strong></td><td>Foundation: GPU Operator, DRA, node management, Prometheus</td></tr>
+        </tbody>
+      </table>
+    </div>
+    </div>
+  </details>
+
 </section>
 
 </main>
