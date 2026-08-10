@@ -775,11 +775,13 @@ The full end-to-end request flow. Show how everything connects.
 
 ### Slide 40: Component Table (Table)
 
-Reference table. Don't read every row — highlight the pattern.
+Reference table. Don't read every row — highlight the pattern and the new KubeRay entry.
 
-"Here's the full component reference — eight components, eight questions, no overlap, no gaps."
+"Here's the full component reference — nine components, nine questions, no overlap, no gaps."
 
 "I won't read every row, but notice the pattern. Each component answers exactly one question. vLLM: how to serve efficiently? MIG: how to partition? DRA: how to match? Kueue: who gets capacity? llm-d: where to route? WVA: how many replicas? kube-scheduler: which node?"
+
+"One I want to call out specifically — KubeRay plus Ray Serve. This is the distributed workload orchestration layer. Its question: how to orchestrate distributed training AND multi-model serving? RayCluster for the compute fabric, RayJob for training, RayService for serving. All governed by Kueue. We'll go deeper on this one in a few slides."
 
 "This clean separation is by design. If two components answered the same question, they'd fight each other. If a question had no component, you'd have a gap. This is a well-factored system."
 
@@ -937,19 +939,27 @@ Show WVA in action with a specific scaling event.
 
 ---
 
-### Slide 50: Training Lifecycle (Diagram)
+### Slide 50: KubeRay + Kueue — Distributed Workloads (Diagram)
 
-Training isn't an afterthought — it's a first-class citizen.
+KubeRay isn't just for training — it's the distributed workload orchestration layer for both training AND multi-model inference.
 
-"We've focused heavily on inference, and rightly so — it's the majority of compute. But training is critical, and it has to coexist gracefully with inference."
+"This is a slide that changes how people think about KubeRay. Most people associate it with distributed training — and that's correct, but it's only half the story. KubeRay plus Kueue is the distributed workload orchestration layer in RHOAI. It handles training AND multi-model serving."
 
-"Look at the lifecycle at the top. Submit a TrainJob — that's Kubeflow Trainer v2's API. It goes into Kueue's queue. When capacity is available, it's admitted and starts training. GPUDirect RDMA gives you 3x speedup on distributed fine-tuning — direct GPU-to-GPU memory transfer, bypassing the CPU entirely."
+"Let's take the left panel first — training. You submit a RayJob or a Kubeflow TrainJob. Kueue runs admission — does this team have quota? Is there capacity? Once admitted, GPUDirect RDMA gives you 3x speedup on distributed fine-tuning by transferring data directly GPU-to-GPU, bypassing the CPU entirely. And when an inference spike hits, the training job doesn't crash. Kueue sends SIGTERM, the job does a JIT checkpoint — saves state after the current training step — and releases the GPUs. When capacity returns, it resumes from that checkpoint. Zero lost work."
 
-"Now the critical part — preemption. An inference spike happens. Kueue sends SIGTERM to the training job. The job doesn't crash — it has JIT checkpointing. It pauses after the current training step, saves state to shared storage, and releases the GPUs. Inference gets those GPUs within 60 seconds."
+"Now the right panel — this is what most people miss. RayService deploys Ray Serve with vLLM as the backend. That's multi-model serving on a shared cluster. You can run Llama, Mistral, and a custom fine-tuned model on the same RayCluster. Ray Serve handles routing. And you get THREE levels of autoscaling working together: Ray Serve manages replica counts, Ray's autoscaler adds or removes worker pods, and Kueue governs the overall quota ceiling. Elastic borrowing means if another team's GPUs are idle, your RayService can grab them. When they need them back, Kueue preempts gracefully."
 
-"When inference demand drops and GPUs become available again, the training job resumes FROM ITS CHECKPOINT. Not from scratch. Zero lost work. This is what makes training a first-class preemptible workload instead of a second-class citizen that either blocks inference or loses hours of progress."
+"Zero-downtime upgrades are built in. RayService does a rolling deployment — new version spins up, old version drains, no traffic dropped. For ACME, that's critical. They can update their fraud detection model mid-day without impacting transaction scoring."
 
-"CodeFlare SDK with KubeRay gives your data scientists a Python-native submission experience. They write training code in a Jupyter notebook, submit to the cluster, and Kueue handles the rest. No YAML. No kubectl. The data scientist doesn't need to know they're sharing a cluster."
+"And at the bottom — CodeFlare SDK. This is the Python-native interface. Data scientists don't write YAML or run kubectl. They use a Python API from their Jupyter notebook to submit training jobs or deploy models. Same SDK for both training and serving."
+
+"One thing to be clear about: RHOAI gives you three serving patterns. KServe with vLLM for single-model, single-node — that's the simplest path. KubeRay with RayService for multi-model, multi-node — that's what we're looking at here. And llm-d for disaggregated inference at massive scale. They're not competitors — they're different tools for different scales."
+
+**IF SOMEONE ASKS: When should I use KubeRay + RayService vs llm-d?**
+"Use KubeRay + RayService when you need multi-model serving — multiple models on the same cluster, with per-model autoscaling, and you want the unified training + serving orchestration layer. Use llm-d when you have one model at massive scale — hundreds of GPUs, disaggregated prefill and decode, KV-cache routing across a fleet. Think of it this way: RayService is your multi-model workstation, llm-d is your single-model hyperscaler."
+
+**IF SOMEONE ASKS: What about KServe? Is it deprecated?**
+"Absolutely not. KServe with vLLM is the simplest, most straightforward path for single-model serving. InferenceService CR, KEDA autoscaling, done. If you have one model per endpoint and don't need multi-model orchestration, KServe is the right choice. The three patterns are complementary."
 
 ---
 
