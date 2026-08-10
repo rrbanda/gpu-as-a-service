@@ -1,0 +1,41 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#FFFFFF', 'primaryTextColor': '#333333', 'primaryBorderColor': '#CC0000', 'lineColor': '#CC0000', 'secondaryColor': '#FFFFFF', 'fontSize': '14px', 'fontFamily': 'Arial' }}}%%
+flowchart TB
+    subgraph FLEET["GPU Fleet — 100 GPUs"]
+        direction TB
+        subgraph INF["Inference Envelope (60 GPUs)"]
+            direction LR
+            LLMD["llm-d EPP\nms routing"]
+            WVA["WVA\nsec-min scaling"]
+            KSERVE["KServe\nModel Serving"]
+            LLMD --> WVA --> KSERVE
+        end
+        subgraph TRAIN["Training Envelope (40 GPUs)"]
+            direction LR
+            BATCH["Batch Queue"]
+            TRAINER["Kubeflow Trainer"]
+            CKPT["JIT Checkpoint"]
+            BATCH --> TRAINER --> CKPT
+        end
+    end
+
+    KUEUE["Kueue Governance\nFair-share · Borrowing · Preemption"]
+
+    KUEUE -->|"nominalQuota: 60"| INF
+    KUEUE -->|"nominalQuota: 40\npreemptible"| TRAIN
+
+    BORROW["Overnight: Training borrows\nidle inference capacity"]
+    TRAIN -.->|"borrow"| INF
+    INF -.->|"reclaim at\nmorning traffic"| TRAIN
+
+    style FLEET fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style INF fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style TRAIN fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style KUEUE fill:#CC0000,stroke:#CC0000,color:#FFFFFF
+    style BORROW fill:#FFF0F0,stroke:#CC0000,color:#333
+
+    style LLMD fill:#FFF0F0,stroke:#CC0000,color:#333
+    style WVA fill:#FFF0F0,stroke:#CC0000,color:#333
+    style KSERVE fill:#FFF0F0,stroke:#CC0000,color:#333
+    style BATCH fill:#FFF0F0,stroke:#CC0000,color:#333
+    style TRAINER fill:#FFF0F0,stroke:#CC0000,color:#333
+    style CKPT fill:#FFF0F0,stroke:#CC0000,color:#333

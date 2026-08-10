@@ -1,0 +1,29 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#FFFFFF', 'primaryTextColor': '#333333', 'primaryBorderColor': '#CC0000', 'lineColor': '#CC0000', 'secondaryColor': '#FFFFFF', 'fontSize': '13px', 'fontFamily': 'Arial', 'actorBkg': '#CC0000', 'actorTextColor': '#FFFFFF', 'actorBorder': '#CC0000', 'activationBkgColor': '#FFF0F0', 'activationBorderColor': '#CC0000', 'signalColor': '#CC0000', 'signalTextColor': '#333', 'noteBkgColor': '#FFF0F0', 'noteTextColor': '#333', 'noteBorderColor': '#CC0000' }}}%%
+sequenceDiagram
+    participant A as Agentic App<br/>(10 chained calls)
+    participant GW as Gateway /<br/>InferencePool
+    participant EPP as llm-d EPP<br/>(Endpoint Picker)
+    participant IDX as KV-Cache<br/>Indexer
+    participant P as Prefill Worker<br/>(compute-heavy)
+    participant D as Decode Worker<br/>(memory-heavy)
+
+    Note over A,D: Without llm-d: same system prompt<br/>reprocessed 10 times from scratch
+
+    A->>GW: Call 1: Analyze this trade...<br/>(system prompt + user query)
+    GW->>EPP: Pick endpoint
+    EPP->>IDX: Hash system prompt prefix
+    IDX-->>EPP: No cache hit (first call)
+    EPP->>P: Prefill: process full prompt
+    P->>D: Transfer KV-cache via NIXL<br/>(zero-copy GPU to GPU RDMA)
+    D-->>A: Stream tokens
+
+    Note over IDX: KV-cache indexed:<br/>prefix hash mapped to Decode Worker 1
+
+    A->>GW: Call 2: Now check compliance...<br/>(same system prompt + new query)
+    GW->>EPP: Pick endpoint
+    EPP->>IDX: Hash system prompt prefix
+    IDX-->>EPP: 93% match on<br/>Decode Worker 1
+    EPP->>D: Route directly (skip prefill!)
+    D-->>A: Stream tokens<br/>(10-30x faster TTFT)
+
+    Note over A,D: Calls 3-10: all route to same<br/>decode worker with cached prefix reused

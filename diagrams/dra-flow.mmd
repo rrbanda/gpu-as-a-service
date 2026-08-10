@@ -1,0 +1,24 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#FFFFFF', 'primaryTextColor': '#333333', 'primaryBorderColor': '#CC0000', 'lineColor': '#CC0000', 'secondaryColor': '#FFFFFF', 'fontSize': '14px', 'fontFamily': 'Arial' }}}%%
+flowchart LR
+    subgraph Before["BEFORE DRA"]
+        REQ1["resources:\n  nvidia.com/gpu: 1"]
+        REQ1 -->|"Scheduler sees\nall GPUs as\nidentical integers"| ANY["Any GPU\n¯\_(ツ)_/¯"]
+        ANY --> H100B["H100 80GB\n$30,000"]
+        ANY --> A100B["A100 80GB\n$15,000"]
+    end
+
+    subgraph After["AFTER DRA"]
+        REQ2["ResourceClaim:\n  architecture == Hopper\n  memory >= 80Gi\n  mig.profile == 1g.10gb"]
+        REQ2 -->|"CEL expressions\nmatch attributes"| MATCH["Scheduler\nmatches"]
+        MATCH --> SLICE["MIG 1g.10gb\non H100\n(right-sized)"]
+    end
+
+    style Before fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style After fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style REQ1 fill:#FFFFFF,stroke:#999,color:#333
+    style ANY fill:#FFFFFF,stroke:#999,color:#333
+    style H100B fill:#CC0000,stroke:#CC0000,color:#FFFFFF
+    style A100B fill:#FFFFFF,stroke:#999,color:#666
+    style REQ2 fill:#FFFFFF,stroke:#CC0000,color:#333
+    style MATCH fill:#FFF0F0,stroke:#CC0000,color:#333
+    style SLICE fill:#FFFFFF,stroke:#CC0000,stroke-width:3px,color:#CC0000

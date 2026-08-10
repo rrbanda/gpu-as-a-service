@@ -1,0 +1,27 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#FFFFFF', 'primaryTextColor': '#CC0000', 'primaryBorderColor': '#CC0000', 'lineColor': '#CC0000', 'secondaryColor': '#FFFFFF', 'fontSize': '14px', 'fontFamily': 'Arial' }}}%%
+flowchart TB
+    subgraph OUTER["OUTER LOOP: Kueue — Entitlement (minutes–hours)"]
+        direction TB
+        Q["Team quota: 16 H100s\nBorrowing limit: +8\nFair-share weight: 2"]
+        subgraph MIDDLE["MIDDLE LOOP: WVA — Scaling (seconds–minutes)"]
+            direction TB
+            W["Monitor: queue depth, KV-cache pressure\nScale: 3 → 6 replicas\nConstraint: within Kueue ceiling"]
+            subgraph INNER["INNER LOOP: llm-d EPP — Routing (milliseconds)"]
+                direction LR
+                REQ["Request"] --> EPP["EPP checks\nKV-cache index"]
+                EPP --> R3["Replica 3\n93% prefix match"]
+            end
+        end
+    end
+
+    Q -->|"Sets ceiling"| W
+    W -->|"Scales within ceiling"| EPP
+
+    style OUTER fill:#FFFFFF,stroke:#CC0000,stroke-width:3px,color:#CC0000
+    style MIDDLE fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style INNER fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style Q fill:#CC0000,stroke:#CC0000,color:#FFFFFF
+    style W fill:#FFF0F0,stroke:#CC0000,color:#333
+    style REQ fill:#FFFFFF,stroke:#CC0000,color:#333
+    style EPP fill:#FFF0F0,stroke:#CC0000,color:#333
+    style R3 fill:#CC0000,stroke:#CC0000,color:#FFFFFF

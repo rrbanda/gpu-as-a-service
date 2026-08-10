@@ -1,0 +1,5 @@
+node_modules/
+encrypted/
+.staticrypt.json
+package-lock.json
+slides.html

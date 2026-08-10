@@ -1,0 +1,32 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#FFFFFF', 'primaryTextColor': '#333333', 'primaryBorderColor': '#CC0000', 'lineColor': '#CC0000', 'secondaryColor': '#FFFFFF', 'fontSize': '13px', 'fontFamily': 'Arial', 'actorBkg': '#CC0000', 'actorTextColor': '#FFFFFF', 'actorBorder': '#CC0000', 'activationBkgColor': '#FFF0F0', 'activationBorderColor': '#CC0000', 'signalColor': '#CC0000', 'signalTextColor': '#333', 'noteBkgColor': '#FFF0F0', 'noteTextColor': '#333', 'noteBorderColor': '#CC0000', 'altSectionBkgColor': '#FFF5F5', 'labelBoxBkgColor': '#CC0000', 'labelTextColor': '#FFFFFF' }}}%%
+sequenceDiagram
+    participant DS as Data Scientist
+    participant LQ as LocalQueue<br/>(team-ml)
+    participant CQ as ClusterQueue<br/>(gpu-pool)
+    participant CO as Cohort<br/>(gpu-shared)
+    participant SC as kube-scheduler
+    participant GPU as GPU Node
+
+    DS->>LQ: Submit TrainJob<br/>(4x A100, priority: low)
+    LQ->>CQ: Check team quota
+
+    alt Within nominalQuota
+        CQ-->>LQ: Admitted
+        CQ->>SC: Create Pods
+        SC->>GPU: Schedule on GPU nodes
+        GPU-->>DS: Job running
+    else Over quota, borrowing available
+        CQ->>CO: Request borrow<br/>from peer queues
+        CO-->>CQ: 2 GPUs borrowed<br/>from team-inference (idle)
+        CQ->>SC: Create Pods
+        SC->>GPU: Schedule
+        Note over CO: Borrowed capacity is<br/>reclaimable on demand
+    else Over quota, no capacity
+        CQ-->>LQ: Queued (position: 3)
+        Note over LQ: Waits for capacity<br/>or preempts lower priority
+    end
+
+    Note over CO: Inference needs GPUs back
+    CO->>CQ: Reclaim borrowed GPUs
+    CQ->>GPU: Preempt training pods<br/>(SIGTERM then checkpoint)
+    GPU-->>DS: Job checkpointed,<br/>will resume when capacity available

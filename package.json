@@ -1,0 +1,13 @@
+{
+  "name": "gpu-as-a-service",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "render": "cd ../slide-creator && node render-direct.js gpu-deck-spec.json --notes=../gpu-as-a-service/SPEAKER_NOTES.md && cp gpu-deck-spec.html ../gpu-as-a-service/slides.html",
+    "encrypt": "./encrypt.sh",
+    "serve": "python3 -m http.server 8000"
+  },
+  "devDependencies": {
+    "staticrypt": "^3.5.4"
+  }
+}

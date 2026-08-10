@@ -1,0 +1,55 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#FFFFFF', 'primaryTextColor': '#CC0000', 'primaryBorderColor': '#CC0000', 'lineColor': '#CC0000', 'secondaryColor': '#FFFFFF', 'tertiaryColor': '#FFFFFF', 'fontSize': '15px', 'fontFamily': 'Arial' }}}%%
+flowchart LR
+    subgraph L1["Layer 1 — GPU Fleet"]
+        NV["NVIDIA H100 / A100"]
+        AMD["AMD MI300X"]
+        INTEL["Intel Gaudi 3"]
+    end
+
+    subgraph L2["Layer 2 — Mechanisms"]
+        MIG["MIG Partitioning"]
+        DRA["DRA Claims"]
+        TS["Time-slicing"]
+    end
+
+    subgraph L3["Layer 3 — Governance"]
+        KQ["Kueue Quotas"]
+        FS["Fair-share"]
+        CR["GPU Credits"]
+    end
+
+    subgraph L4["Layer 4 — AI-Aware"]
+        LLMD["llm-d Routing"]
+        WVA2["WVA Scaling"]
+        KS["KServe Serving"]
+    end
+
+    subgraph L5["Layer 5 — Self-Service"]
+        CP2["Compute Profiles"]
+        CAT["Accelerator Catalog"]
+        CBD["Chargeback"]
+    end
+
+    L1 --> L2 --> L3 --> L4 --> L5
+
+    style L1 fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style L2 fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style L3 fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style L4 fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+    style L5 fill:#FFFFFF,stroke:#CC0000,stroke-width:2px,color:#CC0000
+
+    style NV fill:#FFF0F0,stroke:#CC0000,color:#333
+    style AMD fill:#FFF0F0,stroke:#CC0000,color:#333
+    style INTEL fill:#FFF0F0,stroke:#CC0000,color:#333
+    style MIG fill:#FFF0F0,stroke:#CC0000,color:#333
+    style DRA fill:#FFF0F0,stroke:#CC0000,color:#333
+    style TS fill:#FFF0F0,stroke:#CC0000,color:#333
+    style KQ fill:#FFF0F0,stroke:#CC0000,color:#333
+    style FS fill:#FFF0F0,stroke:#CC0000,color:#333
+    style CR fill:#FFF0F0,stroke:#CC0000,color:#333
+    style LLMD fill:#FFF0F0,stroke:#CC0000,color:#333
+    style WVA2 fill:#FFF0F0,stroke:#CC0000,color:#333
+    style KS fill:#FFF0F0,stroke:#CC0000,color:#333
+    style CP2 fill:#FFF0F0,stroke:#CC0000,color:#333
+    style CAT fill:#FFF0F0,stroke:#CC0000,color:#333
+    style CBD fill:#FFF0F0,stroke:#CC0000,color:#333

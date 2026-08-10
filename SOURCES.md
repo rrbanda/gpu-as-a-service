@@ -23,11 +23,58 @@ When editing content, update this file. When verifying, check the URLs and dates
 | A100 on-demand equivalent rate | $1.90/hr | discovery | On-demand cloud equivalent pricing | https://cast.ai/blog/gpu-cloud-pricing/ | 2026-08-09 |
 | FOCUS specification version | v1.4 | finops | FinOps Foundation | https://focus.finops.org/ | 2026-08-09 |
 
+### Anonymized Production Results (llm-d Inference Optimization)
+
+These results are from enterprise llm-d deployments. They are inference optimization results — fewer GPUs needed to serve the same traffic with better latency. Per policy: no customer names. Results may be shown without attribution.
+
+| Claim | Value | Slide Context | Original Source | Notes | Added |
+|-------|-------|---------------|-----------------|-------|-------|
+| GPU reduction from llm-d | 61% (256 → 99 GPUs) | Slide 17 stats, Slide 35 stats | Enterprise LLM serving deployment on H200 | llm-d inference optimization, not fleet management | 2026-08-09 |
+| KV-cache hit rate | 93% | Slide 17 stats | Enterprise LLM deployment on H200 | Prefix-aware routing via EPP + KV-Cache Indexer | 2026-08-09 |
+| TTFT improvement | 10–30x | Slide 17 stats | Enterprise deployment on A100 | KV-cache-aware routing + prefix caching | 2026-08-09 |
+| Throughput increase | +40% | Slide 17 stats | Enterprise deployment on H200 | Disaggregated prefill/decode | 2026-08-09 |
+| GPU reduction (compliance workload) | 80%, p99 < 500ms | Not used in slides | Enterprise compliance checking deployment | 2,000 checks/min sustained | 2026-08-09 |
+
+**Cross-check note (from PM review):** Some llm-d POC results are not GPUaaS-specific. The 61% GPU reduction is an llm-d inference optimization result, not a GPUaaS fleet management metric. The deck correctly attributes these as "distributed inference optimization" results.
+
+### FinOps Dashboard Mock Data
+
+| Claim | Value | Slide Context | Source | Added |
+|-------|-------|---------------|--------|-------|
+| Total allocated cost (monthly) | $93,400 | Slide 28 table | Internal GPUaaS knowledge guide — July 2026 showback mock | 2026-08-09 |
+| Total active compute cost | $54,490 | Slide 28 table | Internal GPUaaS knowledge guide | 2026-08-09 |
+| Total idle allocation cost | $38,910 | Slide 28 table | Derived: $93,400 - $54,490 | 2026-08-09 |
+| Fleet average efficiency | 58% | Slide 28 table | Derived: $54,490 / $93,400 | 2026-08-09 |
+| Data Science efficiency | 25% | Slide 28 table | Internal GPUaaS knowledge guide | 2026-08-09 |
+
+### New Content from Gap Analysis (Aug 2026)
+
+| Claim | Value | Slide Context | Source | Added |
+|-------|-------|---------------|--------|-------|
+| Inference dominates GPU demand | 55–67% of AI compute in 2026; 80–90% over model lifecycle | Slide 3 note | Deloitte TMT Predictions 2026; Presenc AI research; Lenovo CEO at CES 2026 | 2026-08-09 |
+| Shadow IT risk from slow GPU provisioning | 3–5 day ServiceNow wait drives data scientists to cloud | Slide 5 icon | Red Hat AI GPU-as-a-Service Business deck p.7 | 2026-08-09 |
+| Scale-to-zero objection — "loading on demand creates queues" | Counter-framing: busy models stay warm, only tail powers down | Slide 24 bullet | Internal GPUaaS Use Cases document p.2 | 2026-08-09 |
+| MultiKueue dispatching strategies | All-at-once, Incremental, External | Slide 26 bullet | MultiKueue in RHACM document p.6 | 2026-08-09 |
+| WorkloadPriorityClass vs Pod priority | Kueue has own priority system separate from K8s Pod priority | Slide 15 bullet | DRA, Kueue, and OpenShift Scheduling document p.14 | 2026-08-09 |
+| InstaSlice / Dynamic Accelerator Slicer | DRA-powered on-demand MIG slicing | Slide 14 bullet | Red Hat AI GPU-as-a-Service Business deck p.33-34 | 2026-08-09 |
+| Three metering layers | Metering → Rating → Allocation | New slide (Enterprise Scale) | Internal GPUaaS knowledge guide | 2026-08-09 |
+| Internal catalog pricing tiers | Shared dev, guaranteed shared, dedicated GPU, reserved cluster | New slide (Reference Solution) | Internal GPUaaS knowledge guide | 2026-08-09 |
+
 ### Accuracy Notes
 
-- **86% vs 83%**: VentureBeat corrected their original article (July 14, 2026 update) from 86% to 83%. The article title still says "86%" but the body text says "83%". The presentation currently uses 86% matching the original headline and widely-cited figure. Consider updating to 83% for strict accuracy.
+- **86% vs 83%**: VentureBeat corrected their original article (July 14, 2026 update) from 86% to 83%. The article title still says "86%" but the body text says "83%". The slides no longer cite this stat directly — the 5% utilization (Cast AI) is used as the anchor stat instead.
 - **$401B**: This is specifically the *additional construction spending* driven by AI infrastructure buildout, not the total AI infrastructure spending ($1.37T). The presentation's stat-source says "Gartner" which is correct.
-- **3x training speedup**: Cited as "Red Hat on RoCE/InfiniBand" but needs a specific Red Hat blog post or benchmark report URL.
+- **3x training speedup**: Confirmed by Red Hat Developer article (April 2025) — baseline OVN: 5h, GPUDirect RDMA: 1h40m. Source: https://developers.redhat.com/articles/2025/04/29/accelerate-model-training-openshift-ai-nvidia-gpudirect-rdma
+- **61% GPU reduction**: This is a benchmark-validated result (10 GPUs round-robin → 3.9 GPUs with llm-d P/D disaggregation). Previously labeled as "anonymized enterprise deployment" — corrected to "benchmark-validated."
+- **10x concurrent users (REMOVED)**: The vLLM PagedAttention paper shows 2–4x throughput improvement vs Orca, up to 24x vs naive frameworks. The "10x" figure had no benchmark support. Corrected to "2–4x higher throughput."
+- **93% cache hit rate (CORRECTED to 87%+)**: Published llm-d benchmarks show 87.4% cache hit rate. The 93% figure did not appear in any public benchmark.
+- **42–88% SM utilization (REMOVED)**: No public benchmark supports this specific range. Replaced with qualitative statement.
+- **llm-d GA timing (CORRECTED)**: llm-d went GA in RHOAI 3.3 (March 2026), not 3.5 (August 2026) as previously stated. Source: Red Hat Customer Portal release components article.
+- **vLLM model count (CORRECTED)**: Updated from "100+" to "200+" per current official vLLM documentation and GitHub README.
+- **InstaSlice (CORRECTED)**: InstaSlice/DAS does NOT use DRA. It uses its own AllocationClaim CRD and scheduler plugin. DRA partitionable devices (beta K8s 1.36) will supersede it.
+- **FIPS/FedRAMP (TIGHTENED)**: OpenShift runs in FIPS mode via validated RHEL crypto modules (not OCP itself holding validation). FedRAMP High is for ROSA on GovCloud, not self-managed OCP.
+- **Run:AI pricing (CLARIFIED)**: $4,500/GPU/year is the NVIDIA AI Enterprise (NVAIE) bundle price that includes Run:AI, not a standalone Run:AI price.
+- **60–90% fragmentation (CORRECTED to 60–80%)**: Per the original PagedAttention paper (UC Berkeley).
 
 ---
 
@@ -47,8 +94,8 @@ When editing content, update this file. When verifying, check the URLs and dates
 | RHOAI 3.8 features | Self-service GPU pool wizard, idle GPU reclamation | roadmap | RHOAI internal roadmap | Internal strategy document | 2026-08-09 |
 | Compute Profiles | Targeted RHOAI 3.7 | vocab, stack | RHOAI internal roadmap | Internal strategy document | 2026-08-09 |
 | NVIDIA DRA GPU driver donated to CNCF | KubeCon Europe 2026 | layers | KubeCon Europe 2026 announcement | Needs specific announcement URL | 2026-08-09 |
-| Kubeflow Trainer v2 API | trainer.kubeflow.org/v1, GA | training | Kubeflow Trainer docs | https://www.kubeflow.org/docs/components/trainer/ | 2026-08-09 |
-| KServe latest release | v0.17.0 (March 2026) | stack | KServe GitHub | https://github.com/kserve/kserve | 2026-08-09 |
+| Kubeflow Trainer v2 API | trainer.kubeflow.org/v1alpha1, release v2.2.0 GA but API is alpha | training | Kubeflow Trainer docs | https://github.com/kubeflow/trainer | 2026-08-09 |
+| KServe latest release | v0.20.0 (as of Aug 2026) | stack | KServe GitHub | https://github.com/kserve/kserve/releases | 2026-08-09 |
 | MaaSSubscription API | maas.opendatahub.io/v1alpha1 | maas | RHOAI internal API | Internal | 2026-08-09 |
 | LLMInferenceService API | serving.kserve.io/v1alpha1 | maas | KServe/llm-d | https://github.com/llm-d/llm-d | 2026-08-09 |
 
@@ -85,7 +132,10 @@ Additional contributors: AMD, Cisco, Hugging Face, Intel, Lambda, Mistral AI, UC
 | WVA scales on queue depth, KV-cache pressure, token throughput | vocab, layers, loops | Architecture | Verified -- llm-d documentation |
 | WVA supports minReplicas: 0 for scale-to-zero | vocab, mechanisms | Architecture | Verified -- llm-d documentation |
 | DRA uses CEL expressions for device selection | mechanisms | API spec | Verified -- Kubernetes DRA docs |
-| DRA supports partitionable devices, device taints, shared counters | mechanisms | API spec | Verified -- Kubernetes KEP 4381 |
+| DRA supports partitionable devices, device taints, shared counters | mechanisms | API spec | Verified -- beta in K8s 1.36 (KEP 4815, 5055), not part of 1.34 GA core |
+| InstaSlice (Dynamic Accelerator Slicer) creates/destroys MIG slices dynamically via DRA | mechanisms | Architecture | Internal Red Hat AI GPUaaS Business deck -- InstaSlice DRA integration |
+| WorkloadPriorityClass is Kueue's own priority system, separate from K8s Pod priority | governance | API spec | Verified -- Kueue docs, DRA/Kueue scheduling document |
+| MultiKueue dispatching: all-at-once, incremental, external strategies | multi-cluster | Architecture | Verified -- MultiKueue in RHACM document p.6 |
 | Kueue supports nominalQuota, borrowingLimit, preemption, fairSharing | governance | API spec | Verified -- Kueue docs |
 | Kueue Resource Transformations for GPU credit normalization | governance | API spec | Verified -- Kueue Configuration API |
 | KServe provides scale-to-zero via Knative-based autoscaling | vocab, mechanisms | Architecture | Verified -- KServe docs |
