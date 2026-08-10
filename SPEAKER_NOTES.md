@@ -369,7 +369,7 @@ This is where you establish deep technical credibility. Take your time with the 
 
 "Now look at the center. PagedAttention — this is vLLM's breakthrough. Instead of fixed blocks, memory is allocated in pages, just like virtual memory in an operating system. Pages can be shared across requests with common prefixes — think of it like a shared system prompt. And when a request finishes, pages are released instantly. No fragmentation. This alone gives you 2 to 4x throughput improvement on the same hardware."
 
-"The right side shows continuous batching. In traditional serving, you wait for a batch to complete before starting a new one. With continuous batching, new requests join between decode steps. The GPU NEVER sits idle waiting for a batch to fill. It's always working."
+"The right side shows continuous batching — and this is worth spending a moment on because it's one of the most misunderstood concepts. Look at the time-step grid. At T0, requests A and B are active. At T1, request C joins the batch — it doesn't have to wait. At T2, request A finishes and its slot is immediately filled by request D. Every time step, the GPU is working on a full batch. Compare this to static batching — where the GPU processes a batch of, say, 4 requests, then WAITS until ALL four finish before starting the next batch. If one request generates 10 tokens and another generates 500, the GPU sits idle for 490 tokens on that first request's slot. Continuous batching eliminates that waste entirely. The result: the GPU never sits idle between decode steps."
 
 "Now, notice the bottom left — prefill versus decode. These two phases of LLM inference compete on the same GPU. Prefill is compute-heavy — processing the entire prompt. Decode is memory-bandwidth-heavy — generating one token at a time. They have opposite resource profiles, and running them together creates contention. We're going to resolve this with llm-d later, but I want you to hold onto this tension."
 
@@ -553,11 +553,11 @@ This is the "aha" diagram. Walk through it slowly.
 
 ### Slide 28: llm-d Stats (Stats)
 
-Let the numbers speak. Pause between each one.
+Let the numbers speak. Pause between each one. Be ready for the scale question.
 
-"Three numbers. Let me give you a moment with each."
+"Four numbers. Let me give you a moment with each."
 
-"61% fewer GPUs needed to serve the same inference traffic. Same throughput, same latency SLOs, 61% less hardware. At ACME's scale, that's potentially hundreds of GPUs freed up for other workloads."
+"61% fewer GPUs needed to serve the same inference traffic. Same throughput, same latency SLOs, 61% less hardware. In the benchmark, 10 GPUs with round-robin routing went down to 3.9 GPUs with llm-d's prefix-aware routing and P/D disaggregation. At ACME's scale, that's potentially hundreds of GPUs freed up for other workloads."
 
 --- pause ---
 
@@ -567,9 +567,19 @@ Let the numbers speak. Pause between each one.
 
 "10 to 30x improvement in TTFT — time to first token. From 200 milliseconds to under 20 milliseconds for cached requests. For real-time applications like chatbots and compliance checks, this is the difference between 'snappy' and 'sluggish.'"
 
-"These numbers are from benchmarks running on multi-instance vLLM deployments. They're achievable in production with proper prefix-aware routing."
+--- pause ---
+
+"+40% token throughput increase with disaggregated prefill/decode — and notice the fine print: 16+ GPUs. That's the scale threshold. Below 8 GPUs, co-located serving with chunked prefill wins — the overhead of KV cache transfer between nodes isn't worth it. At 16 to 32 GPUs, disaggregation breaks even and becomes net-positive for typical chat workloads. At 50+ GPUs, you unlock full phase-specific parallelism. For ACME with 500 GPUs, they're well above that threshold. But if someone is running a small deployment, I'd tell them: start with colocated vLLM, and disaggregate when you scale."
+
+"These numbers are from published benchmarks — AWS validated 1P:1D on 16 H100s running Llama-3.3-70B with flat decode latency under load. The llm-d project validated 3,100 tokens/second per B200 decode GPU on a 16x16 topology."
 
 "Now — you've learned all five technologies. Let me connect them back to that 401(k) we talked about earlier."
+
+**IF SOMEONE ASKS: "Does this mean I need 16 GPUs minimum?"**
+"Not for llm-d itself — you can run llm-d with prefix-aware routing at any scale and get the KV-cache hit benefits (that's where the 87% hit rate and 10-30x TTFT comes from). It's specifically the disaggregated prefill/decode split that needs 16+ GPUs to be worth the network overhead. Most enterprises running production LLM serving are already at that scale."
+
+**IF SOMEONE ASKS: "What about the per-token cost reduction?"**
+"Think about it this way: if you serve the same traffic with 61% fewer GPUs, your per-token cost drops by more than half. At $2/GPU-hour for H100s, that's real money — potentially millions annually at scale. The +40% throughput increase from disaggregation stacks on top of the routing savings."
 
 ---
 
