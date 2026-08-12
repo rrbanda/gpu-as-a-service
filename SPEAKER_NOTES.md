@@ -10,34 +10,33 @@
 
 **Build order:**
 ```
-SCQA Opening (slides 1-4)
+SCQA Opening (slides 1-5)
   → Situation: ACME's $20M GPU fleet
   → Complication: Five hidden problems (dashboard)
   → Answer: GPUaaS journey map (conclusion first — Minto Pyramid)
 
-Pillar 1: GPU Reality (slides 5-10)
+Pillar 1: GPU Reality (slides 6-11)
   → Physical → fungibility → topology → packing → conflict → paradigm shift bridge
 
-The Analogy (slides 11-12)
+The Analogy (slides 12-13)
   → 401(k) quote + fund-by-fund table
   → Appears ONLY here until closing callback
 
-Pillar 2: Architecture Deep Dive (slides 13-26)
+Pillar 2: Architecture Deep Dive (slides 14-27)
   → vLLM → MIG → DRA → Kueue → LLM signals → llm-d (organic build order)
   → LLM signals placed AFTER Kueue — sets up llm-d's routing intelligence
   → Pure technical — NO analogy language
 
-Pillar 3: Platform Architecture (slides 27-38)
-  → Section divider → five-layer stack
-  → Concrete first: dedicated/shared → prod/elastic → Kueue pool
-  → WVA explained (NEW) → control loops → WVA vs Kueue → fighting
-  → Request flow → component table → multi-vendor
+Pillar 3: Platform Architecture (slides 28-37)
+  → Five-layer stack → dedicated/shared → prod/elastic → Kueue pool
+  → WVA explained → control loops → WVA vs Kueue fairness
+  → Request flow → component table → multi-tenant isolation
 
-Pillar 4: FinOps and Operations (slides 39-47)
-  → Metering → pricing → showback → charge/risk model
-  → Scale-to-zero → WVA in action → training → multi-cluster
+Pillar 4: FinOps and Operations (slides 38-45)
+  → Metering → pricing → monthly bill → charge model
+  → Showback dashboard → WVA in action → KubeRay+Kueue → multi-cluster
 
-Reference Solution + Close (slides 48-54)
+Reference Solution + Close (slides 46-52)
   → Team callback → before/after → implementation → roadmap → analogy callback
 ```
 
@@ -45,9 +44,9 @@ Reference Solution + Close (slides 48-54)
 
 ## Analogy Usage Rules
 
-1. **Slides 11-12 only:** Full analogy language — 401(k), funds, fractional shares, etc.
-2. **Slides 13-47:** ZERO analogy language. Pure technical.
-3. **Slide 53 (closing narrative):** Analogy callbacks — "Remember the 401(k)?"
+1. **Slides 12-13 only:** Full analogy language — 401(k), funds, fractional shares, etc.
+2. **Slides 14-45:** ZERO analogy language. Pure technical.
+3. **Slide 51 (closing narrative):** Analogy callbacks — "Remember the 401(k)?"
 4. **During delivery:** You MAY verbally say "remember the mental model?" but slide content stays technical.
 
 ---
@@ -79,6 +78,7 @@ This is your first impression. Don't rush it. Let the room settle.
 
 ---
 
+
 ### Slide 2: Agenda — What We Will Cover Today
 
 Set the roadmap. The audience needs to see the full journey before diving in.
@@ -103,6 +103,7 @@ Set the roadmap. The audience needs to see the full journey before diving in.
 
 ---
 
+
 ### Slide 3: ACME's $20M GPU Fleet (Stats) — SITUATION
 
 This slide sets the emotional stakes. The audience needs to feel the scale of waste before they'll care about solutions.
@@ -120,6 +121,7 @@ This slide sets the emotional stakes. The audience needs to feel the scale of wa
 "So what's actually going on behind ACME's dashboard? Let me show you."
 
 ---
+
 
 ### Slide 4: Five Hidden Problems (Dashboard Diagram) — COMPLICATION
 
@@ -147,6 +149,7 @@ This is THE complication slide. The audience needs to feel the gap between what 
 
 ---
 
+
 ### Slide 5: The Complete GPUaaS Journey (Diagram) — ANSWER
 
 This is the governing thought — the Pyramid Principle answer. Show the full map AFTER the problem is established.
@@ -163,21 +166,10 @@ This is the governing thought — the Pyramid Principle answer. Show the full ma
 
 ---
 
-### Slide 6: GPU Reality — Section Divider
 
-Signal the topic shift. Let the audience recalibrate.
+### Slide 6: Data Center GPU Servers (Diagram) — GPU REALITY
 
-"We've seen the scale of the problem. $20 million in GPUs, five hidden problems, and a dashboard that tells leadership everything is fine."
-
-"Now I need to take you inside the machine. Before we can fix GPU management, you need to understand WHY GPUs are different from CPUs. Why the same scheduling techniques you use for your application containers fundamentally don't work for GPU workloads."
-
---- pause ---
-
-"What makes GPU scheduling fundamentally different from CPU scheduling? Let me show you."
-
----
-
-### Slide 7: Data Center GPU Servers (Diagram)
+**[Section transition]** "Now let's open the hood on GPU hardware and understand why this is fundamentally different from anything you've done with CPUs."
 
 This slide grounds everything in physical reality. If the audience doesn't understand the hardware, nothing else will make sense.
 
@@ -193,7 +185,8 @@ This slide grounds everything in physical reality. If the audience doesn't under
 
 ---
 
-### Slide 8: GPU Heterogeneity (Diagram)
+
+### Slide 7: GPU Heterogeneity (Diagram)
 
 This slide is the most important concept in the entire GPU Reality section. If the audience gets this, everything else clicks.
 
@@ -213,7 +206,8 @@ This slide is the most important concept in the entire GPU Reality section. If t
 
 ---
 
-### Slide 9: Topology Matters (Diagram)
+
+### Slide 8: Topology Matters (Diagram)
 
 This slide makes topology visceral with a concrete performance comparison.
 
@@ -233,7 +227,8 @@ This slide makes topology visceral with a concrete performance comparison.
 
 ---
 
-### Slide 10: The Packing Problem (Diagram)
+
+### Slide 9: The Packing Problem (Diagram)
 
 This slide makes the scheduling complexity concrete.
 
@@ -251,7 +246,8 @@ This slide makes the scheduling complexity concrete.
 
 ---
 
-### Slide 11: Training vs Inference (Diagram)
+
+### Slide 10: Training vs Inference (Diagram)
 
 This slide introduces the fundamental conflict that drives the entire GPU scheduling challenge.
 
@@ -271,7 +267,8 @@ This slide introduces the fundamental conflict that drives the entire GPU schedu
 
 ---
 
-### Slide 12: Traditional vs AI-Aware GPUaaS (Compare Diagram) — BRIDGE
+
+### Slide 11: Traditional vs AI-Aware GPUaaS (Compare Diagram) — BRIDGE
 
 This is the paradigm shift slide. It bridges from problems to solutions.
 
@@ -287,21 +284,10 @@ This is the paradigm shift slide. It bridges from problems to solutions.
 
 ---
 
-### Slide 13: The 401(k) Analogy — Section Divider
 
-Shift gears. Lower the intensity before the analogy.
+### Slide 12: The 401(k) Analogy (Quote) — THE ANALOGY
 
-"You now understand the hardware reality. Six dimensions of heterogeneity, topology traps, the packing problem, training versus inference. It's complex."
-
-"Before we dive into the five technologies that solve all of this, I want to give you a mental model. Something you can anchor every concept to — especially if the details start to blur."
-
---- pause ---
-
-"Let's talk about 401(k)s."
-
----
-
-### Slide 14: The 401(k) Analogy (Quote)
+**[Section transition]** "We've seen the GPU reality — heterogeneity, topology, the packing problem, the conflict between training and inference. Now I want to give you a mental model that ties all of this together."
 
 Slow down here. This is the emotional reset before the deep dive. Let the analogy breathe.
 
@@ -323,7 +309,8 @@ Slow down here. This is the emotional reset before the deep dive. Let the analog
 
 ---
 
-### Slide 15: Fund-by-Fund Table (The Analogy)
+
+### Slide 13: Fund-by-Fund Table (The Analogy)
 
 Walk through each fund's PROBLEM only. Do NOT name the technologies. Build anticipation.
 
@@ -339,11 +326,12 @@ Walk through each fund's PROBLEM only. Do NOT name the technologies. Build antic
 
 "Each of these investing mistakes has a fix. A specific technology. Let's learn them one by one."
 
-**CRITICAL:** Do NOT say "fund manager = vLLM" here. That mapping happens on slide 29 (Rosetta Stone) AFTER the audience has learned all five technologies.
+**CRITICAL:** Do NOT say "fund manager = vLLM" here. That mapping happens on slide 26 (Rosetta Stone) AFTER the audience has learned all five technologies.
 
 ---
 
-### Slide 16: Architecture Deep Dive — Section Divider
+
+### Slide 14: Architecture Deep Dive — Section Divider
 
 Brief pause. Let the audience reset.
 
@@ -359,7 +347,8 @@ Brief pause. Let the audience reset.
 
 ---
 
-### Slide 17: vLLM (Diagram)
+
+### Slide 15: vLLM (Diagram)
 
 This is where you establish deep technical credibility. Take your time with the diagram animation.
 
@@ -381,7 +370,8 @@ This is where you establish deep technical credibility. Take your time with the 
 
 ---
 
-### Slide 18: MIG (Diagram)
+
+### Slide 16: MIG (Diagram)
 
 The before/after transformation is the emotional hook here. Lead with the waste.
 
@@ -399,7 +389,8 @@ The before/after transformation is the emotional hook here. Lead with the waste.
 
 ---
 
-### Slide 19: MIG Slicing Diagram
+
+### Slide 17: MIG Slicing Diagram
 
 Visual reinforcement of the MIG concept.
 
@@ -413,8 +404,8 @@ Visual reinforcement of the MIG concept.
 
 ---
 
-### Slide 20: MIG Stats (Stats)
 
+**ABSORBED FROM MIG STATS SLIDE (merged):**
 Quick validation with numbers. Let these land.
 
 "Let me ground this in numbers. 7x density — that's how many workloads one GPU can serve with MIG versus dedicating one GPU per workload. 85% of overnight idle capacity is recoverable when you combine MIG with scale-to-zero. And the cold-start trade-off? 30 to 90 seconds for a 70-billion-parameter model to reload from object storage. For overnight idle recovery, that's a completely acceptable trade-off."
@@ -425,7 +416,12 @@ Quick validation with numbers. Let these land.
 
 ---
 
-### Slide 21: DRA (Diagram)
+**Key stat talking points:** 7x density (40 GPUs collapsed to 6 for small models), 85% overnight idle capacity recoverable via scale-to-zero, SM utilization above 2.5% on right-sized MIG slices, 30-90s cold-start for 70B model.
+
+
+---
+
+### Slide 18: DRA (Diagram)
 
 DRA is the bridge from hardware primitives to intelligent scheduling.
 
@@ -445,7 +441,8 @@ DRA is the bridge from hardware primitives to intelligent scheduling.
 
 ---
 
-### Slide 22: Kueue Governance (Diagram)
+
+### Slide 19: Kueue Governance (Diagram)
 
 Kueue is the governance pillar. Take your time with the three panels.
 
@@ -470,7 +467,8 @@ Kueue is the governance pillar. Take your time with the three panels.
 
 ---
 
-### Slide 23: Kueue's Three Decisions (Diagram)
+
+### Slide 20: Kueue's Three Decisions (Diagram)
 
 Make the three-step decision tree concrete with examples.
 
@@ -488,7 +486,8 @@ Make the three-step decision tree concrete with examples.
 
 ---
 
-### Slide 24: Kueue Workload Coverage (Diagram)
+
+### Slide 21: Kueue Workload Coverage (Diagram)
 
 This slide answers the number one misconception: "Kueue is just for training."
 
@@ -509,7 +508,8 @@ This slide answers the number one misconception: "Kueue is just for training."
 
 ---
 
-### Slide 25: Fair-Share Admission (Diagram)
+
+### Slide 22: Fair-Share Admission (Diagram)
 
 A concrete micro-example to make fair-sharing tangible.
 
@@ -527,7 +527,8 @@ A concrete micro-example to make fair-sharing tangible.
 
 ---
 
-### Slide 26: 9 LLM Inference Signals (Diagram)
+
+### Slide 23: 9 LLM Inference Signals (Diagram)
 
 This slide sets up llm-d by showing what intelligence is available.
 
@@ -541,7 +542,8 @@ This slide sets up llm-d by showing what intelligence is available.
 
 ---
 
-### Slide 27: llm-d KV-Cache Routing (Diagram)
+
+### Slide 24: llm-d KV-Cache Routing (Diagram)
 
 This is the most technically impressive slide. Let the animation tell the story.
 
@@ -559,7 +561,8 @@ This is the most technically impressive slide. Let the animation tell the story.
 
 ---
 
-### Slide 28: llm-d Routing Diagram
+
+### Slide 25: llm-d Routing Diagram
 
 This is the "aha" diagram. Walk through it slowly.
 
@@ -577,7 +580,8 @@ This is the "aha" diagram. Walk through it slowly.
 
 ---
 
-### Slide 29: llm-d Stats (Stats)
+
+### Slide 26: llm-d Stats (Stats)
 
 Let the numbers speak. Pause between each one. Be ready for the scale question.
 
@@ -609,7 +613,8 @@ Let the numbers speak. Pause between each one. Be ready for the scale question.
 
 ---
 
-### Slide 30: 401(k) Rosetta Stone (Table)
+
+### Slide 27: 401(k) Rosetta Stone (Table)
 
 The audience finally gets the payoff for the analogy. Make this a satisfying "aha."
 
@@ -631,21 +636,10 @@ The audience finally gets the payoff for the analogy. Make this a satisfying "ah
 
 ---
 
-### Slide 31: Platform Architecture — Section Divider
 
-Cognitive reset. Let the audience breathe.
+### Slide 28: Five-Layer Stack (Diagram) — PLATFORM ARCHITECTURE
 
-"You now know all five technologies individually. That's the foundation. But knowing five technologies is like knowing five musical instruments — it doesn't mean you can play them together as an orchestra."
-
-"The next section is about composition. How do these technologies actually wire together? What are the deployment patterns? How do the control loops nest? Which components talk to which?"
-
---- pause ---
-
-"We'll start with the simplest deployment question and build up to the full system."
-
----
-
-### Slide 32: Five-Layer Stack (Diagram)
+**[Section transition]** "We've covered the five individual technologies. Now let's see how they compose into one production architecture."
 
 Fulfill the promise from slide 5.
 
@@ -667,7 +661,8 @@ Fulfill the promise from slide 5.
 
 ---
 
-### Slide 33: Dedicated vs Shared Clusters (Diagram)
+
+### Slide 29: Dedicated vs Shared Clusters (Diagram)
 
 Start with the simplest pattern to ground the audience.
 
@@ -685,7 +680,8 @@ Start with the simplest pattern to ground the audience.
 
 ---
 
-### Slide 34: Guaranteed + Elastic Capacity (Diagram)
+
+### Slide 30: Guaranteed + Elastic Capacity (Diagram)
 
 Make the fleet splitting concrete.
 
@@ -701,7 +697,8 @@ Make the fleet splitting concrete.
 
 ---
 
-### Slide 35: Kueue Pool (Diagram)
+
+### Slide 31: Kueue Pool (Diagram)
 
 Show Kueue in its pool governance role — distinct from the earlier quota explanation.
 
@@ -717,7 +714,8 @@ Show Kueue in its pool governance role — distinct from the earlier quota expla
 
 ---
 
-### Slide 36: WVA Explained (Diagram)
+
+### Slide 32: WVA Explained (Diagram)
 
 This is the WVA introduction. The audience is meeting a new component — be thorough.
 
@@ -737,7 +735,8 @@ This is the WVA introduction. The audience is meeting a new component — be tho
 
 ---
 
-### Slide 37: Three Control Loops (Diagram)
+
+### Slide 33: Three Control Loops (Diagram)
 
 Systems thinking. Show how the pieces compose without fighting each other.
 
@@ -757,7 +756,8 @@ Systems thinking. Show how the pieces compose without fighting each other.
 
 ---
 
-### Slide 38: WVA vs Kueue Fairness (Compare Diagram)
+
+### Slide 34: WVA vs Kueue Fairness (Compare Diagram)
 
 Disambiguate the most common source of confusion.
 
@@ -773,8 +773,8 @@ Disambiguate the most common source of confusion.
 
 ---
 
-### Slide 39: Two Services Fighting for GPUs (Diagram)
 
+**IF SOMEONE ASKS about demand vs entitlement (absorbed from fighting slide):**
 A concrete scenario that shows WVA and Kueue interacting.
 
 "Let me make this real. Two inference services, one shared cluster."
@@ -789,7 +789,9 @@ A concrete scenario that shows WVA and Kueue interacting.
 
 ---
 
-### Slide 40: One Request, Five Systems (Diagram)
+---
+
+### Slide 35: One Request, Five Systems (Diagram)
 
 The full end-to-end request flow. Show how everything connects.
 
@@ -809,7 +811,8 @@ The full end-to-end request flow. Show how everything connects.
 
 ---
 
-### Slide 41: Component Table (Table)
+
+### Slide 36: Component Table (Table)
 
 Reference table. Don't read every row — highlight the pattern and the new KubeRay entry.
 
@@ -827,7 +830,25 @@ Reference table. Don't read every row — highlight the pattern and the new Kube
 
 ---
 
-### Slide 42: Multi-Tenant Isolation Stack (Diagram)
+
+**IF SOMEONE ASKS about multi-vendor GPU support (absorbed from vendor slide):**
+Quick but important. Frame as a procurement advantage.
+
+"This entire architecture runs on NVIDIA, AMD, Intel, and Google TPUs. Same codebase, same APIs, same management plane. vLLM abstracts the hardware at the serving layer. DRA abstracts it at the scheduling layer. Kueue and llm-d don't care what's underneath."
+
+"Why does this matter practically? Two reasons. First, procurement leverage. When your NVIDIA allocation is constrained — and it IS constrained for most enterprises right now — you have alternatives. AMD MI300X is a credible option for inference. Intel Gaudi3 is emerging. You're not locked in."
+
+"Second, future-proofing. GPU architectures evolve fast. B200, B300 are coming. Custom silicon from cloud providers is expanding. If your platform is hardware-agnostic, you adopt new hardware without re-architecting."
+
+"This is an architecture decision, not an operations afterthought. Build for multi-vendor from day one."
+
+"Alright — we've covered the architecture. Now let's talk about what everyone REALLY wants to know: who pays for what? Let's get into FinOps."
+
+---
+
+---
+
+### Slide 37: Multi-Tenant Isolation Stack (Diagram)
 
 This is THE enterprise governance slide. Let the layers build visually.
 
@@ -854,37 +875,10 @@ This is THE enterprise governance slide. Let the layers build visually.
 
 ---
 
-### Slide 43: Multi-Vendor GPU Support (Table)
 
-Quick but important. Frame as a procurement advantage.
+### Slide 38: Metering at Three Layers (Diagram) — FINOPS & OPERATIONS
 
-"This entire architecture runs on NVIDIA, AMD, Intel, and Google TPUs. Same codebase, same APIs, same management plane. vLLM abstracts the hardware at the serving layer. DRA abstracts it at the scheduling layer. Kueue and llm-d don't care what's underneath."
-
-"Why does this matter practically? Two reasons. First, procurement leverage. When your NVIDIA allocation is constrained — and it IS constrained for most enterprises right now — you have alternatives. AMD MI300X is a credible option for inference. Intel Gaudi3 is emerging. You're not locked in."
-
-"Second, future-proofing. GPU architectures evolve fast. B200, B300 are coming. Custom silicon from cloud providers is expanding. If your platform is hardware-agnostic, you adopt new hardware without re-architecting."
-
-"This is an architecture decision, not an operations afterthought. Build for multi-vendor from day one."
-
-"Alright — we've covered the architecture. Now let's talk about what everyone REALLY wants to know: who pays for what? Let's get into FinOps."
-
----
-
-### Slide 44: FinOps and Operations — Section Divider
-
-Signal the shift from architecture to economics.
-
-"We've covered the architecture — five technologies, deployment patterns, control loops, component map. You now know HOW to build this. But there's a question we haven't answered yet, and it's the one your CFO will ask first."
-
---- pause ---
-
-"Who pays for what? How do you meter GPU usage? How do you price it? How do you show teams their costs? And how do you make training and inference coexist gracefully?"
-
-"Let's talk about the money."
-
----
-
-### Slide 45: Metering at Three Layers (Diagram)
+**[Section transition]** "We've built the architecture. Now let's talk about the economics — because technology without financial governance is just engineering for its own sake."
 
 Frame FinOps as something most organizations get wrong.
 
@@ -904,7 +898,8 @@ Frame FinOps as something most organizations get wrong.
 
 ---
 
-### Slide 46: Memory Pricing (Diagram)
+
+### Slide 39: Memory Pricing (Diagram)
 
 This is a subtle but critical pricing trap.
 
@@ -920,7 +915,8 @@ This is a subtle but critical pricing trap.
 
 ---
 
-### Slide 47: ACME's Monthly GPU Bill (Table)
+
+### Slide 40: ACME's Monthly GPU Bill (Table)
 
 Make the numbers personal. This is the "CFO slide."
 
@@ -936,7 +932,8 @@ Make the numbers personal. This is the "CFO slide."
 
 ---
 
-### Slide 48: Charge for Allocation (Two-Column)
+
+### Slide 41: Charge for Allocation (Two-Column)
 
 The charging philosophy. This is where policy meets engineering.
 
@@ -958,7 +955,8 @@ The charging philosophy. This is where policy meets engineering.
 
 ---
 
-### Slide 49: Showback Dashboard — Team Breakdown (Diagram)
+
+### Slide 42: Showback Dashboard — Team Breakdown (Diagram)
 
 This is the "monthly statement." Make it tangible.
 
@@ -980,8 +978,8 @@ This is the "monthly statement." Make it tangible.
 
 ---
 
-### Slide 50: Scale-to-Zero (Content)
 
+**IF SOMEONE ASKS about scale-to-zero (absorbed from scale-to-zero slide):**
 This is the single biggest capacity recovery mechanism.
 
 "Now let me show you the single biggest quick win in the entire GPU economy. Scale to zero."
@@ -998,7 +996,9 @@ This is the single biggest capacity recovery mechanism.
 
 ---
 
-### Slide 51: WVA Autoscaling (Diagram)
+---
+
+### Slide 43: WVA Autoscaling (Diagram)
 
 Show WVA in action with a specific scaling event.
 
@@ -1012,7 +1012,8 @@ Show WVA in action with a specific scaling event.
 
 ---
 
-### Slide 52: KubeRay + Kueue — Distributed Workloads (Diagram)
+
+### Slide 44: KubeRay + Kueue — Distributed Workloads (Diagram)
 
 KubeRay isn't just for training — it's the distributed workload orchestration layer for both training AND multi-model inference.
 
@@ -1036,7 +1037,8 @@ KubeRay isn't just for training — it's the distributed workload orchestration 
 
 ---
 
-### Slide 53: Multi-Cluster Fleet Management (Diagram)
+
+### Slide 45: Multi-Cluster Fleet Management (Diagram)
 
 Scale beyond a single cluster.
 
@@ -1050,19 +1052,10 @@ Scale beyond a single cluster.
 
 ---
 
-### Slide 54: Reference Solution — Section Divider
 
-The final section transition. Build anticipation for the payoff.
+### Slide 46: Team Callback — Four Teams Revisited (Table) — REFERENCE SOLUTION
 
-"We've covered the technology. We've covered the architecture. We've covered the economics. Now comes the question I always get: 'This is great — but can I actually do this? How long does it take? What does the implementation look like?'"
-
---- pause ---
-
-"Let me show you. From today's 38% utilization to 75%+ in twelve weeks — with the same 500 GPUs."
-
----
-
-### Slide 55: Team Callback — Four Teams Revisited (Table)
+**[Section transition]** "We've covered the technology, the architecture, and the economics. Now let's put it all together into something ACME can actually implement."
 
 This is the structural payoff. Every problem now has a named solution.
 
@@ -1072,17 +1065,18 @@ This is the structural payoff. Every problem now has a named solution.
 
 "Gen AI — 90 idle H100s overnight. The fix: scale-to-zero with WVA. When trading hours end, models scale down. Those 90 GPUs flow to the elastic pool for overnight training. We covered this on slides 48 and 49."
 
-"ML Engineering — 77 gigabytes of unused VRAM per GPU on those small compliance models. The fix: MIG slicing. One A100 becomes 7 isolated slices. 34 GPUs freed. Over a million dollars recovered. Slide 18."
+"ML Engineering — 77 gigabytes of unused VRAM per GPU on those small compliance models. The fix: MIG slicing. One A100 becomes 7 isolated slices. 34 GPUs freed. Over a million dollars recovered. Slide 16."
 
 "Applied AI — 75% idle because they over-request. The fix: DRA right-sizing with CEL-based claims, plus Kueue borrowing so they only reserve what they use and borrow when they need more. Slides 21 and 22."
 
-"Data Science — idle notebooks clogging the cluster. The fix: notebook culling policies with Kueue governance. If a notebook hasn't been active for 2 hours, Kueue reclaims the GPU. The data scientist restarts in 30 seconds. Slide 22."
+"Data Science — idle notebooks clogging the cluster. The fix: notebook culling policies with Kueue governance. If a notebook hasn't been active for 2 hours, Kueue reclaims the GPU. The data scientist restarts in 30 seconds. Slide 19."
 
 "Every single problem from the opening now has a named solution, a specific technology, and a slide number you can reference. This isn't theory — it's a deployment plan."
 
 ---
 
-### Slide 56: Before/After (Two-Column)
+
+### Slide 47: Before/After (Two-Column)
 
 Quantify the transformation. Make it concrete.
 
@@ -1098,7 +1092,8 @@ Quantify the transformation. Make it concrete.
 
 ---
 
-### Slide 57: Twelve Weeks to Governed Sharing (Content)
+
+### Slide 48: Twelve Weeks to Governed Sharing (Content)
 
 This is the "how to actually do it" slide. Be specific about sequencing and risk.
 
@@ -1118,7 +1113,8 @@ This is the "how to actually do it" slide. Be specific about sequencing and risk
 
 ---
 
-### Slide 58: Self-Service Profile (Diagram)
+
+### Slide 49: Self-Service Profile (Diagram)
 
 Show the end-state experience. Make it feel effortless.
 
@@ -1136,7 +1132,8 @@ Show the end-state experience. Make it feel effortless.
 
 ---
 
-### Slide 59: Platform Maturity Themes (Diagram)
+
+### Slide 50: Platform Maturity Themes (Diagram)
 
 This is NOT a release schedule. It's a maturity model. Let the four cards build left to right.
 
@@ -1162,7 +1159,8 @@ This is NOT a release schedule. It's a maturity model. Let the four cards build 
 
 ---
 
-### Slide 60: 401(k) Callback — Every Dollar Working (Content)
+
+### Slide 51: 401(k) Callback — Every Dollar Working (Content)
 
 The analogy returns. Full circle. This should feel like coming home.
 
@@ -1182,7 +1180,8 @@ The analogy returns. Full circle. This should feel like coming home.
 
 ---
 
-### Slide 61: Closing Slide
+
+### Slide 52: Closing Slide
 
 Land the plane. Short, confident, inviting.
 
@@ -1214,36 +1213,37 @@ Land the plane. Short, confident, inviting.
 |-------|---------|-----------|---------------|
 | 1-2 | Title + Agenda | Nothing | Set expectations — audience knows the roadmap |
 | 3-5 | SCQA Opening | Agenda | Situation → Complication → Answer |
-| 6-12 | GPU Reality | Complication | Section divider → physical → fungibility → topology → packing → conflict → paradigm shift |
-| 13-15 | Analogy | Problems | Section divider → 401(k) quote → fund-by-fund mapping |
-| 16 | Section divider | Analogy | Previews five technologies — cognitive reset |
-| 17 | vLLM | The problem | Every org starts here — deploy a model |
-| 18-20 | MIG | vLLM | "vLLM is efficient, but small models need GPU splitting" |
-| 21 | DRA | MIG | "GPUs can be sliced — now request the right slice" |
-| 22-24 | Kueue | MIG + DRA | "We can slice and select — who gets capacity?" |
-| 25 | LLM signals | Kueue | "Governance set — here are the 9 signals llm-d uses for routing" |
-| 26-28 | llm-d | vLLM + Kueue + signals | "Now optimize across vLLM instances using those signals" |
-| 29 | Rosetta Stone | All five | Connects five technologies back to 401(k) analogy |
-| 30-31 | Section divider + stack | All five | "How they compose — five-layer architecture map" |
-| 32-33 | Deployment patterns | Five layers | "Concrete first: dedicated/shared, prod/elastic" |
-| 34 | Kueue pool | Deployment patterns | "The elastic pool needs a gatekeeper — WANT vs HAVE" |
-| 35 | WVA explained | Kueue pool | "WHO gets GPUs (Kueue) vs HOW MANY replicas (WVA)" |
-| 36-39 | Interactions | WVA + Kueue | "Control loops → fairness → fighting → request flow" |
-| 40-41 | Reference + multi-vendor | All | "Component table + multi-vendor" |
-| 42-51 | FinOps + Ops | Architecture | "Section divider → metering → pricing → showback → charge/risk → scale-to-zero → training → multi-cluster" |
-| 52-59 | Solution | Everything | "Section divider → team callback → concrete steps → roadmap → analogy callback → close" |
+| 6-11 | GPU Reality | Complication | Physical → fungibility → topology → packing → conflict → paradigm shift |
+| 12-13 | Analogy | Problems | 401(k) quote → fund-by-fund mapping |
+| 14 | Five tech preview | Analogy | Previews five technologies — cognitive reset |
+| 15 | vLLM | The problem | Every org starts here — deploy a model |
+| 16-17 | MIG | vLLM | "vLLM is efficient, but small models need GPU splitting" |
+| 18 | DRA | MIG | "GPUs can be sliced — now request the right slice" |
+| 19-21 | Kueue | MIG + DRA | "We can slice and select — who gets capacity?" |
+| 22 | Fair-share | Kueue | DRS algorithm in action — visual evidence |
+| 23 | LLM signals | Kueue | "Governance set — here are the 9 signals llm-d uses for routing" |
+| 24-26 | llm-d | vLLM + Kueue + signals | "Now optimize across vLLM instances using those signals" |
+| 27 | Rosetta Stone | All five | Connects five technologies back to 401(k) analogy |
+| 28 | Five-layer stack | All five | "How they compose — five-layer architecture map" |
+| 29-30 | Deployment patterns | Five layers | "Concrete first: dedicated/shared, prod/elastic" |
+| 31 | Kueue pool | Deployment patterns | "The elastic pool needs a gatekeeper — WANT vs HAVE" |
+| 32 | WVA explained | Kueue pool | "WHO gets GPUs (Kueue) vs HOW MANY replicas (WVA)" |
+| 33-35 | Interactions | WVA + Kueue | "Control loops → fairness → request flow" |
+| 36-37 | Reference | All | "Component table → multi-tenant isolation" |
+| 38-45 | FinOps + Ops | Architecture | "Metering → pricing → showback → charge model → WVA → training → multi-cluster" |
+| 46-52 | Solution | Everything | "Team callback → concrete steps → roadmap → analogy callback → close" |
 
 ### Is there any concept used before it's introduced?
 
-- vLLM: first on slide 17 ✓
-- MIG: first on slide 18, after vLLM ✓
-- DRA: first on slide 21, after MIG ✓
-- Kueue: first on slide 22, after MIG + DRA ✓
-- LLM signals: slide 25, after Kueue — provides context for llm-d routing ✓
-- llm-d: first on slide 26, after vLLM + Kueue + signals ✓
-- WVA: first on slide 35 (WVA Explained), after deployment patterns + Kueue pool ✓
-- Three control loops: slide 36, after WVA is introduced ✓
-- Five-layer stack: slide 31, first slide after Platform Architecture section divider ✓
+- vLLM: first on slide 15 ✓
+- MIG: first on slide 16, after vLLM ✓
+- DRA: first on slide 18, after MIG ✓
+- Kueue: first on slide 19, after MIG + DRA ✓
+- LLM signals: slide 23, after Kueue — provides context for llm-d routing ✓
+- llm-d: first on slide 24, after vLLM + Kueue + signals ✓
+- WVA: first on slide 32 (WVA Explained), after deployment patterns + Kueue pool ✓
+- Three control loops: slide 33, after WVA is introduced ✓
+- Five-layer stack: slide 28, first slide of Platform Architecture section ✓
 
 **Result: No concept is used before it's introduced.** ✓
 
@@ -1251,10 +1251,10 @@ Land the plane. Short, confident, inviting.
 
 | Location | Analogy Content | Correct? |
 |----------|----------------|----------|
-| Slides 14-15 | Full analogy — 401(k), funds, fractional shares | ✓ |
-| Slide 29 | Rosetta Stone — maps technologies to investing fixes | ✓ |
-| Slides 16-28, 30-51 | ZERO analogy language | ✓ |
-| Slide 58 | 401(k) callback — "every dollar is working" | ✓ |
+| Slides 12-13 | Full analogy — 401(k), funds, fractional shares | ✓ |
+| Slide 27 | Rosetta Stone — maps technologies to investing fixes | ✓ |
+| Slides 14-26, 28-50 | ZERO analogy language | ✓ |
+| Slide 51 | 401(k) callback — "every dollar is working" | ✓ |
 
 **Result: Analogy is cleanly separated.** ✓
 
@@ -1262,18 +1262,18 @@ Land the plane. Short, confident, inviting.
 
 ## Timing Guide (60-minute session)
 
-| Segment | Slides | Minutes |
-|---------|--------|---------|
-| Title + Agenda | 1–2 | 2 |
-| SCQA Opening | 3–5 | 6 |
-| GPU Reality | 6–12 | 11 |
-| The Analogy | 13–15 | 4 |
-| Architecture Deep Dive (vLLM → MIG → DRA → Kueue → signals → llm-d + Rosetta Stone) | 16–29 | 19 |
-| Platform Architecture | 30–41 | 13 |
-| FinOps and Operations | 42–51 | 10 |
-| Reference Solution + Closing | 52–59 | 8 |
-| **Total** | **59 slides** | **73 min** |
+| Segment | Slides | Count | Minutes |
+|---------|--------|-------|---------|
+| Title + Agenda | 1–2 | 2 | 2 |
+| SCQA Opening | 3–5 | 3 | 5 |
+| GPU Reality | 6–11 | 6 | 8 |
+| The Analogy | 12–13 | 2 | 3 |
+| Architecture Deep Dive | 14–27 | 14 | 17 |
+| Platform Architecture | 28–37 | 10 | 10 |
+| FinOps and Operations | 38–45 | 8 | 8 |
+| Reference Solution + Closing | 46–52 | 7 | 7 |
+| **Total** | **1–52** | **52** | **60 min** |
 
-**If running short (60 min):** Skip slides 9 (topology), 24 (fair-share detail), 33 (prod + elastic), 44 (memory pricing), and deliver section dividers in 10 seconds each. These work as appendix material.
+**If running short (55 min):** Spend 15 seconds each on slides 8 (topology), 17 (MIG slicing zoom), and 22 (fair-share) — show the visual, deliver one sentence, move on. Skip the "IF SOMEONE ASKS" sections entirely.
 
-**If running long:** Spend less time on slides 37 (component table) and 41 (monthly bill) — scan, don't read.
+**If running long:** Spend less time on slides 36 (component table) and 40 (monthly bill) — scan, don't read.
