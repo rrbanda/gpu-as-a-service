@@ -78,7 +78,7 @@ This is your first impression. Don't rush it. Let the room settle.
 
 ---
 
-### Slide 2: Red Hat OpenShift AI — one platform for predictive, generative, and agentic AI (Image)
+### Slide 2: Red Hat OpenShift AI (Image)
 
 "This is Red Hat OpenShift AI — our platform for the entire AI lifecycle. It covers THREE types of AI workloads: predictive — your traditional ML models for forecasting and classification; generative — large language models for content creation and reasoning; and the newest category, agentic AI — autonomous agents that can plan, reason, and execute multi-step tasks with tools. Look at the platform stack: data preparation, model development and tuning, serving with vLLM, monitoring, and now AgentOps. It runs on OpenShift — Kubernetes-native. It supports every major accelerator — NVIDIA, AMD, Intel, Google TPUs, IBM Spyre, AWS Inferentia. And it deploys anywhere — bare metal, virtual, private cloud, sovereign cloud, public cloud, edge."
 
@@ -1064,7 +1064,7 @@ Show WVA in action with a specific scaling event.
 
 ---
 
-### Slide 45: RHACM + MultiKueue — Data Scientists Submit to Hub, RHACM Drives Placement (Image)
+### Slide 45: RHACM + MultiKueue Addon Architecture (Image)
 
 This slide shows the full RHACM + MultiKueue architecture. Take time to walk through both personas.
 
@@ -1082,6 +1082,8 @@ This slide shows the full RHACM + MultiKueue architecture. Take time to walk thr
 
 **IF SOMEONE ASKS about the Admission Check Controller:** "It's a special component in the MultiKueue addon. When an RHACM Placement changes — say a cluster joins or leaves — the controller automatically updates the Kueue MultiKueue configuration. No manual YAML editing."
 
+**IF SOMEONE ASKS about KubeRay + Kueue:** "KubeRay plus Kueue is the distributed workload orchestration layer in RHOAI — it handles both training AND multi-model serving. For training: RayJob or TrainJob with Kueue admission, GPUDirect RDMA (3x speedup), JIT checkpointing on preemption. For serving: RayService deploys Ray Serve + vLLM for multi-model serving with three-level autoscaling — Ray Serve replicas, Ray autoscaler workers, and Kueue quota ceiling. CodeFlare SDK gives data scientists Python-native access from Jupyter — no YAML. Three serving patterns: KServe (single-model) → KubeRay RayService (multi-model) → llm-d (disaggregated at scale). They're complementary, not competing."
+
 ---
 
 ### Slide 46: KubeRay + Kueue — Distributed Workloads (Diagram)
@@ -1090,25 +1092,15 @@ KubeRay isn't just for training — it's the distributed workload orchestration 
 
 "This is a slide that changes how people think about KubeRay. Most people associate it with distributed training — and that's correct, but it's only half the story. KubeRay plus Kueue is the distributed workload orchestration layer in RHOAI. It handles training AND multi-model serving."
 
-"Let's take the left panel first — training. You submit a RayJob or a Kubeflow TrainJob. Kueue runs admission — does this team have quota? Is there capacity? Once admitted, GPUDirect RDMA gives you 3x speedup on distributed fine-tuning by transferring data directly GPU-to-GPU, bypassing the CPU entirely. And when an inference spike hits, the training job doesn't crash. Kueue sends SIGTERM, the job does a JIT checkpoint — saves state after the current training step — and releases the GPUs. When capacity returns, it resumes from that checkpoint. Zero lost work."
+"On the training side: you submit a RayJob or a Kubeflow TrainJob. Kueue runs admission — does this team have quota? Is there capacity? Once admitted, GPUDirect RDMA gives you 3x speedup on distributed fine-tuning. And when an inference spike hits, the training job doesn't crash. Kueue sends SIGTERM, the job does a JIT checkpoint, and releases the GPUs. When capacity returns, it resumes from that checkpoint. Zero lost work."
 
-"Now the right panel — this is what most people miss. RayService deploys Ray Serve with vLLM as the backend. That's multi-model serving on a shared cluster. You can run Llama, Mistral, and a custom fine-tuned model on the same RayCluster. Ray Serve handles routing. And you get THREE levels of autoscaling working together: Ray Serve manages replica counts, Ray's autoscaler adds or removes worker pods, and Kueue governs the overall quota ceiling. Elastic borrowing means if another team's GPUs are idle, your RayService can grab them. When they need them back, Kueue preempts gracefully."
+"On the serving side — this is what most people miss. RayService deploys Ray Serve with vLLM as the backend. Multi-model serving on a shared cluster. You get THREE levels of autoscaling: Ray Serve manages replica counts, Ray's autoscaler adds or removes worker pods, and Kueue governs the overall quota ceiling."
 
-"Zero-downtime upgrades are built in. RayService does a rolling deployment — new version spins up, old version drains, no traffic dropped. For ACME, that's critical. They can update their fraud detection model mid-day without impacting transaction scoring."
+"And CodeFlare SDK — the Python-native interface. Data scientists don't write YAML or run kubectl. Same SDK for both training and serving."
 
-"And at the bottom — CodeFlare SDK. This is the Python-native interface. Data scientists don't write YAML or run kubectl. They use a Python API from their Jupyter notebook to submit training jobs or deploy models. Same SDK for both training and serving."
-
-"One thing to be clear about: RHOAI gives you three serving patterns. KServe with vLLM for single-model, single-node — that's the simplest path. KubeRay with RayService for multi-model, multi-node — that's what we're looking at here. And llm-d for disaggregated inference at massive scale. They're not competitors — they're different tools for different scales."
-
-**IF SOMEONE ASKS: When should I use KubeRay + RayService vs llm-d?**
-"Use KubeRay + RayService when you need multi-model serving — multiple models on the same cluster, with per-model autoscaling, and you want the unified training + serving orchestration layer. Use llm-d when you have one model at massive scale — hundreds of GPUs, disaggregated prefill and decode, KV-cache routing across a fleet. Think of it this way: RayService is your multi-model workstation, llm-d is your single-model hyperscaler."
-
-**IF SOMEONE ASKS: What about KServe? Is it deprecated?**
-"Absolutely not. KServe with vLLM is the simplest, most straightforward path for single-model serving. InferenceService CR, KEDA autoscaling, done. If you have one model per endpoint and don't need multi-model orchestration, KServe is the right choice. The three patterns are complementary."
+**IF SOMEONE ASKS: KubeRay vs llm-d?** "Use KubeRay + RayService for multi-model serving with per-model autoscaling. Use llm-d for single model at massive scale — disaggregated prefill/decode, KV-cache routing. They're complementary."
 
 ---
-
-
 
 ### Slide 47: Multi-Cluster Fleet Management (Diagram)
 
