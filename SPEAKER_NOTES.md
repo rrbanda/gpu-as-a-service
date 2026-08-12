@@ -461,6 +461,11 @@ Kueue is the governance pillar. Take your time with the three panels.
 
 "And at the bottom — WorkloadPriorityClass. This is Kueue's OWN priority system, separate from Kubernetes pod priority. Why? Because the platform team needs to control BUSINESS priority without affecting pod scheduling. 'Production inference is priority 1000. Experimental training is priority 10.' The platform team sets this, not the data scientists."
 
+"One more nuance. Default Kueue behavior when no priorities are configured is FIFO — first in, first out. But it's not STRICT FIFO. If a large job is waiting for 8 GPUs and a small job only needs 1 GPU that's available, Kueue schedules the small job. This fills resource gaps rather than leaving GPUs idle. It's more efficient than strict FIFO."
+
+**IF SOMEONE ASKS: "How do we ensure production always wins over development?"**
+"PriorityClass resources. Create a cluster-scoped PriorityClass called 'production' with value 100, and 'development' with value 10. Then configure Kueue's withinClusterQueue preemption to LowerPriority. When a production workload is pending and all GPUs are occupied by development workloads, Kueue suspends the lowest-priority development workload."
+
 **IF SOMEONE ASKS:** "How is Kueue different from Volcano?" — "Volcano is a batch scheduling system — it focuses on gang scheduling and pod groups. Kueue is a quota and admission control system — it focuses on which workloads get to enter the cluster at all. They actually complement each other, and there's work to make them interoperate."
 
 ---
@@ -483,7 +488,28 @@ Make the three-step decision tree concrete with examples.
 
 ---
 
-### Slide 24: Fair-Share Admission (Diagram)
+### Slide 24: Kueue Workload Coverage (Diagram)
+
+This slide answers the number one misconception: "Kueue is just for training."
+
+"I want to address something I hear in almost every conversation. People think Kueue is a training scheduler. It's not. Kueue is the admission control layer for EVERY GPU workload type in the cluster."
+
+"Look at the left side — five workload types, each a different technology. LLM inference via KServe and vLLM. Distributed training via Kubeflow Trainer v2. Ray jobs via KubeRay. Interactive workbenches — JupyterLab, RStudio. AI pipelines via Kubeflow Pipelines 2.0."
+
+"Every single one of these goes through the same admission gate in the center. Same Kueue policies. Same quotas. Same borrowing rules. Same priority classes. The label is the same — kueue.x-k8s.io/queue-name — regardless of workload type."
+
+"Why does this matter? Because without this, you'd have inference consuming GPUs outside of quota. A data scientist with a Jupyter notebook holding onto a GPU for three days. A pipeline step grabbing an H100 for a 5-minute preprocessing task. No governance. Kueue closes every back door."
+
+"On the right — the GPU resource pools. H100s, A100s, MIG slices, and the elastic burst pool. Every workload competes through the same admission gate, governed by the same policy engine."
+
+"And notice the four policy modes: FIFO, Priority, Gang, and Fair-Share. FIFO is the default — oldest job first. Priority lets production preempt development. Gang ensures distributed training gets ALL its GPUs or none. Fair-share distributes capacity proportionally across teams."
+
+**IF SOMEONE ASKS: "What about gang scheduling?"**
+"Gang scheduling is critical for distributed training. If a TrainJob requests 4 GPUs across 4 nodes, Kueue waits until ALL 4 are available. Without this, you get partial allocation — 3 GPUs sitting idle waiting for the 4th. Kueue admits the job atomically: all or nothing."
+
+---
+
+### Slide 25: Fair-Share Admission (Diagram)
 
 A concrete micro-example to make fair-sharing tangible.
 
@@ -501,7 +527,7 @@ A concrete micro-example to make fair-sharing tangible.
 
 ---
 
-### Slide 25: 9 LLM Inference Signals (Diagram)
+### Slide 26: 9 LLM Inference Signals (Diagram)
 
 This slide sets up llm-d by showing what intelligence is available.
 
@@ -515,7 +541,7 @@ This slide sets up llm-d by showing what intelligence is available.
 
 ---
 
-### Slide 26: llm-d KV-Cache Routing (Diagram)
+### Slide 27: llm-d KV-Cache Routing (Diagram)
 
 This is the most technically impressive slide. Let the animation tell the story.
 
@@ -533,7 +559,7 @@ This is the most technically impressive slide. Let the animation tell the story.
 
 ---
 
-### Slide 27: llm-d Routing Diagram
+### Slide 28: llm-d Routing Diagram
 
 This is the "aha" diagram. Walk through it slowly.
 
@@ -551,7 +577,7 @@ This is the "aha" diagram. Walk through it slowly.
 
 ---
 
-### Slide 28: llm-d Stats (Stats)
+### Slide 29: llm-d Stats (Stats)
 
 Let the numbers speak. Pause between each one. Be ready for the scale question.
 
@@ -583,7 +609,7 @@ Let the numbers speak. Pause between each one. Be ready for the scale question.
 
 ---
 
-### Slide 29: 401(k) Rosetta Stone (Table)
+### Slide 30: 401(k) Rosetta Stone (Table)
 
 The audience finally gets the payoff for the analogy. Make this a satisfying "aha."
 
@@ -605,7 +631,7 @@ The audience finally gets the payoff for the analogy. Make this a satisfying "ah
 
 ---
 
-### Slide 30: Platform Architecture — Section Divider
+### Slide 31: Platform Architecture — Section Divider
 
 Cognitive reset. Let the audience breathe.
 
@@ -619,7 +645,7 @@ Cognitive reset. Let the audience breathe.
 
 ---
 
-### Slide 31: Five-Layer Stack (Diagram)
+### Slide 32: Five-Layer Stack (Diagram)
 
 Fulfill the promise from slide 5.
 
@@ -641,7 +667,7 @@ Fulfill the promise from slide 5.
 
 ---
 
-### Slide 32: Dedicated vs Shared Clusters (Diagram)
+### Slide 33: Dedicated vs Shared Clusters (Diagram)
 
 Start with the simplest pattern to ground the audience.
 
@@ -659,7 +685,7 @@ Start with the simplest pattern to ground the audience.
 
 ---
 
-### Slide 33: Guaranteed + Elastic Capacity (Diagram)
+### Slide 34: Guaranteed + Elastic Capacity (Diagram)
 
 Make the fleet splitting concrete.
 
@@ -675,7 +701,7 @@ Make the fleet splitting concrete.
 
 ---
 
-### Slide 34: Kueue Pool (Diagram)
+### Slide 35: Kueue Pool (Diagram)
 
 Show Kueue in its pool governance role — distinct from the earlier quota explanation.
 
@@ -691,7 +717,7 @@ Show Kueue in its pool governance role — distinct from the earlier quota expla
 
 ---
 
-### Slide 35: WVA Explained (Diagram)
+### Slide 36: WVA Explained (Diagram)
 
 This is the WVA introduction. The audience is meeting a new component — be thorough.
 
@@ -711,7 +737,7 @@ This is the WVA introduction. The audience is meeting a new component — be tho
 
 ---
 
-### Slide 36: Three Control Loops (Diagram)
+### Slide 37: Three Control Loops (Diagram)
 
 Systems thinking. Show how the pieces compose without fighting each other.
 
@@ -731,7 +757,7 @@ Systems thinking. Show how the pieces compose without fighting each other.
 
 ---
 
-### Slide 37: WVA vs Kueue Fairness (Compare Diagram)
+### Slide 38: WVA vs Kueue Fairness (Compare Diagram)
 
 Disambiguate the most common source of confusion.
 
@@ -747,7 +773,7 @@ Disambiguate the most common source of confusion.
 
 ---
 
-### Slide 38: Two Services Fighting for GPUs (Diagram)
+### Slide 39: Two Services Fighting for GPUs (Diagram)
 
 A concrete scenario that shows WVA and Kueue interacting.
 
@@ -763,7 +789,7 @@ A concrete scenario that shows WVA and Kueue interacting.
 
 ---
 
-### Slide 39: One Request, Five Systems (Diagram)
+### Slide 40: One Request, Five Systems (Diagram)
 
 The full end-to-end request flow. Show how everything connects.
 
@@ -783,7 +809,7 @@ The full end-to-end request flow. Show how everything connects.
 
 ---
 
-### Slide 40: Component Table (Table)
+### Slide 41: Component Table (Table)
 
 Reference table. Don't read every row — highlight the pattern and the new KubeRay entry.
 
@@ -801,7 +827,34 @@ Reference table. Don't read every row — highlight the pattern and the new Kube
 
 ---
 
-### Slide 41: Multi-Vendor GPU Support (Table)
+### Slide 42: Multi-Tenant Isolation Stack (Diagram)
+
+This is THE enterprise governance slide. Let the layers build visually.
+
+"Let me consolidate everything we've talked about — quotas, priorities, fair-share, hardware profiles, MaaS — into one picture. Seven layers of GPU isolation, building from the bottom up."
+
+"Start at the base. Node isolation — taints and tolerations. This is optional, for teams that need hard GPU pool separation. Most organizations don't need this, so it's gray. It's available but not required."
+
+"Layer two — project isolation. OpenShift namespaces with RBAC and NetworkPolicy. Every team gets their own namespace. This is day one configuration."
+
+"Layer three — GPU quota. Kueue ClusterQueue with nominalQuota. This is also day one. Each team gets a guaranteed GPU allocation. ML Engineering gets 40 GPUs. Applied AI gets 80. These are hard guarantees."
+
+"Now we start adding governance layers. Layer four — fair-share with Kueue cohorts. Weighted proportional sharing across teams. When GPUs are contended, the Dominant Resource Share algorithm decides who gets admitted. This goes in around week five."
+
+"Layer five — priority tiers. PriorityClass resources. Production workloads at priority 100 preempt development workloads at priority 10. When a fraud detection model needs GPUs at 2 AM, the overnight training job yields. Also week five."
+
+"Layer six — hardware abstraction. Hardware Profiles in the RHOAI dashboard. Data scientists don't see nvidia.com/gpu: 1 — they see 'Small development GPU' or 'Large model fine-tuning.' The platform team defines what each profile maps to."
+
+"Top layer — model governance. MaaS subscriptions with AuthPolicies. Per-team model access. Per-model token rate limits. This is the capstone — deployed around week nine."
+
+"Look at the timeline on the right. Each layer is additive. You don't need all seven on day one. Start simple — namespaces and quotas. Add governance as teams mature. This is exactly the 12-week roadmap we showed earlier."
+
+**IF SOMEONE ASKS: "Do we need all seven layers?"**
+"No. Layers 1-3 (node isolation, project isolation, GPU quota) cover 80% of use cases. Fair-share and priority tiers add elasticity. Hardware Profiles and MaaS are for teams that want self-service and model governance. Each layer is optional and additive."
+
+---
+
+### Slide 43: Multi-Vendor GPU Support (Table)
 
 Quick but important. Frame as a procurement advantage.
 
@@ -817,7 +870,7 @@ Quick but important. Frame as a procurement advantage.
 
 ---
 
-### Slide 42: FinOps and Operations — Section Divider
+### Slide 44: FinOps and Operations — Section Divider
 
 Signal the shift from architecture to economics.
 
@@ -831,7 +884,7 @@ Signal the shift from architecture to economics.
 
 ---
 
-### Slide 43: Metering at Three Layers (Diagram)
+### Slide 45: Metering at Three Layers (Diagram)
 
 Frame FinOps as something most organizations get wrong.
 
@@ -845,9 +898,13 @@ Frame FinOps as something most organizations get wrong.
 
 "Here's my strong advice: start with metering. Get 90 days of clean data before you even THINK about chargeback. Too many organizations launch chargeback on day one, the data is wrong, teams revolt, and the whole initiative loses credibility."
 
+
+
+"And let me be specific about what metrics we actually collect at layer one. DCGM Exporter — NVIDIA Data Center GPU Manager — runs as a DaemonSet via the GPU Operator. It exposes per-GPU Prometheus metrics. The key ones: DCGM_FI_DEV_GPU_UTIL gives you compute utilization as a percentage. DCGM_FI_DEV_FB_USED tells you how much framebuffer — VRAM — is consumed in megabytes. DCGM_FI_DEV_MEM_COPY_UTIL shows memory bandwidth utilization. DCGM_FI_DEV_POWER_USAGE reports power draw in watts. You access these in OpenShift Console under Observe > Metrics, or via the Prometheus API."
+
 ---
 
-### Slide 44: Memory Pricing (Diagram)
+### Slide 46: Memory Pricing (Diagram)
 
 This is a subtle but critical pricing trap.
 
@@ -863,7 +920,7 @@ This is a subtle but critical pricing trap.
 
 ---
 
-### Slide 45: ACME's Monthly GPU Bill (Table)
+### Slide 47: ACME's Monthly GPU Bill (Table)
 
 Make the numbers personal. This is the "CFO slide."
 
@@ -879,7 +936,7 @@ Make the numbers personal. This is the "CFO slide."
 
 ---
 
-### Slide 46: Charge for Allocation (Two-Column)
+### Slide 48: Charge for Allocation (Two-Column)
 
 The charging philosophy. This is where policy meets engineering.
 
@@ -901,7 +958,7 @@ The charging philosophy. This is where policy meets engineering.
 
 ---
 
-### Slide 47: Showback Dashboard — Team Breakdown (Diagram)
+### Slide 49: Showback Dashboard — Team Breakdown (Diagram)
 
 This is the "monthly statement." Make it tangible.
 
@@ -915,9 +972,15 @@ This is the "monthly statement." Make it tangible.
 
 "THIS is the monthly statement the CTO has been asking for. And it didn't exist before GPU-level metering was implemented. Teams are no longer arguing about whether they need more GPUs — the data speaks for itself."
 
+
+
+"And for MaaS inference specifically, you get token-level tracking through Limitador. Three key metrics: authorized_hits counts tokens consumed per successful request, broken down by subscription and model. authorized_calls counts API requests. limited_calls counts rate-limited 429 responses — teams hitting their token ceiling. The RHOAI Perses dashboard pulls from these metrics. CSV export is available for monthly showback reports."
+
+"One caveat: this observability dashboard is designed for showback — visibility, not billing. If you need billing-grade metering for actual chargeback, access the Limitador metrics endpoint directly and build your own aggregation."
+
 ---
 
-### Slide 48: Scale-to-Zero (Content)
+### Slide 50: Scale-to-Zero (Content)
 
 This is the single biggest capacity recovery mechanism.
 
@@ -935,7 +998,7 @@ This is the single biggest capacity recovery mechanism.
 
 ---
 
-### Slide 49: WVA Autoscaling (Diagram)
+### Slide 51: WVA Autoscaling (Diagram)
 
 Show WVA in action with a specific scaling event.
 
@@ -949,7 +1012,7 @@ Show WVA in action with a specific scaling event.
 
 ---
 
-### Slide 50: KubeRay + Kueue — Distributed Workloads (Diagram)
+### Slide 52: KubeRay + Kueue — Distributed Workloads (Diagram)
 
 KubeRay isn't just for training — it's the distributed workload orchestration layer for both training AND multi-model inference.
 
@@ -973,7 +1036,7 @@ KubeRay isn't just for training — it's the distributed workload orchestration 
 
 ---
 
-### Slide 51: Multi-Cluster Fleet Management (Diagram)
+### Slide 53: Multi-Cluster Fleet Management (Diagram)
 
 Scale beyond a single cluster.
 
@@ -987,7 +1050,7 @@ Scale beyond a single cluster.
 
 ---
 
-### Slide 52: Reference Solution — Section Divider
+### Slide 54: Reference Solution — Section Divider
 
 The final section transition. Build anticipation for the payoff.
 
@@ -999,7 +1062,7 @@ The final section transition. Build anticipation for the payoff.
 
 ---
 
-### Slide 53: Team Callback — Four Teams Revisited (Table)
+### Slide 55: Team Callback — Four Teams Revisited (Table)
 
 This is the structural payoff. Every problem now has a named solution.
 
@@ -1019,7 +1082,7 @@ This is the structural payoff. Every problem now has a named solution.
 
 ---
 
-### Slide 54: Before/After (Two-Column)
+### Slide 56: Before/After (Two-Column)
 
 Quantify the transformation. Make it concrete.
 
@@ -1035,7 +1098,7 @@ Quantify the transformation. Make it concrete.
 
 ---
 
-### Slide 55: Twelve Weeks to Governed Sharing (Content)
+### Slide 57: Twelve Weeks to Governed Sharing (Content)
 
 This is the "how to actually do it" slide. Be specific about sequencing and risk.
 
@@ -1055,7 +1118,7 @@ This is the "how to actually do it" slide. Be specific about sequencing and risk
 
 ---
 
-### Slide 56: Self-Service Profile (Diagram)
+### Slide 58: Self-Service Profile (Diagram)
 
 Show the end-state experience. Make it feel effortless.
 
@@ -1073,7 +1136,7 @@ Show the end-state experience. Make it feel effortless.
 
 ---
 
-### Slide 57: RHOAI Roadmap — See, Govern, Act (Table)
+### Slide 59: RHOAI Roadmap — See, Govern, Act (Table)
 
 Frame the roadmap as a maturity journey, not a feature list.
 
@@ -1093,7 +1156,7 @@ Frame the roadmap as a maturity journey, not a feature list.
 
 ---
 
-### Slide 58: 401(k) Callback — Every Dollar Working (Content)
+### Slide 60: 401(k) Callback — Every Dollar Working (Content)
 
 The analogy returns. Full circle. This should feel like coming home.
 
@@ -1113,7 +1176,7 @@ The analogy returns. Full circle. This should feel like coming home.
 
 ---
 
-### Slide 59: Closing Slide
+### Slide 61: Closing Slide
 
 Land the plane. Short, confident, inviting.
 

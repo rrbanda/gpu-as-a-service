@@ -138,6 +138,13 @@ Additional contributors: AMD, Cisco, Hugging Face, Intel, Lambda, Mistral AI, UC
 | WorkloadPriorityClass is Kueue's own priority system, separate from K8s Pod priority | governance | API spec | Verified -- Kueue docs, DRA/Kueue scheduling document |
 | MultiKueue dispatching: all-at-once, incremental, external strategies | multi-cluster | Architecture | Verified -- MultiKueue in RHACM document p.6 |
 | Kueue supports nominalQuota, borrowingLimit, preemption, fairSharing | governance | API spec | Verified -- Kueue docs |
+| Kueue gang scheduling: atomic admission of all pods for distributed jobs | governance | API spec | Verified -- Kueue docs (Job controller, gang admission); RHOAI 3.4 Managing Workloads with Kueue |
+| Kueue FIFO default scheduling with gap-filling (not strict FIFO) | governance | Behavior | Verified -- Kueue docs; Christoph/internal call nuance confirmed |
+| Kueue PriorityClass preemption: withinClusterQueue LowerPriority | governance | API spec | Verified -- Kueue docs (Preemption section) |
+| DCGM Exporter metrics: GPU_UTIL, FB_USED, MEM_COPY_UTIL, POWER_USAGE | observability | Infrastructure | Verified -- NVIDIA DCGM docs; GPU Operator DaemonSet |
+| Time-slicing: software GPU sharing via ConfigMap replicas, no memory isolation | mechanisms | Hardware spec | Verified -- NVIDIA GPU Operator docs, RHOAI 3.4 GPU Time Slicing |
+| MaaS Limitador metrics: authorized_hits, authorized_calls, limited_calls | finops | API spec | Verified -- RHOAI 3.4 MaaS Observability docs |
+| MaaS Perses dashboard with CSV export for showback reporting | finops | Feature | Verified -- RHOAI 3.4 MaaS Observability docs |
 | Kueue Resource Transformations for GPU credit normalization | governance | API spec | Verified -- Kueue Configuration API |
 | KServe provides scale-to-zero via Knative-based autoscaling | vocab, mechanisms | Architecture | Verified -- KServe docs |
 | JIT checkpointing intercepts SIGTERM for preemption-safe training | training | Architecture | Architecture pattern -- needs specific implementation reference |
