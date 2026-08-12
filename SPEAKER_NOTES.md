@@ -68,7 +68,7 @@ All 25 diagram slides use animated D3.js visualizations that render when you nav
 
 This is your first impression. Don't rush it. Let the room settle.
 
-"Good morning, everyone. Thank you for being here. I know GPU time is expensive — and so is yours — so I want to make a promise upfront. By the time we're done today, you'll understand something that took me a long time to learn: managing a GPU fleet is NOTHING like managing a CPU fleet. The scheduling is different. The economics are different. The failure modes are different. And if you try to apply traditional infrastructure patterns to GPUs, you'll waste millions of dollars — quietly, invisibly, with a dashboard that tells you everything is fine."
+"Good morning, everyone. Thank you for being here. GPU time is expensive — and so is yours — so let me set expectations upfront. By the end of this session, you'll walk away with something that took our team considerable effort to learn: managing a GPU fleet is fundamentally different from managing a CPU fleet. The scheduling model is different. The economics are different. The failure modes are different. And when traditional infrastructure patterns are applied to GPUs, organizations lose millions — quietly, invisibly, behind a dashboard that shows all green."
 
 --- pause ---
 
