@@ -36,7 +36,7 @@ Pillar 4: FinOps and Operations (slides 39-46)
   → Metering → pricing → monthly bill → charge model
   → Showback dashboard → WVA in action → KubeRay+Kueue → multi-cluster
 
-Reference Solution + Close (slides 48-54)
+Reference Solution + Close (slides 47-53)
   → Team callback → before/after → implementation → roadmap → analogy callback
 ```
 
@@ -1102,23 +1102,7 @@ KubeRay isn't just for training — it's the distributed workload orchestration 
 
 ---
 
-### Slide 47: Multi-Cluster Fleet Management (Diagram)
-
-Scale beyond a single cluster.
-
-"Everything we've discussed so far has been within a single cluster. But ACME has NINE clusters across SIX environment types — production, UAT, dev, training, edge, and GovCloud. Each cluster is an island. One has idle H100s. Another is maxed out. There's no fleet-wide visibility."
-
-"Red Hat Advanced Cluster Management plus MultiKueue solves this. Single pane of glass across all nine clusters. Submit a job ONCE. MultiKueue evaluates: which cluster has the capacity, the right GPU type, and the appropriate environment? Three dispatching strategies: all-at-once — submit to all clusters, first one that admits wins. Incremental — try preferred clusters first, fail over to others. External — delegate the decision to an OCM controller."
-
-"MaaS — Model as a Service — GA in RHOAI 3.4. This is multi-tenant LLM governance. ACME's teams consume models via API. Token quotas per team. RBAC. Usage tracking. Audit trails. The data scientist doesn't manage infrastructure — they call an API."
-
-"And for regulated industries — FIPS 140-2 and 140-3 mode via validated RHEL crypto modules. Air-gapped installation with mirror registries and oc-mirror v2. Cosign signature verification via sigstore — ClusterImagePolicy CRDs. ROSA on GovCloud has FedRAMP High Authorization for both classic and hosted control planes. For ACME, these aren't optional features — they're NON-NEGOTIABLE requirements."
-
----
-
-
-
-### Slide 48: Team Callback — Four Teams Revisited (Table) — REFERENCE SOLUTION
+### Slide 47: Team Callback — Four Teams Revisited (Table) — REFERENCE SOLUTION
 
 **[Section transition]** "We've covered the technology, the architecture, and the economics. Now let's put it all together into something ACME can actually implement."
 
@@ -1142,7 +1126,7 @@ This is the structural payoff. Every problem now has a named solution.
 
 
 
-### Slide 49: Before/After (Two-Column)
+### Slide 48: Before/After (Two-Column)
 
 Quantify the transformation. Make it concrete.
 
@@ -1160,7 +1144,7 @@ Quantify the transformation. Make it concrete.
 
 
 
-### Slide 50: Twelve Weeks to Governed Sharing (Content)
+### Slide 49: Twelve Weeks to Governed Sharing (Content)
 
 This is the "how to actually do it" slide. Be specific about sequencing and risk.
 
@@ -1182,7 +1166,7 @@ This is the "how to actually do it" slide. Be specific about sequencing and risk
 
 
 
-### Slide 51: Self-Service Profile (Diagram)
+### Slide 50: Self-Service Profile (Diagram)
 
 Show the end-state experience. Make it feel effortless.
 
@@ -1202,7 +1186,7 @@ Show the end-state experience. Make it feel effortless.
 
 
 
-### Slide 52: Platform Maturity Themes (Diagram)
+### Slide 51: Platform Maturity Themes (Diagram)
 
 This is NOT a release schedule. It's a maturity model. Let the four cards build left to right.
 
@@ -1230,7 +1214,7 @@ This is NOT a release schedule. It's a maturity model. Let the four cards build 
 
 
 
-### Slide 53: 401(k) Callback — Every Dollar Working (Content)
+### Slide 52: 401(k) Callback — Every Dollar Working (Content)
 
 The analogy returns. Full circle. This should feel like coming home.
 
@@ -1252,7 +1236,7 @@ The analogy returns. Full circle. This should feel like coming home.
 
 
 
-### Slide 54: Closing Slide
+### Slide 53: Closing Slide
 
 Land the plane. Short, confident, inviting.
 
