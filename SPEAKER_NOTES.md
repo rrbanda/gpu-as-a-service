@@ -78,9 +78,9 @@ This is your first impression. Don't rush it. Let the room settle.
 
 ---
 
-### Slide 2: Red Hat OpenShift AI — one platform for generative and predictive AI (Image)
+### Slide 2: Red Hat OpenShift AI — one platform for predictive, generative, and agentic AI (Image)
 
-"This is Red Hat OpenShift AI — our platform for the entire AI lifecycle. Look at what it covers: data preparation, model development and tuning, serving, monitoring. It runs on OpenShift, which means Kubernetes-native. It supports every major accelerator — NVIDIA, AMD, Intel, Google TPUs, IBM Spyre, AWS Inferentia. And it deploys anywhere — bare metal, virtual, private cloud, sovereign cloud, public cloud, edge."
+"This is Red Hat OpenShift AI — our platform for the entire AI lifecycle. It covers THREE types of AI workloads: predictive — your traditional ML models for forecasting and classification; generative — large language models for content creation and reasoning; and the newest category, agentic AI — autonomous agents that can plan, reason, and execute multi-step tasks with tools. Look at the platform stack: data preparation, model development and tuning, serving with vLLM, monitoring, and now AgentOps. It runs on OpenShift — Kubernetes-native. It supports every major accelerator — NVIDIA, AMD, Intel, Google TPUs, IBM Spyre, AWS Inferentia. And it deploys anywhere — bare metal, virtual, private cloud, sovereign cloud, public cloud, edge."
 
 "Now, the reason I'm showing you this: there's a capability in that platform layer called Resource Optimization — GPUs. That's the box we're going to spend the next hour on. Everything else in this platform depends on GPUs being available, affordable, and governed. And that's the problem most organizations haven't solved yet."
 
