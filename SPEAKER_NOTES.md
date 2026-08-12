@@ -1136,23 +1136,29 @@ Show the end-state experience. Make it feel effortless.
 
 ---
 
-### Slide 59: RHOAI Roadmap — See, Govern, Act (Table)
+### Slide 59: Platform Maturity Themes (Diagram)
 
-Frame the roadmap as a maturity journey, not a feature list.
+This is NOT a release schedule. It's a maturity model. Let the four cards build left to right.
 
-"Red Hat OpenShift AI's roadmap follows the same 'See, Govern, Act' maturity model we've been discussing."
+"I want to show you something different from a typical product roadmap. Instead of dates and version numbers, let's talk about the four themes of platform maturity — because EVERY organization follows this same journey, regardless of which quarter they start."
 
-"RHOAI 3.5 — See. GPU visibility, fleet-wide dashboards, utilization metrics. You can't govern what you can't see, so this ships first."
+"Theme one — SEE. Visibility. Before you can manage anything, you need to see it. Look at the problems this theme solves: GPU utilization is invisible, there's no fleet-wide view, and you can't justify a $20 million GPU spend to your CFO. The capabilities here are all about measurement — GPU topology dashboards, DCGM metrics flowing into Prometheus, Kueue queue visibility, llm-d observability. This is the foundation. Everything else builds on this."
 
-"RHOAI 3.6 — Govern. Kueue integration for quota governance, DRA for smart scheduling, multi-tenant policies. Now you can enforce sharing rules."
+"Theme two — GOVERN. Policy and quota. Now that you can see the fleet, you discover the problem: teams are hoarding GPUs, there are no sharing rules, it's a land-grab culture. The capabilities are enforcement mechanisms — Kueue quota dashboards, DRA for smart GPU selection, fair-share with preemption, and Hardware Profiles so data scientists pick from a dropdown instead of writing YAML."
 
-"RHOAI 3.7 — Self-service. Compute Profiles, model catalogs, one-click deployment. The dropdown experience we just saw."
+"Theme three — ACT. Self-service. You've got visibility and governance, but your data scientists are still filing ServiceNow tickets and waiting 5 days for a GPU. The capabilities here remove friction — Compute Profiles, scheduling explainability so teams understand WHY their job is queued, GPU cost attribution so teams see their spend, and one-click model deployment."
 
-"RHOAI 3.8 — Automated action. ML-driven recommendations, auto-right-sizing, predictive scaling. The platform starts making optimization decisions autonomously."
+"Theme four — AUTOMATE. Platform intelligence. This is the capstone. The platform starts making decisions autonomously — a GPU pool wizard that suggests optimal configurations, idle GPU auto-reclamation, predictive scaling that anticipates traffic before it hits, ML-driven right-sizing recommendations."
 
-"Each release builds on the previous one. You can't automate what you haven't governed. You can't govern what you can't see. The sequence matters."
+"Notice the arrow between each card: each theme builds on the previous one. You literally CANNOT skip. If you try to automate without governance, you'll auto-scale workloads that shouldn't be running. If you try to self-serve without visibility, you'll give teams GPUs you don't have."
 
-**IF SOMEONE ASKS:** "When does 3.7 ship?" — "Check the latest RHOAI lifecycle page for specific dates. The roadmap is directional — GA dates are confirmed closer to release. But the feature ordering — see, govern, act — is committed."
+"Where would ACME be in this journey? After twelve weeks of the implementation we just walked through, they'd be solidly in ACT — with the foundation for AUTOMATE laid."
+
+**IF SOMEONE ASKS: "When do these capabilities ship?"**
+"The themes map to RHOAI releases, but the exact timing depends on Red Hat's release cadence. What I'd encourage you to focus on is the maturity model — which theme are YOU in today? Most organizations are somewhere between SEE and GOVERN. The path forward is always the same: measure first, then enforce, then empower, then automate."
+
+**IF SOMEONE ASKS: "Can we get specific release dates?"**
+"Check the RHOAI lifecycle page for GA dates. Red Hat confirms dates closer to release. But the capability ordering is committed — visibility first, governance second, self-service third, automation fourth. That sequence doesn't change."
 
 ---
 
