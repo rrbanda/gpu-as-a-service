@@ -78,7 +78,7 @@ This is your first impression. Don't rush it. Let the room settle.
 
 ---
 
-### Slide 2: The platform behind GPU as a Service (Image)
+### Slide 2: Red Hat OpenShift AI — one platform for predictive, generative, and agentic AI (Image)
 
 "This is Red Hat OpenShift AI — our platform for the entire AI lifecycle. It covers THREE types of AI workloads: predictive — your traditional ML models for forecasting and classification; generative — large language models for content creation and reasoning; and the newest category, agentic AI — autonomous agents that can plan, reason, and execute multi-step tasks with tools. Look at the platform stack: data preparation, model development and tuning, serving with vLLM, monitoring, and now AgentOps. It runs on OpenShift — Kubernetes-native. It supports every major accelerator — NVIDIA, AMD, Intel, Google TPUs, IBM Spyre, AWS Inferentia. And it deploys anywhere — bare metal, virtual, private cloud, sovereign cloud, public cloud, edge."
 
