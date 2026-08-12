@@ -1042,13 +1042,13 @@ KubeRay isn't just for training — it's the distributed workload orchestration 
 
 Scale beyond a single cluster.
 
-"Everything we've discussed so far has been within a single cluster. But ACME has NINE clusters. Three in production, two in UAT, two in dev, one dedicated training cluster, and one on GovCloud. Each cluster is an island. One has idle H100s. Another is maxed out. There's no fleet-wide visibility."
+"Everything we've discussed so far has been within a single cluster. But ACME has NINE clusters across SIX environment types — production, UAT, dev, training, edge, and GovCloud. Each cluster is an island. One has idle H100s. Another is maxed out. There's no fleet-wide visibility."
 
 "Red Hat Advanced Cluster Management plus MultiKueue solves this. Single pane of glass across all nine clusters. Submit a job ONCE. MultiKueue evaluates: which cluster has the capacity, the right GPU type, and the appropriate environment? Three dispatching strategies: all-at-once — submit to all clusters, first one that admits wins. Incremental — try preferred clusters first, fail over to others. External — delegate the decision to an OCM controller."
 
 "MaaS — Model as a Service — GA in RHOAI 3.4. This is multi-tenant LLM governance. ACME's teams consume models via API. Token quotas per team. RBAC. Usage tracking. Audit trails. The data scientist doesn't manage infrastructure — they call an API."
 
-"And for regulated industries — FIPS 140-2 and 140-3 mode via validated RHEL crypto modules. Air-gapped installation with mirror registries. Signed OCI artifacts with SLSA provenance. ROSA on GovCloud has FedRAMP High Authorization. For ACME, these aren't optional features — they're NON-NEGOTIABLE requirements."
+"And for regulated industries — FIPS 140-2 and 140-3 mode via validated RHEL crypto modules. Air-gapped installation with mirror registries and oc-mirror v2. Cosign signature verification via sigstore — ClusterImagePolicy CRDs. ROSA on GovCloud has FedRAMP High Authorization for both classic and hosted control planes. For ACME, these aren't optional features — they're NON-NEGOTIABLE requirements."
 
 ---
 
