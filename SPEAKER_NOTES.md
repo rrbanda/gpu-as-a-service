@@ -331,11 +331,11 @@ Walk through each fund's PROBLEM only. Do NOT name the technologies. Build antic
 ---
 
 
-### Slide 14: Architecture Deep Dive — Section Divider
+### Slide 14: Architecture Deep Dive — Five Technologies Preview (Diagram)
 
-Brief pause. Let the audience reset.
+**[Section transition]** "We've seen the GPU reality and the mental model. Now let's dive into the five technologies that transform this broken portfolio into a managed one."
 
-"Alright. We've seen the five problems. We've got the mental model. Now let's meet the five technologies that fix them."
+Brief pause. Let the diagram animate — it shows all five technologies as cards with their key metrics.
 
 --- pause ---
 
