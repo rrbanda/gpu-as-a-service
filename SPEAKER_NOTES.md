@@ -36,7 +36,7 @@ Pillar 4: FinOps and Operations (slides 39-46)
   → Metering → pricing → monthly bill → charge model
   → Showback dashboard → WVA in action → KubeRay+Kueue → multi-cluster
 
-Reference Solution + Close (slides 47-53)
+Reference Solution + Close (slides 48-54)
   → Team callback → before/after → implementation → roadmap → analogy callback
 ```
 
@@ -1064,9 +1064,27 @@ Show WVA in action with a specific scaling event.
 
 ---
 
+### Slide 45: RHACM + MultiKueue — Data Scientists Submit to Hub, RHACM Drives Placement (Image)
 
+This slide shows the full RHACM + MultiKueue architecture. Take time to walk through both personas.
 
-### Slide 45: KubeRay + Kueue — Distributed Workloads (Diagram)
+"This is where multi-cluster GPU management gets real. Let me walk you through two workflows — the hub admin's and the data scientist's."
+
+"First, the hub admin. They enable the MultiKueue addon in RHACM. That addon does three things automatically: it installs the Red Hat Build of Kueue on the hub cluster and configures it as the Kueue Manager Cluster. It installs Kueue on targeted managed clusters and sets them up as Kueue Worker Clusters. And it installs a special RHACM Admission Check Controller that converts RHACM Placement rules into Kueue and MultiKueue configuration."
+
+"So the admin creates an RHACM Placement — 'I want GPU workloads on these clusters, CPU workloads on those.' The RHACM Admission Check Controller converts that Placement into properly configured Kueue LocalQueues, ClusterQueues, and MultiKueue ClusterQueues. The standard Kueue Admission Controller takes over from there. The hub is now a functioning Kueue Manager Cluster."
+
+"Now the data scientist's workflow. They never see any of this infrastructure. They submit to a LocalQueue on the hub. The admin tells them: use GPULocalQueue for GPU jobs, CPULocalQueue for CPU jobs. Maybe there's a GoldGPULocalQueue for the premium hardware — the admin might charge more for that tier. The data scientist submits a Job pointing at the right queue. Kueue + MultiKueue dispatches it to the right cluster automatically."
+
+"The beauty: the admin only needs to know RHACM Placement. The data scientist only needs to know Kueue. RHACM is just the engine that drives the outcomes both users designed."
+
+**IF SOMEONE ASKS about RHBoK:** "Red Hat Build of Kueue — it's the enterprise-supported distribution of Kueue. Same open source project, Red Hat lifecycle, security patches, integration testing with OpenShift."
+
+**IF SOMEONE ASKS about the Admission Check Controller:** "It's a special component in the MultiKueue addon. When an RHACM Placement changes — say a cluster joins or leaves — the controller automatically updates the Kueue MultiKueue configuration. No manual YAML editing."
+
+---
+
+### Slide 46: KubeRay + Kueue — Distributed Workloads (Diagram)
 
 KubeRay isn't just for training — it's the distributed workload orchestration layer for both training AND multi-model inference.
 
@@ -1092,7 +1110,7 @@ KubeRay isn't just for training — it's the distributed workload orchestration 
 
 
 
-### Slide 46: Multi-Cluster Fleet Management (Diagram)
+### Slide 47: Multi-Cluster Fleet Management (Diagram)
 
 Scale beyond a single cluster.
 
@@ -1108,7 +1126,7 @@ Scale beyond a single cluster.
 
 
 
-### Slide 47: Team Callback — Four Teams Revisited (Table) — REFERENCE SOLUTION
+### Slide 48: Team Callback — Four Teams Revisited (Table) — REFERENCE SOLUTION
 
 **[Section transition]** "We've covered the technology, the architecture, and the economics. Now let's put it all together into something ACME can actually implement."
 
@@ -1132,7 +1150,7 @@ This is the structural payoff. Every problem now has a named solution.
 
 
 
-### Slide 48: Before/After (Two-Column)
+### Slide 49: Before/After (Two-Column)
 
 Quantify the transformation. Make it concrete.
 
@@ -1150,7 +1168,7 @@ Quantify the transformation. Make it concrete.
 
 
 
-### Slide 49: Twelve Weeks to Governed Sharing (Content)
+### Slide 50: Twelve Weeks to Governed Sharing (Content)
 
 This is the "how to actually do it" slide. Be specific about sequencing and risk.
 
@@ -1172,7 +1190,7 @@ This is the "how to actually do it" slide. Be specific about sequencing and risk
 
 
 
-### Slide 50: Self-Service Profile (Diagram)
+### Slide 51: Self-Service Profile (Diagram)
 
 Show the end-state experience. Make it feel effortless.
 
@@ -1192,7 +1210,7 @@ Show the end-state experience. Make it feel effortless.
 
 
 
-### Slide 51: Platform Maturity Themes (Diagram)
+### Slide 52: Platform Maturity Themes (Diagram)
 
 This is NOT a release schedule. It's a maturity model. Let the four cards build left to right.
 
@@ -1220,7 +1238,7 @@ This is NOT a release schedule. It's a maturity model. Let the four cards build 
 
 
 
-### Slide 52: 401(k) Callback — Every Dollar Working (Content)
+### Slide 53: 401(k) Callback — Every Dollar Working (Content)
 
 The analogy returns. Full circle. This should feel like coming home.
 
@@ -1242,7 +1260,7 @@ The analogy returns. Full circle. This should feel like coming home.
 
 
 
-### Slide 53: Closing Slide
+### Slide 54: Closing Slide
 
 Land the plane. Short, confident, inviting.
 
