@@ -784,13 +784,13 @@ Systems thinking. Show how the pieces compose without fighting each other.
 
 "This is the slide that separates people who've deployed this in production from people who've only read about it. Three control loops, three different timescales, and the CRITICAL thing is that each one trusts the one above it."
 
-"Innermost loop — llm-d's EPP, the Endpoint Picker. Timescale: milliseconds. Every single request gets routed to the optimal vLLM instance. This is the fastest loop — it reacts in real time to cache state, queue depth, and load."
+"Innermost loop — llm-d's EPP, the Endpoint Picker. Timescale: 1 to 5 milliseconds. Every single request gets routed to the optimal vLLM instance. This is the fastest loop — it reacts in real time to cache state, queue depth, and load."
 
-"Middle loop — WVA and KEDA. Timescale: seconds to minutes. How many replicas should each model have? WVA watches the aggregate signals — if queue depth is rising across all instances, add a replica. If most instances are idle, consolidate. This loop doesn't route requests — it adjusts the FLEET size."
+"Middle loop — WVA and KEDA. Timescale: 15 to 60 seconds. How many replicas should each model have? WVA watches the aggregate signals — if queue depth is rising across all instances, add a replica. If most instances are idle, consolidate. This loop doesn't route requests — it adjusts the FLEET size."
 
-"Outer loop — Kueue. Timescale: minutes to hours for quota enforcement. In a shared cluster, Kueue is the ceiling. WVA says 'I want 2 more replicas.' Kueue says 'your team's quota allows 1 more.' WVA gets 1. Not 2."
+"Outer loop — Kueue. Timescale: 5 to 15 seconds for admission decisions. When a workload CR is submitted, Kueue's controller reconciles it within seconds — it checks quota, priority, fair-share, and either admits or queues almost immediately. The DECISION is fast. What takes minutes is the EFFECT — queue wait times, fair-share convergence, borrowing reclamation. Don't confuse decision speed with governance cadence."
 
-"And underneath all of this — kube-scheduler handles GPU placement on nodes. It's the slowest loop, dealing with physical topology and node selection."
+"The key insight: each loop trusts the one above it. EPP doesn't worry about replicas — WVA handles that. WVA doesn't worry about quotas — Kueue handles that. No oscillation, no conflict."
 
 "The reason this works is that each loop TRUSTS the one above it. llm-d doesn't try to add replicas — that's WVA's job. WVA doesn't try to override quotas — that's Kueue's job. If you collapse these loops into one system, you get oscillation — the system fights itself. Separation of concerns isn't just good engineering here — it's a correctness requirement."
 
