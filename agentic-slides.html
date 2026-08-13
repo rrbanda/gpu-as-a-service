@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Running AI Agents Safely at Scale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rh-red:#EE0000;
+  --bg:#ffffff;
+  --surface:#f5f5f5;
+  --border:#e0e0e0;
+  --text:#151515;
+  --text-dim:#333333;
+  --text-muted:#888888;
+  --fh:'Red Hat Display',Arial,sans-serif;
+}
+body{
+  background:#ffffff;
+  font-family:var(--fh);
+  overflow:hidden;height:100vh;
+  display:flex;flex-direction:column;
+}
+#controls{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#f0f0f0;color:#333;border-top:1px solid #ddd;
+  display:flex;align-items:center;justify-content:center;gap:20px;
+  padding:9px 24px;font-size:13px;z-index:100;font-family:var(--fh);
+}
+#controls button{
+  background:var(--rh-red);color:white;border:none;
+  padding:5px 14px;border-radius:3px;cursor:pointer;
+  font-family:var(--fh);font-size:13px;font-weight:700;
+}
+#controls button:hover{background:#cc0000}
+#slide-counter{color:#666;min-width:70px;text-align:center;font-variant-numeric:tabular-nums}
+kbd{background:#e0e0e0;border:1px solid #ccc;border-radius:2px;padding:1px 5px;font-size:11px;color:#333}
+#viewport{
+  width:100vw;height:calc(100vh - 36px);flex:1;
+  position:relative;overflow:hidden;
+}
+#slides{
+  display:flex;width:100%;height:100%;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.slide{
+  min-width:1280px;width:1280px;height:720px;
+  position:relative;overflow:hidden;flex-shrink:0;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  text-align:left;padding:28px 40px 20px 48px;
+  font-size:22px;
+  color:var(--text);box-sizing:border-box;
+}
+.section-label{
+  font-size:12px;font-weight:700;color:var(--rh-red);
+  text-transform:uppercase;letter-spacing:.12em;
+  margin-bottom:6px;padding:3px 10px;
+  background:rgba(238,0,0,0.06);border:1px solid rgba(238,0,0,0.15);
+  border-radius:2px;display:inline-block;flex-shrink:0;
+}
+.slide h1{font-size:52px;font-weight:900;line-height:1.1;margin-bottom:8px;}
+.slide h2{
+  font-size:26px;font-weight:700;line-height:1.3;margin-bottom:12px;
+  color:var(--text);flex-shrink:0;
+}
+.slide h2::after{
+  content:'';display:block;width:48px;height:3px;
+  background:var(--rh-red);margin-top:8px;border-radius:2px;
+}
+.slide h3{font-size:18px;font-weight:700;color:var(--rh-red);margin:0 0 10px 0;}
+.glass-card{
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:12px;
+  padding:24px 28px;min-height:0;overflow:auto;
+  display:flex;flex-direction:column;
+}
+.glass-card.diagram-card{padding:8px 12px;flex:1;align-items:center;justify-content:center;}
+.two-col .glass-card{flex:1;}
+.table-card.glass-card{flex:1;}
+.diagram-container{width:100%;height:100%;min-height:0;display:flex;align-items:center;justify-content:center;}
+.diagram-container svg{width:100%;height:100%;}
+.content-list{
+  list-style:none;padding:0;margin:0;flex:1;
+  display:flex;flex-direction:column;justify-content:flex-start;gap:6px;
+}
+.content-list li{
+  padding:5px 0 5px 24px;position:relative;
+  font-size:19px;line-height:1.55;color:var(--text-dim);
+}
+.content-list li::before{
+  content:'';position:absolute;left:0;top:13px;
+  width:7px;height:7px;background:var(--rh-red);border-radius:50%;
+}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1;min-height:0;}
+.col-card{display:flex;flex-direction:column;}
+.table-card{overflow:auto;}
+.table-card table{width:100%;border-collapse:collapse;font-size:16px;}
+.table-card th{
+  background:rgba(238,0,0,0.1);color:var(--rh-red);
+  padding:10px 14px;text-align:left;font-weight:700;font-size:15px;
+  border-bottom:2px solid rgba(238,0,0,0.25);
+}
+.table-card td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text-dim);}
+.table-card tr:nth-child(even) td{background:rgba(0,0,0,0.02);}
+.title-slide{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;height:100%;
+}
+.title-slide h1{
+  font-size:56px;color:var(--text);
+}
+.title-slide .subtitle{font-size:22px;color:var(--text-dim);margin-top:10px;}
+.title-slide .presenter{font-size:15px;color:var(--text-muted);margin-top:32px;}
+.rh-logo-mark{
+  width:56px;height:56px;margin-bottom:24px;background:var(--rh-red);
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 613 145'%3E%3Cpath d='M127.47 83.49c12.51 0 30.61-2.58 30.61-17.46a14 14 0 00-.31-3.42l-7.45-32.36c-1.72-7.12-3.23-10.35-15.73-16.6C124.89 8.69 103.76.5 97.51.5 91.69.5 90 8 83.06 8c-6.68 0-11.64-5.6-17.89-5.6-6 0-9.91 4.09-12.93 12.5 0 0-8.41 23.72-9.49 27.16A6.43 6.43 0 0042.53 44c0 9.22 36.3 39.45 84.94 39.45M160 72.07c1.73 8.19 1.73 9.05 1.73 10.13 0 14-15.74 21.77-36.43 21.77C78.54 104 37.58 76.6 37.58 58.49a18.45 18.45 0 011.51-7.33C22.27 52 .5 55 .5 74.22c0 31.48 74.59 70.28 133.65 70.28 45.28 0 56.7-20.48 56.7-36.65 0-12.72-11-27.16-30.83-35.78'/%3E%3C/svg%3E") no-repeat center;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 613 145'%3E%3Cpath d='M127.47 83.49c12.51 0 30.61-2.58 30.61-17.46a14 14 0 00-.31-3.42l-7.45-32.36c-1.72-7.12-3.23-10.35-15.73-16.6C124.89 8.69 103.76.5 97.51.5 91.69.5 90 8 83.06 8c-6.68 0-11.64-5.6-17.89-5.6-6 0-9.91 4.09-12.93 12.5 0 0-8.41 23.72-9.49 27.16A6.43 6.43 0 0042.53 44c0 9.22 36.3 39.45 84.94 39.45M160 72.07c1.73 8.19 1.73 9.05 1.73 10.13 0 14-15.74 21.77-36.43 21.77C78.54 104 37.58 76.6 37.58 58.49a18.45 18.45 0 011.51-7.33C22.27 52 .5 55 .5 74.22c0 31.48 74.59 70.28 133.65 70.28 45.28 0 56.7-20.48 56.7-36.65 0-12.72-11-27.16-30.83-35.78'/%3E%3C/svg%3E") no-repeat center;
+}
+.slide-logo{display:none;}
+.closing-slide{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;height:100%;
+}
+.closing-slide h2{font-size:36px;}
+.closing-slide h2::after{margin-left:auto;margin-right:auto;}
+.closing-list{list-style:none;padding:0;margin-top:24px;text-align:left;}
+.closing-list li{font-size:20px;padding:6px 0;color:var(--text-dim);}
+.closing-logo{margin-top:40px;}
+.quote-slide{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;height:100%;padding:48px;
+}
+.quote-slide blockquote{
+  font-size:24px;font-weight:500;font-style:italic;line-height:1.6;
+  color:var(--text);border:none;background:none;box-shadow:none;max-width:900px;
+}
+.quote-slide .attribution{font-size:15px;color:var(--text-muted);margin-top:28px;}
+.agenda-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:20px;flex:1;align-content:center;
+}
+.agenda-card{
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:12px;
+  padding:28px 20px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.agenda-card svg{margin-bottom:14px;opacity:0.85;transform:scale(1.3);}
+.agenda-card h4{font-size:18px;font-weight:700;margin:0 0 8px 0;color:var(--text);}
+.agenda-card p{font-size:14px;color:var(--text-muted);margin:0;line-height:1.5;}
+.image-caption{
+  font-size:13px;color:var(--text-muted);font-style:italic;
+  text-align:center;margin-top:8px;line-height:1.4;flex-shrink:0;
+}
+@media print{
+  body{background:white;overflow:visible;height:auto;display:block}
+  #controls{display:none}
+  #viewport{width:100%;height:auto;box-shadow:none;overflow:visible}
+  #slides{display:block;transform:none!important;transition:none}
+  .slide{width:100%;height:auto;min-height:560px;page-break-after:always;break-after:page}
+}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="slides">
+
+<!-- ═══ ACT 1: SHARED CONTEXT (5 slides) ═══ -->
+
+<div class="slide">
+<div class="title-slide">
+    <div class="rh-logo-mark"></div>
+    <h1>Running AI Agents Safely at Scale</h1>
+    <p class="subtitle">Architecture Deep-Dive: The Open Blueprint for Cloud-Native AI Agents</p>
+    <p class="presenter">Raghuram Banda | Red Hat | August 2026</p>
+  </div>
+</div>
+
+<div class="slide">
+<div class="section-label">SESSION AGENDA</div>
+  <h2>What we will cover today</h2>
+  <div class="agenda-grid" style="grid-template-columns:repeat(3,1fr);gap:16px;">
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  <h4>RHOAI Architecture</h4>
+  <p>Platform overview and open blueprint</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+  <h4>Internal &amp; External Flows</h4>
+  <p>Three routing tiers, data sovereignty</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><path d="M12 2l8 4v6c0 5.5-3.8 10.7-8 12-4.2-1.3-8-6.5-8-12V6l8-4z"/></svg>
+  <h4>Supervisor / Egress Proxy</h4>
+  <p>Ingress/egress control, dual protection</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+  <h4>MCP Gateway</h4>
+  <p>Tool authorization, attack walkthrough</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+  <h4>AI Gateway</h4>
+  <p>Inference front door, autoscaling</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+  <h4>Authentication Bridge</h4>
+  <p>SPIFFE identity, token exchange</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+  <h4>Agent Pod Architecture</h4>
+  <p>Pod anatomy, sandbox, defense rings</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+  <h4>Upcoming Capabilities</h4>
+  <p>What is coming next on the platform</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><path d="M20 6L9 17l-5-5"/></svg>
+  <h4>Roadmap &amp; Next Steps</h4>
+  <p>Phased adoption, timelines, Q&amp;A</p>
+</div>
+</div>
+</div>
+
+<div class="slide" data-diagram-fn="renderThreeComponents" data-diagram-id="d-renderThreeComponents">
+<h2>Three components with separate lifecycles: Model, Harness, Sandbox</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-three-components" class="diagram-container"></div>
+  </div>
+</div>
+
+<div class="slide" data-diagram-fn="renderWorkloadVsService" data-diagram-id="d-renderWorkloadVsService">
+<h2>Two deployment patterns: Agent-as-a-Workload vs Agent-as-a-Service</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-workload-vs-service" class="diagram-container"></div>
+    <p class="image-caption">Workload: loop in the pod, own identity. Service: loop in shared runtime (OGX — Open GenAI eXchange), centralized audit.</p>
+  </div>
+</div>
+
+<div class="slide" data-diagram-fn="renderBlueprintArch" data-diagram-id="d-renderBlueprintArch" style="padding:10px 16px 6px;">
+<div class="section-label" style="margin-bottom:2px;">RED HAT OPENSHIFT AI — ARCHITECTURE</div>
+  <h2 style="font-size:20px;margin-bottom:4px;line-height:1.2;">The open blueprint for cloud-native AI agents on Red Hat OpenShift AI</h2>
+  <div id="d-blueprint-arch" class="diagram-container" style="flex:1;width:100%;min-height:0;overflow:hidden;"></div>
+</div>
+
+<!-- ═══ ACT 2: DEEP DIVES ═══ -->
+
+<!-- Block A: Agent Pod -->
+<div class="slide" data-diagram-fn="renderFiveDecisions" data-diagram-id="d-renderFiveDecisions">
+<div class="section-label">FIVE DECISIONS</div>
+<h2>Five decisions you need to make — each behind a neutral interface</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-five-decisions" class="diagram-container"></div>
+  </div>
+</div>
+
+<div class="slide" data-diagram-fn="renderAgentPodAnatomy" data-diagram-id="d-renderAgentPodAnatomy">
+<div class="section-label">DEEP DIVE — AGENT POD</div>
+  <h2>Decision 1: Agent pod anatomy — supervisor, sandbox, three nested defense rings</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-agent-pod" class="diagram-container"></div>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Why PID 1 matters: the supervisor sets up the world before the agent even starts</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>Boot sequence: supervisor starts first, fetches policy, installs kernel filters, injects SPIFFE credentials — then launches the harness as a child process</li>
+  <li>Every outbound connection passes through the supervisor's egress proxy — default posture is deny-all, allowlist per endpoint</li>
+  <li>This is where Tier 1 routing lives: the security decision about whether data may leave the cluster happens here, not at the model level</li>
+  <li>PII masking for external endpoints also lives here — detection-and-redaction at the proxy before any data exits</li>
+  <li>Honest limitation: PII masking is heuristic — false negatives are the failure mode, so monitor for residual leakage</li>
+  <li>In-cluster inference also enters through the governed front door (AI Gateway), not direct to vLLM pods</li>
+</ul>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Component decisions: what you choose, what stays open, and what to start with</h2>
+  <div class="glass-card table-card">
+    <table>
+      <thead><tr><th>Component</th><th>What It Decides</th><th>Options Today</th><th>Start Here</th></tr></thead>
+      <tbody>
+  <tr><td>Sandbox</td><td>What the agent may touch</td><td>OpenShell (Landlock+seccomp+identity) · Kata</td><td>Kata (GA) + adopt OpenShell at TP</td></tr>
+  <tr><td>Harness</td><td>How the agent reasons</td><td>OpenClaw · LangGraph · Hermes · custom</td><td>Depends on your dev team</td></tr>
+  <tr><td>Loop Runtime</td><td>Where the loop runs</td><td>In-pod (harness) · OGX (shared)</td><td>In-pod first, OGX for copilots</td></tr>
+  <tr><td>Model</td><td>Which brain reasons</td><td>Llama · Nemotron · DeepSeek · Qwen</td><td>Any — behind OpenAI-compat API</td></tr>
+  <tr><td>AI Gateway</td><td>Auth, quota, model API</td><td>OGX · LiteLLM · RH AI gateway</td><td>OGX if on RHOAI 3.5+</td></tr>
+  <tr><td>Routing</td><td>Which model + replica</td><td>Semantic Router + llm-d EPP</td><td>llm-d (GA) → add SR later</td></tr>
+  <tr><td>Identity</td><td>Who the agent is</td><td>SPIFFE/SPIRE (JWT-SVID)</td><td>SPIFFE — no alternative needed</td></tr>
+  <tr><td>Tool Gov.</td><td>What the agent may call</td><td>MCP Gateway · Catalog · Lifecycle Mgmt</td><td>Deploy early — hardens everything</td></tr>
+</tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Block B: Supervisor Ingress/Egress Proxy -->
+<div class="slide" data-diagram-fn="renderDefenseRings" data-diagram-id="d-renderDefenseRings">
+<div class="section-label">DEEP DIVE — SUPERVISOR / EGRESS PROXY</div>
+<h2>Defense in depth: three rings and four cross-cutting controls</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-defense-rings" class="diagram-container"></div>
+    <p class="image-caption">Three concentric rings plus four cross-cutting controls. Each ring assumes the ring inside it has already failed.</p>
+  </div>
+</div>
+
+<div class="slide">
+<h2>OpenShell + Kata: neither alone covers the full threat surface</h2>
+  <div class="two-col">
+    <div class="glass-card col-card">
+      <h3>OpenShell (Application + Identity Layer)</h3>
+      <ul class="content-list">    <li>Kernel isolation via Landlock + seccomp + network namespaces</li>
+    <li>Per-binary, per-path, per-endpoint, MCP-aware L7 policy</li>
+    <li>Cannot stop kernel exploits — shares host kernel with agent</li>
+    <li>Adding: SPIFFE identity, OCSF audit, inference routing</li>
+</ul>
+    </div>
+    <div class="glass-card col-card">
+      <h3>Kata Containers (VM Layer)</h3>
+      <ul class="content-list">    <li>Isolates kernel exploits — dedicated VM with own kernel</li>
+    <li>virtiofs blocks page-cache attacks</li>
+    <li>Cannot filter network traffic — curl is normal userspace</li>
+    <li>No mechanism to inspect or block outbound data</li>
+</ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Run both: the dual-protected pod is the only configuration that stops both attack classes</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>OpenShell catches prompt injection exfiltration — egress proxy blocks unauthorized network calls</li>
+  <li>Kata contains kernel exploits — dedicated VM with its own kernel, virtiofs blocks page-cache attacks</li>
+  <li>Neither alone is sufficient: OpenShell cannot stop kernel exploits, Kata cannot filter network traffic</li>
+  <li>The dual-protected pod (OpenShell inside Kata) is the only empirically validated safe configuration</li>
+  <li>We will prove this with benchmark results later in the session</li>
+</ul>
+  </div>
+</div>
+
+<!-- Block C: Internal and External Flows -->
+<div class="slide" data-diagram-fn="renderRoutingTiers" data-diagram-id="d-renderRoutingTiers">
+<div class="section-label">DEEP DIVE — FLOWS AND ROUTING</div>
+  <h2>Decision 3: Three routing tiers — security, cost, efficiency — with different owners</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-routing-tiers" class="diagram-container"></div>
+    <p class="image-caption">Three routing tiers: WHERE may this go, WHICH model, WHICH replica — different owners, different change cadences.</p>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Why three tiers instead of one — each answers to a different team and changes at a different speed</h2>
+  <div class="glass-card table-card">
+    <table>
+      <thead><tr><th>Tier</th><th>Question</th><th>Owner</th><th>Changes When</th><th>If You Skip It</th></tr></thead>
+      <tbody>
+  <tr><td>1 — Security</td><td>Where MAY this query go?</td><td>Security / CISO</td><td>Compliance policy changes</td><td>PII leaks to external LLMs</td></tr>
+  <tr><td>2 — Cost</td><td>Which model SHOULD serve it?</td><td>FinOps / Platform</td><td>New models deployed, pricing shifts</td><td>Every request hits the largest model</td></tr>
+  <tr><td>3 — Efficiency</td><td>Which replica DOES serve it?</td><td>SRE / Infrastructure</td><td>Cluster scales, load changes</td><td>Cold KV cache, wasted GPU cycles</td></tr>
+</tbody>
+    </table>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Internal vs External flows: Tier 1 decides where data may travel — confidential context never leaves the cluster</h2>
+  <div class="two-col">
+    <div class="glass-card col-card">
+      <h3>Internal Flow (In-Cluster)</h3>
+      <ul class="content-list">    <li>Confidential context stays on in-cluster models</li>
+    <li>Traffic enters through the AI Gateway (governed front door)</li>
+    <li>Tier 2 picks the model, Tier 3 picks the replica</li>
+    <li>Full OpenTelemetry trace within the cluster</li>
+    <li>No PII masking needed — data stays within trust boundary</li>
+</ul>
+    </div>
+    <div class="glass-card col-card">
+      <h3>External Flow (Cloud / SaaS)</h3>
+      <ul class="content-list">    <li>Tier 1 supervisor egress router decides: may this leave?</li>
+    <li>PII detection-and-redaction at the proxy before any data exits</li>
+    <li>Masked request routed to external LLM endpoint</li>
+    <li>Failure mode: false-negative leakage — must be monitored</li>
+    <li>Optional: external endpoint entirely blocked by policy</li>
+</ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Where does the heavy compute run? Not in the agent pod — and this is a design choice, not a limitation</h2>
+  <div class="glass-card table-card">
+    <table>
+      <thead><tr><th>Pattern</th><th>Where It Runs</th><th>Security Boundary</th><th>When To Use</th><th>Watch Out For</th></tr></thead>
+      <tbody>
+  <tr><td>1: In-pod</td><td>Inside the sandbox</td><td>Kernel: seccomp, Landlock</td><td>Light ETL only (Polars, DuckDB)</td><td>Must explicitly request GPU in CRD</td></tr>
+  <tr><td>2: Service call</td><td>Separate pods / SaaS</td><td>MCP Gateway + egress</td><td>Most skills — this is the default</td><td>Endpoint swap = policy change only</td></tr>
+  <tr><td>3: Job dispatch</td><td>K8s Job API / Slurm</td><td>Scoped RBAC + admission</td><td>Heavy batch (physics, quantum)</td><td>Agent can create Jobs = tight RBAC</td></tr>
+</tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Block D: MCP Gateway -->
+<div class="slide" data-diagram-fn="renderMcpGateway" data-diagram-id="d-renderMcpGateway">
+<div class="section-label">DEEP DIVE — MCP GATEWAY</div>
+  <h2>Decision 2: MCP Gateway — claims-based tool authorization, not prompt-based</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-mcp-gateway" class="diagram-container"></div>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Walk through the attack: injected prompt tries to call an unauthorized tool — what happens?</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>Step 1: Attacker embeds a prompt injection in a document the agent processes — the model now believes it should call /exfil</li>
+  <li>Step 2: The harness issues a tool call to /exfil (it trusts the model's output — that is its job)</li>
+  <li>Step 3: The request reaches the MCP Gateway — the gateway checks the JWT token's tools claim, not the prompt</li>
+  <li>Step 4: /exfil is not in the agent's allowed tool set — request denied, incident logged, agent continues</li>
+  <li>The key insight: the model was successfully compromised, and it did not matter — authorization lives outside the blast radius</li>
+</ul>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Being honest about what the gateway cannot stop — and what picks up the slack</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>The gateway stops unauthorized tool calls. It cannot stop misuse of tools the agent IS entitled to use</li>
+  <li>Example: the agent is allowed to call a database API — an injection makes it exfiltrate data through that permitted endpoint</li>
+  <li>That gap is covered by other layers: inference guardrails (TrustyAI, NeMo) screen I/O at the model boundary, EvalHub provides continuous quality and safety scoring, and egress policy limits where data can flow</li>
+  <li>This is why the architecture has multiple overlapping controls — no single checkpoint is the whole defense</li>
+  <li>Every team deploying this should explicitly map which control covers which threat class in their environment</li>
+</ul>
+  </div>
+</div>
+
+<!-- Block E: AI Gateway -->
+<div class="slide">
+<div class="section-label">DEEP DIVE — AI GATEWAY</div>
+<h2>The AI Gateway: why every inference request enters through one front door — even internal ones</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>A common mistake: letting agent pods call vLLM workers directly — you lose auth, quota, and all observability</li>
+  <li>The gateway is the single control point: auth, per-agent quota, rate limits, model entitlements — all from the same JWT claims</li>
+  <li>It exposes one unified API (OpenAI-compatible / OpenResponses) regardless of how many model backends sit behind it</li>
+  <li>Semantic routing (Tier 2) runs behind this gateway — agents do not choose their model, the classifier does</li>
+  <li>Every request emits OpenTelemetry spans: latency, token count, model selected, cost — this is your FinOps data source</li>
+  <li>Inference-aware autoscaling behind the gateway — scales on KV cache pressure, not just CPU, so you pay for what you use</li>
+  <li>Implementation options: OGX (integrated with RHOAI 3.5), LiteLLM (lightweight), or the emerging Red Hat AI gateway</li>
+</ul>
+  </div>
+</div>
+
+<!-- Block F: Auth Bridge -->
+<div class="slide" data-diagram-fn="renderSpiffeFlow" data-diagram-id="d-renderSpiffeFlow">
+<div class="section-label">DEEP DIVE — AUTH BRIDGE + IDENTITY</div>
+  <h2>Decision 4: SPIFFE identity eliminates static keys — leaked workspace has nothing durable to steal</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-spiffe-flow" class="diagram-container"></div>
+  </div>
+</div>
+
+<div class="slide">
+  <h2>Deep dive: Auth Bridge — the component most teams overlook</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>It is a sidecar in every agent pod — runs alongside the harness, not inside it</li>
+  <li>Boot sequence: SPIRE validates the pod (namespace, SA, labels) → issues a JWT-SVID → Auth Bridge presents it to Keycloak</li>
+  <li>The exchange uses RFC 8693 (token exchange) or RFC 7523 (JWT bearer grant) — both are standard token-swap protocols</li>
+  <li>Output: a 5-minute access token carrying claims — sub (agent identity), tools (allowed set), models (allowed tiers), exp (auto-expiry)</li>
+  <li>This token is what the MCP Gateway and AI Gateway validate — the SVID never leaves the pod, and the token auto-expires</li>
+  <li>Upcoming: OpenShell is converging identity and sandbox — SPIFFE JWT-SVID grants and OAuth2 token exchange are being integrated alongside kernel isolation, targeted for Dev/Tech Preview in RHOAI 3.5/3.6</li>
+</ul>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Before vs After: static keys replaced by per-agent cryptographic identity</h2>
+  <div class="two-col">
+    <div class="glass-card col-card">
+      <h3>Before — Static Keys</h3>
+      <ul class="content-list">    <li>API keys in environment variables</li>
+    <li>Rotated quarterly (maybe)</li>
+    <li>One key = full access to all tools</li>
+    <li>Leaked prompt = leaked key = game over</li>
+    <li>No per-agent granularity</li>
+    <li>Revocation = redeploy everything</li>
+</ul>
+    </div>
+    <div class="glass-card col-card">
+      <h3>After — SPIFFE + Claims</h3>
+      <ul class="content-list">    <li>Cryptographic identity at pod level</li>
+    <li>Auto-rotated, short-lived (5 min)</li>
+    <li>Per-agent tool entitlements via claims</li>
+    <li>Leaked workspace = nothing durable to steal</li>
+    <li>Per-agent, per-namespace granularity</li>
+    <li>Revocation = revoke one identity, one operation</li>
+</ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+<h2>What is not solved yet — and where you should plan ahead rather than wait</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>Identity chaining: when an agent delegates to a shared runtime, does its per-agent identity survive downstream? Today it does not</li>
+  <li>The IETF WIMSE working group is building the standard for this — track it, but do not assume it in your 2026 design</li>
+  <li>Identity convergence: OpenShell is adding SPIFFE JWT-SVID grants and OAuth2 exchange alongside its kernel isolation — converging sandbox and identity into one platform (Dev/Tech Preview targeted for RHOAI 3.5/3.6)</li>
+  <li>Practical advice: deploy SPIFFE/SPIRE and Auth Bridge today with manual configuration — OpenShell will be a drop-in convergence when ready</li>
+</ul>
+  </div>
+</div>
+
+<!-- Block G: Multi-Agent and Proof -->
+<div class="slide">
+<div class="section-label">DEEP DIVE — LOOP PLACEMENT</div>
+  <h2>Decision 5: Agent-as-a-Workload vs Agent-as-a-Service — trade-off matrix</h2>
+  <div class="two-col">
+    <div class="glass-card col-card">
+      <h3>Agent-as-a-Workload</h3>
+      <ul class="content-list">    <li>Loop ships inside the pod with the harness</li>
+    <li>Own identity (SPIFFE SVID per pod)</li>
+    <li>Own blast radius (sandbox contains failure)</li>
+    <li>Long-running, autonomous workloads</li>
+    <li>Harnesses: OpenClaw, LangGraph, Custom</li>
+</ul>
+    </div>
+    <div class="glass-card col-card">
+      <h3>Agent-as-a-Service</h3>
+      <ul class="content-list">    <li>Loop runs in shared runtime (OGX, Responses API)</li>
+    <li>Centralized audit trail across tenants</li>
+    <li>Credential isolation (clients never hold tool creds)</li>
+    <li>Request-scoped assistants and copilots</li>
+    <li>RHOAI 3.5 Early Access</li>
+</ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+<h2>The two patterns compose: sandboxed pod delegates to shared loop while keeping its own identity</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>A sandboxed agent pod can delegate tool execution to a shared OGX loop</li>
+  <li>The agent keeps its own identity and its own defense rings</li>
+  <li>The MCP Gateway preserves per-agent policy inside the shared runtime</li>
+  <li>Start with Agent-as-a-Workload for autonomous, long-running agents</li>
+  <li>Use Agent-as-a-Service for request-scoped assistants and copilots</li>
+  <li>The same governance (identity + tool auth) works across both</li>
+</ul>
+  </div>
+</div>
+
+<div class="slide" data-diagram-fn="renderSupervisorPattern" data-diagram-id="d-renderSupervisorPattern">
+<div class="section-label">PATTERN — MULTI-AGENT ISOLATION</div>
+  <h2>The supervisor pattern: one brain orchestrates, each agent runs in its own sandbox with its own policy</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-supervisor-pattern" class="diagram-container"></div>
+    <p class="image-caption">Per-agent network policy via OpenShell. When the agent finishes, its sandbox is destroyed — no state leaks.</p>
+  </div>
+</div>
+
+<div class="slide" data-diagram-fn="renderAgentBenchmark" data-diagram-id="d-renderAgentBenchmark">
+<div class="section-label">PROOF</div>
+  <h2>Benchmark: 3 pods, 2 attacks — only dual protection stopped both</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-agent-benchmark" class="diagram-container"></div>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Where does vendor gravity actually live — and how does this architecture contain it?</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>The lock-in audit most teams skip: it is not the model layer (swappable behind standard APIs) — it is the skill libraries and the silicon</li>
+  <li>CUDA-X (cuDF, cuOpt, PhysicsNeMo) and NIM containers only run on NVIDIA — that is real gravity</li>
+  <li>What the architecture gives you: every skill backend sits behind a neutral MCP/REST interface with a policy envelope</li>
+  <li>Swapping cuOpt for OR-Tools is a gateway policy update and an endpoint change — the agent code and the rest of the stack never notice</li>
+  <li>The design rule: choose NVIDIA (or AMD, or Intel) per component, per use case — never as a structural dependency across the architecture</li>
+</ul>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Decision framework: when to use Agent-as-a-Workload versus Agent-as-a-Service</h2>
+  <div class="glass-card table-card">
+    <table>
+      <thead><tr><th>Question</th><th>If Yes → Workload</th><th>If Yes → Service</th></tr></thead>
+      <tbody>
+  <tr><td>Does the agent run for hours or days?</td><td>Long-lived = own pod, own identity</td><td></td></tr>
+  <tr><td>Does it make autonomous decisions?</td><td>Own blast radius is critical</td><td></td></tr>
+  <tr><td>Is it request-scoped (one user, one task)?</td><td></td><td>Shared runtime amortizes overhead</td></tr>
+  <tr><td>Do you need centralized audit across tenants?</td><td></td><td>Loop runtime captures every step</td></tr>
+  <tr><td>Do clients need to stay credential-free?</td><td></td><td>Clients never hold tool credentials</td></tr>
+  <tr><td>Can you tolerate shared blast radius?</td><td></td><td>Single point of failure is acceptable</td></tr>
+</tbody>
+    </table>
+    <p class="image-caption">Most teams start with Workload for autonomous agents and add Service for copilots later. The governance layer is identical in both.</p>
+  </div>
+</div>
+
+<!-- ═══ ACT 3: MATURITY AND ROADMAP ═══ -->
+
+<div class="slide">
+<div class="section-label">MATURITY + ROADMAP</div>
+  <h2>What you can build on today versus what to pin behind feature gates</h2>
+  <div class="glass-card table-card">
+    <table>
+      <thead><tr><th>Layer</th><th>Production-Ready</th><th>Preview / Evolving</th><th>Your Action</th></tr></thead>
+      <tbody>
+  <tr><td>Identity</td><td>SPIFFE/SPIRE · JWT-SVID</td><td>OpenShell identity integration · IETF WIMSE</td><td>Deploy SPIFFE now — foundation for everything</td></tr>
+  <tr><td>Tool Gov.</td><td>Gateway patterns (Envoy, Kuadrant)</td><td>MCP Gateway · claims-filtered catalogs</td><td>Stand up Envoy gateway, adopt MCP when stable</td></tr>
+  <tr><td>Sandbox</td><td>Kata · kernel primitives</td><td>OpenShell (Dev/Tech Preview) · agent-sandbox CRD</td><td>Enable Kata via OSC today, track OpenShell</td></tr>
+  <tr><td>Inference</td><td>vLLM · llm-d Router (GA)</td><td>Semantic routing</td><td>Deploy vLLM + llm-d, add SR when cost matters</td></tr>
+  <tr><td>Loop</td><td>Client-side harnesses</td><td>OGX (RHOAI 3.5 EA)</td><td>Build with harnesses, pilot OGX for copilots</td></tr>
+  <tr><td>Evaluation</td><td>EvalHub · MLflow</td><td>AutoRAG · AutoEval</td><td>EvalHub for quality and safety scoring now</td></tr>
+  <tr><td>Lifecycle</td><td>GitOps · Helm · operators</td><td>NemoClaw · OGX Operator</td><td>GitOps today, evaluate NemoClaw at 1.0</td></tr>
+</tbody>
+    </table>
+  </div>
+</div>
+
+<div class="slide">
+<div class="section-label">UPCOMING CAPABILITIES</div>
+<h2>What is coming next on the Red Hat AI platform</h2>
+  <div class="glass-card table-card">
+    <table>
+      <thead><tr><th>Capability</th><th>Status</th><th>What It Gives You</th></tr></thead>
+      <tbody>
+  <tr><td>OpenShell</td><td>Dev/Tech Preview targeted RHOAI 3.5/3.6</td><td>Converges sandbox + identity + audit + inference routing — Landlock, SPIFFE grants, OCSF v1.7.0, MCP-aware L7 policy. Laptop to cluster.</td></tr>
+  <tr><td>MCP Gateway (product)</td><td>Emerging</td><td>Claims-based tool authorization as a managed platform service, not just a pattern</td></tr>
+  <tr><td>MCP Catalog</td><td>Emerging</td><td>Curated registry for discovering and deploying trusted MCP tool servers</td></tr>
+  <tr><td>OGX (Open GenAI eXchange)</td><td>RHOAI 3.5 EA</td><td>Shared agentic runtime — Agent-as-a-Service with centralized audit</td></tr>
+  <tr><td>AI Hub &amp; GenAI Studio</td><td>Available</td><td>Dedicated dashboards for platform engineers and AI engineers respectively</td></tr>
+  <tr><td>AutoRAG / AutoEval</td><td>AutoRAG available; AutoEval planned</td><td>Automated optimization and evaluation workflows — reduce manual expert effort</td></tr>
+  <tr><td>OpenShell community</td><td>Active (7,600+ stars)</td><td>NVIDIA, Docker, SAP, ServiceNow, Microsoft, Canonical, Tetrate, Red Hat — broad multi-vendor backing</td></tr>
+  <tr><td>Inference-aware autoscaling</td><td>Available</td><td>Scales on KV cache pressure, not just CPU — right-sized for agentic workloads</td></tr>
+</tbody>
+    </table>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Open items the blueprint does not solve yet</h2>
+  <div class="agenda-grid"><div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  <h4>Human Approval</h4>
+  <p>High-risk actions need product-level human-in-the-loop patterns</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  <h4>Multi-Agent Coordination</h4>
+  <p>A2A reached 1.0 but interop in practice not settled</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><path d="M12 2L2 22h20L12 2z"/><path d="M12 10v4M12 18h.01"/></svg>
+  <h4>Memory Poisoning</h4>
+  <p>Corrupted tool results can corrupt memory across sessions</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><path d="M12 2l8 4v6c0 5.5-3.8 10.7-8 12-4.2-1.3-8-6.5-8-12V6l8-4z"/></svg>
+  <h4>Fleet-Scale Policy</h4>
+  <p>Sandbox policy authoring complex at hundreds of agent types</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9.5a2.5 2.5 0 0 1 3.5-2c1.5.7 1.7 2.5.5 3.5-1 .8-3.5 1.5-3.5 3 0 1.5 1.5 2.5 3.5 2"/></svg>
+  <h4>Cost Modeling</h4>
+  <p>No established benchmarks for long-running agent workloads</p>
+</div>
+<div class="agenda-card">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EE0000" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+  <h4>Confidential Compute</h4>
+  <p>Protects memory at runtime but not prompt-layer compromise</p>
+</div>
+</div>
+</div>
+
+<div class="slide">
+<h2>Phased adoption: start with inference and identity, add isolation, then governance</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>Phase 1 — Foundations (Weeks 1-4): Deploy vLLM + llm-d for inference, install SPIFFE/SPIRE for identity</li>
+  <li>Phase 2 — Isolation (Weeks 3-6): Enable OpenShift Sandboxed Containers (Kata), deploy OpenShell (alpha)</li>
+  <li>Phase 3 — Governance (Weeks 5-8): Stand up MCP Gateway with claims-based auth, wire OpenTelemetry + MLflow</li>
+  <li>Phase 4 — Optimization (Weeks 8-12): Add semantic routing for cost, evaluate OGX for request-scoped assistants</li>
+</ul>
+  </div>
+</div>
+
+<div class="slide">
+<h2>If you already have agents running — the incremental path from ungoverned to governed</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>Most teams are here today: agents running as standard Deployments, static API keys in env vars, no tool-call authorization</li>
+  <li>Step 1 — Add identity without changing agent code: deploy SPIFFE/SPIRE, inject SVIDs into existing pods via init container</li>
+  <li>Step 2 — Add a gateway in front of existing tool endpoints: MCP Gateway in passthrough mode first, then enable claims checking</li>
+  <li>Step 3 — Move agents into sandboxed pods: Kata RuntimeClass first (one YAML change), then add OpenShell for egress control</li>
+  <li>Step 4 — Add inference routing: point agent pods at the AI Gateway instead of direct vLLM endpoints — agents do not notice the change</li>
+  <li>Each step is independently deployable and independently valuable — you do not need the full stack to start improving security</li>
+</ul>
+  </div>
+</div>
+
+<div class="slide">
+<h2>What this architecture does NOT require — clearing up common misconceptions</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>Does NOT require NVIDIA hardware — vLLM runs on CUDA, ROCm, XPU, and CPU; the inference path is silicon-independent</li>
+  <li>Does NOT require rewriting your agents — BYOA (Bring Your Own Agent); existing harnesses (LangGraph, LangChain, custom) work; governance wraps around them</li>
+  <li>Does NOT require all components at once — each layer is independently deployable and provides incremental security value</li>
+  <li>Does NOT require a specific model — any model behind OpenAI-compatible API works; swap models without touching the architecture</li>
+  <li>Does NOT require waiting for preview features — the mature column (SPIFFE, Kata, vLLM, llm-d, Envoy) is production-ready today</li>
+  <li>Does NOT lock you to Red Hat — every interface is open; the architecture runs on any conformant Kubernetes cluster</li>
+</ul>
+  </div>
+</div>
+
+<div class="slide">
+<h2>Trace one request end-to-end — every component from the blueprint appears exactly once</h2>
+  <div class="glass-card">
+    <ul class="content-list">  <li>Goal arrives: a field-service agent in its sandboxed pod receives "optimize tomorrow's dispatch schedule"</li>
+  <li>Tool call: harness calls optimization skill → MCP Gateway checks JWT claims → forwards to backend (cuOpt or OR-Tools)</li>
+  <li>Inference (confidential): planning prompt has customer data → Tier 1 keeps it on in-cluster models → no PII exits</li>
+  <li>Inference (low-risk): follow-up summary → Tier 2 picks a small, cheap model → Tier 3 picks the replica with warm KV cache</li>
+  <li>Audit trail: every tool call, every auth decision, every model hop, latency, and cost → OpenTelemetry + MLflow</li>
+  <li>Stress test: if the model is compromised at any step, the path holds — permissions and routing are outside the model's reach</li>
+</ul>
+  </div>
+</div>
+
+<!-- ═══ ACT 4: CLOSE ═══ -->
+
+<div class="slide">
+<h2>Resources and attribution</h2>
+  <div class="two-col">
+    <div class="glass-card col-card">
+      <h3>Try It</h3>
+      <ul class="content-list">
+  <li>agent-school (GitHub) — NOC Assistant runs offline in two commands</li>
+  <li>Red Hat AI — enterprise platform for any model and any agent</li>
+  <li>Red Hat OpenShift AI — OGX, vLLM, llm-d integration</li>
+  <li>Red Hat AI Inference Server — production model serving</li>
+  <li>AI Hub & GenAI Studio — dedicated dashboards for platform and AI engineers</li>
+</ul>
+    </div>
+    <div class="glass-card col-card">
+      <h3>Read More</h3>
+      <ul class="content-list">
+  <li>This presentation is based on: "Architect an Open Blueprint for Cloud-Native AI Agents" — Nar, O'Malley, Zaalouk (Red Hat Developers, July 2026)</li>
+  <li>Blog series: Layered Sandboxing, Defense in Depth, Guardrails for OpenClaw Agents</li>
+  <li>Architecture diagrams and analysis are original to this session</li>
+</ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+<div class="section-label">Q&amp;A AND NEXT STEPS</div>
+<h2>Where to go from here</h2>
+  <div class="two-col">
+    <div class="glass-card col-card">
+      <h3>Immediate Actions</h3>
+      <ul class="content-list">
+  <li>Architecture workshop — map your agent use cases to this blueprint</li>
+  <li>agent-school POC — running NOC agent in two commands (GitHub)</li>
+  <li>Red Hat AI Enterprise trial — 60-day self-supported subscription (red.ht/RHAIE-trial)</li>
+  <li>Review the Red Hat Developers blog series on layered sandboxing and defense in depth</li>
+</ul>
+    </div>
+    <div class="glass-card col-card">
+      <h3>Longer-Term Engagement</h3>
+      <ul class="content-list">
+  <li>AI Incubator — residency-style engagement to prototype your first governed agent</li>
+  <li>AI TAM — dedicated technical account management for your AI journey</li>
+  <li>Capacity planning consultation — map workloads to infrastructure and accelerators</li>
+  <li>Red Hat AI Foundations — no-cost learning paths with certificates</li>
+</ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+<div class="closing-slide">
+    <h2>You already know how to operate this — it is the microservices playbook applied one layer up</h2>
+    <ul class="closing-list"><li>Agent blueprints play the role Helm charts play for services</li>
+<li>Sandboxes enforce the boundaries containers enforce for processes</li>
+<li>Inference routing solves the same problem service mesh solves for HTTP</li>
+<li>Skills are the agent equivalent of client libraries — thin, declared, governed</li>
+<li>The disciplines are the same: least privilege, declarative policy, pooled expensive resources</li>
+</ul>
+    <div class="rh-logo-mark closing-logo"></div>
+  </div>
+</div>
+
+</div></div>
+
+<div id="controls">
+  <span>Use <kbd>&larr;</kbd><kbd>&rarr;</kbd> to navigate &nbsp;|&nbsp; <kbd>F</kbd> fullscreen &nbsp;|&nbsp; <kbd>S</kbd> speaker view</span>
+  <span id="slide-counter">1 / 1</span>
+  <button onclick="openPresenterView()" id="btn-presenter">Presenter View</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+window.SPEAKER_NOTES=[
+'Title\n\nGood morning, everyone. Thank you for making time today.\n\nYou have all read the Red Hat Developers article on the open blueprint for cloud-native AI agents. So I am not going to walk you through it again. Instead, this session goes deeper — into the components you specifically asked about, the flows, the honest limitations, and what is production-ready today versus what is still evolving.\n\nOne framing point before we begin: enterprises are transitioning from being token consumers — calling hosted APIs — to token producers — running their own inference. The rise of reasoning models brought the agentic era, but it also demands sovereign, auditable deployments. That is the backdrop for everything we discuss today.\n\nBy the end of this hour, you will have enough architectural depth to evaluate this blueprint against your own agent workloads and make concrete decisions about where to start.',
+'Agenda\n\nHere is what we will cover, mapped directly to the areas your team asked about.\n\nWe will start with a quick shared-vocabulary check — three components, two deployment patterns, and the full blueprint. That is about three minutes. Then we go straight into deep dives: agent pod anatomy and the supervisor, which addresses your question about the Agent Pod. Then defense rings and dual protection, which covers the Supervisor Ingress/Egress Proxy. Then flows and routing for your Internal and External Flows question. Then the MCP Gateway — tool authorization and an attack walkthrough. Then the AI Gateway and Auth Bridge together, since they share the identity chain. And we will close with maturity and a phased adoption path.\n\nRed Hat calls this operational discipline AgentOps — observability, tracing, evaluation, safety, registry, catalog, lifecycle management, and identity, all as platform-native capabilities.\n\nI have organized these in the order that builds on itself — the pod first because everything else sits inside it, then the controls that govern what leaves the pod, then how requests flow, and finally how you get there incrementally. Let us start with shared vocabulary.',
+'Three components — Model, Harness, Sandbox\n\nSo this is the decomposition that matters: every agent breaks down into three components with separate lifecycles.\n\nThe Model is the reasoning engine — Llama, Nemotron, DeepSeek, Qwen. It is stateless, versioned independently, and sits behind an OpenAI-compatible API. The model does not know it is inside an agent.\n\nThe Harness owns the agentic loop — it holds memory, manages the context window, orchestrates tool calls, and decides when to stop. OpenClaw, LangGraph, Hermes Agent — these are harnesses. Red Hat AI is framework-agnostic — bring your own agent, or BYOA. You pick the harness that fits your development team.\n\nThe Sandbox decides what the agent may touch — which files, which binaries, which network endpoints. OpenShell, Kata Containers, the emerging agent-sandbox API. The sandbox does not trust the harness or the model.\n\nWhy does this decomposition matter? Because agents are not harder microservices — they are a genuinely new workload class. At one moment an agent looks like a request/response service, the next it is dispatching batch jobs, the next it is an inference client, and an hour later it is still running, holding state. No single Kubernetes primitive maps cleanly to that lifecycle. That is why every assumption about scheduling, security, and cost breaks in a different way.\n\nLet me show you the two deployment patterns this enables.',
+'Agent-as-a-Workload vs Agent-as-a-Service\n\nThese are the two fundamental deployment patterns.\n\nOn the left: Agent-as-a-Workload. The agentic loop ships inside the pod alongside the harness. The agent has its own identity, its own blast radius. This is for long-running, autonomous workloads.\n\nOn the right: Agent-as-a-Service. The loop runs in a shared runtime — OGX behind a Responses API. Centralized audit trail. Credential isolation. This is for request-scoped assistants and copilots.\n\nHere is the key insight: the governance layer is identical across both patterns. SPIFFE establishes WHO the agent is — same credential whether it is a standalone pod or a shared-runtime tenant. The MCP Gateway decides WHAT that identity may call — same claims check regardless of where the loop runs. Neither mechanism consults the model. A compromised prompt cannot change permissions.\n\nYou can start securing agents today before settling the Workload-versus-Service debate. And the two patterns compose — a sandboxed pod can delegate to a shared loop while keeping its own identity.\n\nNow let me show you the full picture.',
+'The complete open blueprint\n\nTake a moment to absorb this diagram. This is the full open agentic AI blueprint on Red Hat OpenShift AI.\n\nThree horizontal bands. The top band is the control plane — agent blueprints, GitOps, policy. The middle band is where agents actually run — sandboxed pods, shared runtimes, the MCP Gateway checkpoint between them. The bottom band is the platform — OpenShift, SPIFFE, observability, the inference pool.\n\nEvery component is a ROLE that several implementations can fill. The model role can be Llama, Nemotron, DeepSeek. The sandbox role can be OpenShell, Kata, the agent-sandbox API. The inference routing role can be llm-d, Praxis, or a custom EPP.\n\nWe are about to zoom into five specific decisions within this blueprint. These map directly to the components your team asked about. Let us start with the agent pod.',
+'Five decisions\n\nThese are the five decisions every organization running agents at scale needs to make. Each one sits behind a neutral interface, which means your choice is reversible.\n\nDecision 1: Isolation — how do you contain the blast radius? Decision 2: Tool Governance — who decides which tools an agent can call? Decision 3: Inference Routing — how do you balance security, cost, and efficiency? Decision 4: Identity — how does the infrastructure know WHO is making a request? Decision 5: Loop Placement — does the agentic loop run inside the pod or in a shared runtime?\n\nWe will go deep on each of these over the next thirty-five minutes. Let us start with isolation — the Agent Pod.',
+'Agent pod anatomy\n\nSo here is Decision 1 — Isolation. This is the internal anatomy of an agent pod, which is one of the six components your team specifically asked about.\n\nThe supervisor process runs as PID 1. It enforces per-binary, per-path, per-endpoint policy using kernel primitives — seccomp profiles, Landlock LSM, network namespaces. The agent process runs as a child of the supervisor, inside the sandbox.\n\nThree nested defense rings. Ring 1: process-level — seccomp, Landlock, namespaces. Ring 2: pod-level — Pod Security Standards, SELinux, NetworkPolicy, optionally Kata for hardware isolation. Ring 3: hardware-level — confidential computing when you need memory encryption.\n\nThe design principle: each ring assumes the ring inside it has ALREADY FAILED. Defense in depth means each layer is independently sufficient to contain one class of attack.\n\nLet me show you why PID 1 matters so much.',
+'Why PID 1 matters\n\nThis slide directly addresses the supervisor — the component your team asked about under Ingress/Egress Proxy.\n\nThe supervisor runs as PID 1 — it starts before the agent does. Boot sequence: fetch policy, install kernel filters, inject SPIFFE credentials, THEN launch the harness as a child process. The agent never runs unsupervised.\n\nThe egress proxy is the critical piece. Every outbound connection routes through it. Default posture is deny-all. You allowlist exactly the endpoints your agent needs. For a coding agent backed by a local inference server, that might be a single entry.\n\nHere is the key for your internal-versus-external flow question: Tier 1 routing lives inside the supervisor. Confidential context never leaves the cluster — the supervisor enforces this at the network level. Anything going external gets PII masking first. Even in-cluster inference enters through the AI Gateway, not directly to model endpoints.\n\nThe failure mode to monitor: PII masking is heuristic, so false-negative leakage is possible. Plan for downstream monitoring.\n\nNow let me show you the component options — what you choose, what stays open.',
+'Solution components table\n\nThis is the reference table. Every component in the blueprint, its role, and the implementation options available today.\n\nNotice the pattern: every row has multiple implementation options. The sandbox can be OpenShell, Kata, or the agent-sandbox SIG spec. The model can be any OpenAI-compatible inference service. The identity layer is SPIFFE. The routing layer is llm-d plus optionally semantic routing.\n\nThis is not a product pitch — this is an architecture where vendors compete on price and performance per component, and your procurement decisions stay reversible because every component sits behind a neutral interface.\n\nWe will come back to this table when we discuss maturity. Now let me show you the defense rings in detail — this addresses your Supervisor Ingress/Egress question more deeply.',
+'Defense in depth — three rings\n\nThis diagram shows the three concentric defense rings and the four cross-cutting controls.\n\nRing 1, innermost: process-level isolation. Seccomp, Landlock, namespaces. This is what OpenShell provides.\n\nRing 2: pod-level isolation. Pod Security Standards, SELinux, NetworkPolicy, and Kata for a dedicated micro-VM.\n\nRing 3: hardware-level isolation. Confidential Containers protect memory at the VM boundary.\n\nThe four cross-cutting controls: workload identity via SPIFFE, tool authorization via MCP Gateway, inference guardrails via TrustyAI, and pre-production testing.\n\nThe reading rule: start from the outside and work in. Every ring you enable reduces the attack surface for the next ring.\n\nNow here is the honest part — why neither ring alone is sufficient.',
+'OpenShell + Kata — neither alone is sufficient\n\nThis is one of the most important slides in the deck because it is about honest limitations.\n\nOpenShell provides kernel-level isolation through Landlock, seccomp, and network namespaces. It enforces per-binary, per-path, per-endpoint, and MCP-aware L7 policy. It also adds OCSF v1.7.0 structured audit and is integrating SPIFFE identity and inference routing. But it cannot stop kernel exploits because it still shares the host kernel with the agent. If the agent exploits a kernel vulnerability — like CVE-2026-31431, which was a real container escape from May 2026 — OpenShell is bypassed entirely.\n\nKata gives each pod a dedicated micro-VM with its own kernel. virtiofs blocks page-cache attacks. Kata contains kernel exploits. But Kata cannot filter network traffic. curl is normal userspace. Kata has no mechanism to inspect or block outbound data.\n\nYou might be wondering: why not just pick the strongest one? Because the two threat classes — prompt injection exfiltration and kernel exploits — require fundamentally different defenses. Let me show you why you need both.',
+'Run both — dual protection\n\nThe answer is: run both. OpenShell inside a Kata micro-VM.\n\nOpenShell catches prompt injection exfiltration — the egress proxy blocks unauthorized network calls. Kata contains kernel exploits — the dedicated VM means a page-cache attack affects only the agent&#x27;s own VM.\n\nWe have proven this empirically with benchmark results, which I will show you in a few slides. The dual-protected pod is the only configuration we have tested that stops both attack classes.\n\nThe good news: it is the same container image, same agent configuration. The security layers are infrastructure concerns, not application changes. You specify the Kata RuntimeClass and run inside an OpenShell sandbox.\n\nNow let me shift to the next item on your agenda — flows and routing.',
+'Three routing tiers\n\nThis addresses your question about Internal and External Flows. The three-tier routing architecture is the mechanism.\n\nTier 1 is security — the supervisor egress router in every agent pod. WHERE may this request go? Can it leave the cluster? Does it contain PII? Your security team owns this tier. It changes slowly.\n\nTier 2 is cost — semantic routing. WHICH model should serve this? A simple summary does not need a 405B model. FinOps owns this tier.\n\nTier 3 is efficiency — the llm-d Router with the Endpoint Picker. WHICH replica? The one with warm KV cache, low queue depth. SRE owns this tier. It changes constantly.\n\nCollapsing these into one router would put one component in charge of three concerns with three different change cadences. The separation lets each team iterate independently.\n\nLet me show you the table that makes the ownership model concrete.',
+'Three tiers, three owners\n\nThis table maps each tier to its question, its owner, when it changes, and what breaks if you skip it.\n\nSecurity tier: owned by your CISO team, changes when compliance policy changes. Skip it and PII leaks to external LLMs.\n\nCost tier: owned by FinOps, changes when new models are deployed or pricing shifts. Skip it and every request hits the largest, most expensive model.\n\nEfficiency tier: owned by SRE, changes constantly with cluster load. Skip it and you get cold KV cache hits and wasted GPU cycles.\n\nNow let me show you the flow that matters most for regulated environments — what happens when data needs to leave the cluster.',
+'Internal vs External flows\n\nThis is the slide that matters most for regulated environments, and it directly answers your Internal and External Flows question.\n\nInternal flow: confidential context stays on in-cluster models. Traffic enters through the AI Gateway. Tier 2 picks the model, Tier 3 picks the replica. Full OpenTelemetry trace. No PII masking needed because data stays within your trust boundary.\n\nExternal flow: Tier 1 — the supervisor egress router — makes the decision. If confidential, it stays internal, full stop. If low-risk and policy allows, PII detection-and-redaction runs at the proxy BEFORE data exits.\n\nThe failure mode to plan for: PII masking means false negatives are possible. The safest policy for regulated environments is to block external endpoints entirely for agents handling sensitive data. You can run agents that handle customer data with a policy that says all inference stays in-cluster — enforced at the network level, not the application level.\n\nNow let me complete the routing picture with how agents execute skills — the compute-intensive work they dispatch.',
+'Three skill execution patterns\n\nThis table shows where heavy compute actually runs.\n\nPattern 1: in-pod. Light ETL with Polars or DuckDB. Kernel enforces policy.\n\nPattern 2: service call. This is the default. Optimization, RAG retrieval, embedding generation. MCP Gateway and egress policy enforce authorization.\n\nPattern 3: job dispatch. The agent creates Kubernetes Jobs or dispatches to Slurm. Physics simulation, quantum circuit evaluation. This needs the tightest RBAC — an agent that can create Jobs can create arbitrary workloads.\n\nThe design principle: skills are thin clients, not workloads. The agent pod stays CPU-only, dense, long-lived. Expensive accelerators live in pooled backends. You can run hundreds of agent pods per node while GPU pools serve all of them.\n\nNow let us move to the next component your team asked about — the MCP Gateway.',
+'MCP Gateway — claims-based tool authorization\n\nThis is Decision 2 — Tool Governance — and the MCP Gateway is one of the six components your team specifically asked about.\n\nThe gateway fronts every MCP tool server behind a single endpoint. The agent presents its JWT — the one from the Auth Bridge, with identity claims and tool entitlements. The MCP Gateway — Envoy with Kuadrant/Authorino — checks the token&#x27;s tools claim against the requested tool. If the tool is in the allowed set, it passes. If not, denied.\n\nThe critical design decision: authorization is based on token claims, not on the prompt. The model&#x27;s opinion about which tools it should call is irrelevant. The infrastructure decides.\n\nThis is the same principle as RBAC for Kubernetes API calls. And MCP itself is under neutral governance — donated to the Agentic AI Foundation under the Linux Foundation in late 2025.\n\nBut the gateway is only one piece of enterprise MCP management. Red Hat AI provides three capabilities: MCP Lifecycle Management — manages MCP servers as Kubernetes-native workloads, so you deploy, version, and roll back tool servers the same way you manage any other workload. The MCP Catalog — enables teams to discover and deploy trusted MCP servers from a curated registry. And the MCP Gateway — centralized authentication, access control, and observability for all tool calls. Together, these three form the enterprise MCP management layer.\n\nLet me walk you through what happens when an attacker tries to exploit this.',
+'Prompt injection fails at the infrastructure layer\n\nHere is a concrete attack scenario.\n\nStep 1: attacker embeds a prompt injection in a document the agent processes. The model now believes it should call /exfil.\n\nStep 2: the harness issues a tool call to /exfil — it trusts the model&#x27;s output, that is its job.\n\nStep 3: the request reaches the MCP Gateway. The gateway checks the JWT tools claim, not the prompt.\n\nStep 4: /exfil is not in the allowed set. Request denied. HTTP 403. The model was successfully compromised, and it did not matter — authorization lives outside the blast radius.\n\nThis is the same principle as RBAC for kubectl. The intent is irrelevant — the policy is the policy.\n\nBut I want to be honest about what the gateway cannot do.',
+'What the gateway cannot stop\n\nThe MCP Gateway cannot stop misuse of tools the agent IS entitled to call. If the agent is authorized to call a database API, and an injection instructs it to query sensitive tables — the gateway allows it.\n\nThat gap is covered by other controls. Inference guardrails — TrustyAI, NeMo Guardrails — screen I/O at the model boundary. EvalHub provides continuous quality and safety scoring, catching drift and anomalies. Egress policy limits where data can flow. Output filtering redacts PII.\n\nThe MCP Gateway is one control among several. It prevents unauthorized tool calls. Other controls prevent misuse of authorized tools. The combination provides defense in depth.\n\nEvery team deploying this should explicitly map which control covers which threat class in their environment. The threat mapping is as important as the technology.\n\nNow let us move to the AI Gateway — another component your team asked about.',
+'AI Gateway — the governed front door\n\nThe AI Gateway is the governed front door for ALL inference traffic. This is the component your team asked about alongside Auth Bridge, and they work together.\n\nThe critical design decision: even in-cluster inference enters through this gateway, not directly to vLLM workers. There is no way for an agent to bypass quota enforcement or authentication by going direct.\n\nThe gateway enforces per-agent quotas and rate limits from the same JWT claims used for tool governance. Every request emits OpenTelemetry spans — latency, token count, cost, model selection. This is how your FinOps team gets cost attribution per agent.\n\nSemantic routing — Tier 2 — runs behind this gateway. The classifier picks the cheapest adequate model after auth and quota checks have passed.\n\nInference-aware autoscaling also runs at this layer — it scales on KV cache pressure, not just CPU utilization. That is a meaningful cost difference for agentic workloads with long context windows and multi-turn conversations.\n\nFor continuous quality and safety, EvalHub sits alongside as the evaluation layer — a unified, framework-agnostic platform for scoring models, RAG systems, and agents. Quality, red teaming, drift detection, and governance-ready artifacts all in one place.\n\nImplementation options: OGX integrated with RHOAI 3.5, LiteLLM for lightweight deployments, or the emerging Red Hat AI gateway.\n\nNow let me show you the identity foundation that makes all of this work — the SPIFFE flow and the Auth Bridge.',
+'SPIFFE identity — no more static keys\n\nDecision 4 — Identity. This is arguably the most important decision because every other control depends on it.\n\nSPIFFE gives each agent an automatically rotated cryptographic identity — a JWT-SVID scoped to namespace and service account.\n\nThe flow: at pod startup, SPIRE validates the pod&#x27;s attestation. It issues a JWT-SVID. The Auth Bridge sidecar exchanges this SVID for a short-lived access token — five minutes — carrying claims for subject, tools, models, and expiration.\n\nThe agent never sees a static API key. There IS no static API key. If an attacker compromises the workspace via prompt injection, there is nothing durable to steal.\n\nNow let me go deep on the Auth Bridge — the component your team specifically asked about.',
+'Auth Bridge deep dive\n\nThe Auth Bridge is an authentication sidecar that runs alongside the agent in every pod. Your team asked about this specifically, so let me walk through exactly what it does.\n\nBoot sequence: SPIRE validates the pod, issues a JWT-SVID. The Auth Bridge presents this SVID to your identity provider — Keycloak, for example — using RFC 8693 token exchange or RFC 7523 JWT bearer grant. Standard protocols.\n\nThe IdP returns a 5-minute access token with claims: subject, tools, models, expiration. This is the token that the MCP Gateway and AI Gateway check for every request.\n\nThe SVID never leaves the pod. The access token is what crosses the wire. Five-minute TTL means a stolen token has a very short window.\n\nOpenShell is converging this identity layer with kernel isolation into a single platform. SPIFFE JWT-SVID grants and OAuth2 token exchange are being integrated alongside Landlock and seccomp, so sandbox and identity come as one package. Targeted for Dev/Tech Preview in RHOAI 3.5/3.6. Today it is manual Auth Bridge configuration, but the architecture is the same.\n\nLet me make the before-and-after concrete.',
+'Before vs After — static keys to cryptographic identity\n\nBefore: API keys in environment variables. Rotated quarterly, maybe. One key gives full access. A leaked prompt means a leaked key means game over. Revoking means redeploying everything.\n\nAfter: cryptographic identity at the pod level. Auto-rotated, five-minute TTL. Per-agent tool entitlements via claims. A leaked workspace has nothing durable to steal. Revoking is a single targeted operation.\n\nFor regulated industries, the containment economics are dramatic. Revoking, throttling, or terminating a misbehaving agent goes from an incident-wide hunt to a single API call.\n\nNow let me be honest about what is not solved yet.',
+'Identity gaps\n\nIdentity chaining is the open problem. When the agentic loop runs in a shared runtime like OGX, does the per-agent identity survive downstream? Today it does not. The IETF WIMSE working group is defining the standard. Track it, but do not assume it in your 2026 design.\n\nIdentity convergence is the other gap. Today, SPIFFE, Auth Bridge, and policy bindings require manual configuration per agent type. OpenShell is converging all of this — sandbox isolation, identity injection, and policy enforcement — into one platform. SPIFFE JWT-SVID grants and OAuth2 exchange are being added alongside Landlock and seccomp. Targeted for Dev/Tech Preview in RHOAI 3.5/3.6.\n\nPractical advice: deploy SPIFFE/SPIRE and Auth Bridge today with manual configuration. When OpenShell reaches Tech Preview, it will be a drop-in convergence — sandbox, identity, and audit in one package.\n\nWe are including these gaps because trust requires honesty. Now let me show you how the deployment patterns tie together.',
+'Loop placement trade-off matrix\n\nDecision 5: where does the agentic loop run?\n\nAgent-as-a-Workload: loop inside the pod with the harness. Own identity, own blast radius, own sandbox. For long-running, autonomous workloads.\n\nAgent-as-a-Service: loop in a shared runtime — OGX behind a Responses API. Centralized audit, credential isolation. For request-scoped assistants. RHOAI 3.5 Early Access.\n\nDuration and ownership pick the pattern — the same way you choose between a Deployment and a Knative service for traditional workloads.\n\nBut here is the insight that most teams miss — these are not mutually exclusive.',
+'The patterns compose\n\nThe two patterns compose. A sandboxed agent pod can delegate tool execution to a shared OGX loop while keeping its own identity. The MCP Gateway preserves per-agent policy inside the shared runtime.\n\nStart with Workload for autonomous agents. Add Service for copilots when OGX matures. The governance layer stays consistent.\n\nThis composability means you are not making a one-time architectural choice. You are choosing the right pattern per agent type.\n\nNow let me show you a concrete multi-agent pattern that puts all five decisions together.',
+'The supervisor pattern\n\nThis pattern splits orchestration from execution. The brain handles task decomposition and routing. The workers run on your cluster, each inside its own OpenShell sandbox with its own network policy.\n\nLook at the three sandboxes. The metrics agent can reach Prometheus and vLLM — nothing else. The log agent can reach the log aggregator — nothing else. Each policy is enforced at the kernel level.\n\nIf the log agent gets prompt-injected through a malicious log entry, the attacker can search logs — but cannot reach Prometheus, the runbook system, or any external endpoint. Blast radius is one sandbox, not your entire stack.\n\nThe sandbox lifecycle: create, install, apply policy, run, collect stdout, delete. No state leaks. No credentials persist.\n\nThis pattern makes sense for incident investigation, compliance reviews, CI/CD — anywhere a single agent would need access to more systems than it should.\n\nNow let me prove the architecture works with benchmark data.',
+'Benchmark results\n\nThis data comes from Eitan Geiger&#x27;s published benchmark, Red Hat Developers, July 2026.\n\nSame container image. Same AI coding agent — OpenCode. Same vLLM endpoint — Gemma4-31b. OpenShift 4.21. Three pod configurations.\n\nAttack 1 — prompt injection exfiltration: Kata-only — DATA LEAKED, curl is normal userspace. OpenShell-only — BLOCKED, egress proxy denied. Dual — BLOCKED.\n\nAttack 2 — CVE-2026-31431 container escape: Kata-only — CONTAINED, virtiofs blocks page-cache. OpenShell-only — HOST COMPROMISED, the exploit operates within the kernel. Dual — CONTAINED.\n\nOnly the dual-protected pod stopped both attacks. This is not a theoretical argument — it is an empirical result.\n\nYou might be wondering about vendor lock-in. Let me address that directly.',
+'Vendor gravity\n\nThe architecture is interface-portable. Models sit behind OpenAI-compatible APIs. The sandbox uses stock Linux primitives. vLLM runs on CUDA, ROCm, XPU, and CPU.\n\nBut some things are sticky. CUDA-X libraries — cuDF, cuOpt, PhysicsNeMo — are NVIDIA-only. NIM containers are proprietary.\n\nThe architecture controls the PRICE of the swap. Skill backends sit behind neutral MCP/REST interfaces. Replacing cuOpt with OR-Tools is an endpoint and policy change, not an architecture redesign. NVIDIA becomes a per-component choice rather than a structural dependency.\n\nThe design rule: choose your vendor per component, per use case — never as a structural dependency across the architecture.\n\nNow let me give you a concrete decision framework for the pattern choice.',
+'Decision framework: Workload vs Service\n\nThis is the decision most teams agonize over.\n\nUse Workload when: long-running, autonomous, needs its own blast radius.\n\nUse Service when: request-scoped, centralized audit matters, clients should be credential-free.\n\nMost organizations will run both. Start with Workload for autonomous agents, add Service for copilots when OGX matures. The governance layer is identical.\n\nNow let me shift to the maturity picture — what is production-ready today.',
+'Maturity map\n\nLet us be precise about what is mature versus what is emerging. Build your base decisions on the production-ready column. Adopt from preview behind pinned versions and feature gates.\n\nIdentity: SPIFFE/SPIRE and JWT-SVID are production-grade. OpenShell is adding identity integration — SPIFFE grants and OAuth2 exchange — alongside its kernel isolation. IETF WIMSE is defining the standard for identity chaining.\n\nTool governance: Envoy and Kuadrant gateway patterns are production-grade. The MCP Gateway with claims filtering is emerging.\n\nSandbox: Kata and kernel primitives are production-grade. OpenShell is the convergence platform — Landlock, seccomp, SPIFFE identity, OCSF audit, MCP-aware policy, inference routing — all in one. Targeted for Dev/Tech Preview in RHOAI 3.5/3.6. Backed by a broad community: NVIDIA, Docker, SAP, ServiceNow, Microsoft, Canonical, Tetrate, and Red Hat.\n\nInference: vLLM and llm-d Router are GA. Semantic routing is emerging.\n\nEvaluation: EvalHub and MLflow are production-grade for quality, safety, and red teaming scoring. AutoML and AutoRAG are available today to automate expert workflows. AutoEval is future.\n\nAgentic loop: client-side harnesses are production-grade. OGX is RHOAI 3.5 Early Access.\n\nOn the hardware side, this entire stack runs across diverse accelerators — NVIDIA including Blackwell and Vera Rubin with Day 0 RHEL support, AMD Instinct MI350X and MI355X, Intel Xeon, IBM Spyre, Google TPU, and AWS Neuron. AI Factories from Dell, Cisco, Lenovo, and Red Hat with NVIDIA provide turnkey infrastructure.\n\nNow let me be transparent about what the blueprint does not solve yet.',
+'Upcoming capabilities\n\nThis table shows what is coming next on the Red Hat AI platform. I want to be precise about status so you can plan accordingly.\n\nOpenShell is the big one. It converges sandbox isolation, identity injection, audit, and inference routing into a single platform. Landlock plus seccomp for kernel-level isolation, SPIFFE JWT-SVID grants for identity, OCSF v1.7.0 for structured audit, MCP-aware L7 policy enforcement, and built-in inference routing with credential injection. It works from laptop to cluster — Podman, Kubernetes, VMs, even Windows via MXC. Backed by a broad community including NVIDIA, Docker, SAP, ServiceNow, Microsoft, Canonical, and Tetrate. Targeted for Dev/Tech Preview in RHOAI 3.5/3.6. Two integration patterns: whole-agent sandboxing where you wrap any existing agent with no code changes, and harness-native integration where the harness uses the OpenShell SDK.\n\nThe MCP Gateway is moving from a pattern you assemble yourself with Envoy and Kuadrant to a managed platform service. Alongside it, the MCP Catalog will let teams discover and deploy trusted MCP tool servers from a curated registry. Both are emerging.\n\nOGX — the Open GenAI eXchange — is the shared agentic runtime for Agent-as-a-Service. It is in Early Access in RHOAI 3.5 today. The path to GA is active.\n\nAI Hub and GenAI Studio are dedicated dashboard experiences — AI Hub for platform engineers managing models, agents, and infrastructure, and GenAI Studio for AI engineers building, tuning, and experimenting. These are available now.\n\nAutoRAG automates retrieval-augmented generation optimization and is available today. AutoEval — automated evaluation workflows — is planned.\n\nThe agent-sandbox CRD is at v1beta1, letting you define isolation policy as YAML rather than scripts.\n\nInference-aware autoscaling is available today and scales on KV cache pressure rather than CPU utilization — a meaningful difference for agentic workloads with long context windows.\n\nNow let me be transparent about what the blueprint does not solve yet.',
+'Open items\n\nSix things the blueprint does not solve yet.\n\nHuman approval patterns for high-risk actions — the blueprint gives you identity and audit trail, but the approval UX is application-specific.\n\nMulti-agent coordination — A2A reached 1.0 but interop in practice is not settled.\n\nMemory poisoning — corrupted tool results can corrupt agent memory across sessions.\n\nFleet-scale policy — sandbox policies for hundreds of agent types is complex.\n\nCost modeling — no established benchmarks for long-running agent workloads.\n\nConfidential compute — protects memory at runtime but does nothing about prompt-layer compromise.\n\nWe are sharing these because production deployments need to plan around them. Now let me show you how to get started.',
+'Phased adoption\n\nFour phases, twelve weeks.\n\nPhase 1, weeks one through four: deploy vLLM and llm-d for inference, install SPIFFE/SPIRE for identity. These are the highest-value, lowest-risk components.\n\nPhase 2, weeks three through six: enable OpenShift Sandboxed Containers — that is Kata. Deploy OpenShell in alpha. Start with your most sensitive agent use case.\n\nPhase 3, weeks five through eight: stand up the MCP Gateway with claims-based auth. Wire OpenTelemetry and MLflow.\n\nPhase 4, weeks eight through twelve: add semantic routing for cost. Evaluate OGX for copilots.\n\nBut what if you already have agents running? Most of you do.',
+'Migration path\n\nThis is for teams that already have agents in production.\n\nStep 1: add identity. Deploy SPIFFE/SPIRE, inject SVIDs via init container. Zero code changes.\n\nStep 2: add the MCP Gateway in passthrough mode first, then enable claims checking.\n\nStep 3: add Kata RuntimeClass — one YAML annotation. Then layer OpenShell.\n\nStep 4: point agents at the AI Gateway instead of direct vLLM endpoints. They will not notice the change.\n\nEach step is independently valuable. You do not need the full stack to start improving security.',
+'Common misconceptions\n\nLet me clear up the most common pushback.\n\nDoes not require NVIDIA — vLLM runs on CUDA, ROCm, XPU, and CPU.\n\nDoes not require rewriting agents — the approach is BYOA, Bring Your Own Agent. Governance wraps around existing LangGraph or LangChain agents.\n\nDoes not require all components at once — each layer provides independent security value.\n\nDoes not lock you to Red Hat — every interface is open standard.\n\nThe barrier to starting is lower than it looks. The hardest part is the organizational decision to invest in agent governance, not the technology.',
+'End-to-end walkthrough\n\nLet me trace one request through the entire blueprint.\n\nA field-service agent receives a dispatch-optimization goal. The harness calls the optimization skill — MCP Gateway checks claims, forwards to the backend. The planning prompt carries customer data — Tier 1 keeps it in-cluster. A follow-up summary is low-risk — Tier 2 picks a small model, Tier 3 picks the warm replica.\n\nEvery tool call, auth decision, latency measurement, and cost metric lands in the observability trail.\n\nAt no point does the architecture depend on the model behaving predictably. Every control is infrastructure-level. That is the design posture for production agents.',
+'Resources and attribution\n\nThis architecture is based on the Open Agentic AI Blueprint published on Red Hat Developers in July 2026 by Fatih Nar, Sally O&#x27;Malley, and Adel Zaalouk. The diagrams, threat analysis, benchmark framing, and decision frameworks in this presentation are original work built on that foundation.\n\nFor hands-on experience: agent-school on GitHub gets you a running NOC agent in two commands.\n\nFor the platform: Red Hat AI and Red Hat OpenShift AI include OGX, vLLM, llm-d, EvalHub, and dedicated AI Hub and GenAI Studio dashboards for platform and AI engineers respectively.',
+'Q&A and next steps\n\nBefore we open for questions, let me lay out concrete next steps.\n\nImmediate actions: first, we can schedule an architecture workshop to map your specific agent use cases to this blueprint. Second, agent-school on GitHub gets you a running NOC agent in two commands — no cluster required, fully offline. Third, Red Hat AI Enterprise has a 60-day self-supported trial at red.ht/RHAIE-trial. Fourth, the Red Hat Developers blog series on layered sandboxing and defense in depth goes deeper than what we covered today.\n\nFor longer-term engagement: the AI Incubator is a residency-style consulting engagement where Red Hat engineers work alongside your team to prototype your first governed agent end-to-end. AI Technical Account Management provides dedicated support through your AI journey. And Red Hat AI Foundations offers no-cost learning paths with certificates for both executives and technologists.\n\nNow I am happy to take questions on any of the components we covered today.',
+'Closing\n\nI want to leave you with this framing.\n\nThe agentic stack IS the microservices stack — one abstraction up. Blueprints instead of Helm charts. Sandboxes instead of containers. Inference routing instead of service mesh. Skills instead of client libraries.\n\nThe same disciplines apply: least privilege, declarative policy, pooled expensive resources behind schedulers.\n\nAnd the platform meets you with dedicated experiences — AI Hub for platform engineers to manage models, agents, and infrastructure, and GenAI Studio for AI engineers to build, tune, and experiment. These are not separate products — they are dashboard experiences inside the same platform.\n\nThe difference: this workload makes its own decisions for days at a time. That is why identity, tool governance, and isolation are not optional — they are foundational.\n\nThank you. I am happy to take questions on any of the components we covered today.'
+];
+window.SLIDE_TITLES=[
+'Running AI Agents Safely at Scale',
+'What we will cover today',
+'Three components with separate lifecycles: Model, Harness, Sandbox',
+'Two deployment patterns: Agent-as-a-Workload vs Agent-as-a-Service',
+'The open blueprint for cloud-native AI agents on Red Hat OpenShift AI',
+'Five decisions you need to make — each behind a neutral interface',
+'Decision 1: Agent pod anatomy — supervisor, sandbox, defense rings',
+'Why PID 1 matters: the supervisor boot sequence',
+'Component decisions: what you choose, what stays open',
+'Defense in depth: three rings and four cross-cutting controls',
+'OpenShell + Kata: neither alone covers the full threat surface',
+'Run both: dual protection stops both attack classes',
+'Decision 3: Three routing tiers — security, cost, efficiency',
+'Three tiers, three owners, three speeds of change',
+'Internal vs External flows: Tier 1 decides where data may travel',
+'Three skill execution patterns — compute runs elsewhere',
+'Decision 2: MCP Gateway — claims-based tool authorization',
+'Attack walkthrough: prompt injection fails at the infrastructure layer',
+'What the gateway cannot stop — and what picks up the slack',
+'The AI Gateway: one governed front door for all inference',
+'Decision 4: SPIFFE identity — no more static keys',
+'Deep dive: Auth Bridge — the component most teams overlook',
+'Before vs After: static keys replaced by cryptographic identity',
+'Identity gaps: what is not solved yet',
+'Decision 5: Workload vs Service — trade-off matrix',
+'The two patterns compose — delegation with identity',
+'The supervisor pattern: one brain, per-agent sandboxes',
+'Benchmark: 3 pods, 2 attacks — only dual protection stopped both',
+'Vendor gravity: where it lives, how to contain it',
+'Decision framework: Workload vs Service',
+'Maturity: what is production today vs feature-gated',
+'Upcoming capabilities: what is coming next on Red Hat AI',
+'Open items the blueprint does not solve yet',
+'Phased adoption: inference, identity, isolation, governance',
+'Migration: incremental path from ungoverned to governed',
+'What this architecture does NOT require',
+'End-to-end: one request across the full blueprint',
+'Resources and attribution',
+'Q&A and next steps: where to go from here',
+'The agentic stack is the microservices stack one abstraction up'
+];
+</script>
+<script>
+(function(){
+  var slides=document.querySelectorAll('.slide');
+  slides.forEach(function(s){var logo=document.createElement('div');logo.className='slide-logo';var hat=document.createElement('div');hat.className='sl-hat';var txt=document.createElement('span');txt.className='sl-text';txt.textContent='Red Hat';logo.appendChild(hat);logo.appendChild(txt);s.appendChild(logo)});
+  var container=document.getElementById('slides');
+  var counter=document.getElementById('slide-counter');
+  var current=0;
+
+  function goto(idx){
+    current=Math.max(0,Math.min(slides.length-1,idx));
+    container.style.transform='translateX(-'+current*1280+'px)';
+    counter.textContent=(current+1)+' / '+slides.length;
+    if(window.parent!==window)window.parent.postMessage({type:'slideChange',current:current,total:slides.length},'*');
+    if(window._triggerDiagram)window._triggerDiagram(slides[current]);
+  }
+  goto(0);
+
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){e.preventDefault();window.slideNav.goto(current+1)}
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();window.slideNav.goto(current-1)}
+    if(e.key==='Home'){e.preventDefault();window.slideNav.goto(0)}
+    if(e.key==='End'){e.preventDefault();window.slideNav.goto(slides.length-1)}
+    if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen()}
+    if(e.key==='s'||e.key==='S'){window.openPresenterView()}
+  });
+
+  var tx=0;
+  document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX});
+  document.addEventListener('touchend',function(e){var dx=tx-e.changedTouches[0].clientX;if(Math.abs(dx)>50)window.slideNav.goto(current+(dx>0?1:-1))});
+  document.getElementById('viewport').addEventListener('click',function(e){
+    window.slideNav.goto(current+(e.clientX/window.innerWidth>0.5?1:-1));
+  });
+  window.printPDF=function(){window.print()};
+  window.slideNav={current:function(){return current},total:function(){return slides.length},goto:goto};
+
+  function scaleViewport(){
+    var vp=document.getElementById('viewport');
+    var availH=window.innerHeight-36;
+    var scale=Math.min(window.innerWidth/1280,availH/720);
+    vp.style.transform='scale('+scale+')';
+    vp.style.transformOrigin='top left';
+    vp.style.width=1280+'px';
+    vp.style.height=720+'px';
+  }
+  window.addEventListener('resize',scaleViewport);
+  scaleViewport();
+})();
+</script>
+<script>
+(function(){
+  var channel=null;
+  try{channel=new BroadcastChannel('presenter-sync')}catch(e){}
+  var presenterWin=null;
+
+  if(channel){
+    channel.onmessage=function(e){
+      if(e.data&&e.data.type==='navigate'&&window.slideNav){
+        window.slideNav.goto(e.data.index);
+      }
+    };
+  }
+
+  var origGoto=null;
+  function hookGoto(){
+    if(!window.slideNav||origGoto)return;
+    origGoto=window.slideNav.goto;
+    window.slideNav.goto=function(idx){
+      origGoto(idx);
+      if(channel)channel.postMessage({type:'navigate',index:window.slideNav.current()});
+    };
+  }
+  setTimeout(hookGoto,100);
+
+  window.openPresenterView=function(){
+    if(presenterWin&&!presenterWin.closed){presenterWin.focus();return}
+    var notes=window.SPEAKER_NOTES||[];
+    var titles=window.SLIDE_TITLES||[];
+    var total=window.slideNav?window.slideNav.total():1;
+    var cur=window.slideNav?window.slideNav.current():0;
+
+    presenterWin=window.open('','presenter','width=900,height=700');
+    if(!presenterWin){alert('Pop-up blocked \u2014 allow pop-ups for this site');return}
+    var d=presenterWin.document;
+    d.open();
+    d.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Presenter View</title>');
+    d.write('<style>');
+    d.write("*{box-sizing:border-box;margin:0;padding:0}");
+    d.write("body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#1a1a1a;color:#e0e0e0;display:grid;grid-template-rows:auto 1fr auto;height:100vh;overflow:hidden}");
+    d.write('.pv-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#111;border-bottom:1px solid #333;font-size:13px}');
+    d.write('.pv-header .pv-title{color:#EE0000;font-weight:700;font-size:14px}');
+    d.write('.pv-header .pv-timer{font-variant-numeric:tabular-nums;font-size:20px;font-weight:600;color:#fff}');
+    d.write('.pv-header .pv-clock{color:#888;font-size:13px}');
+    d.write('.pv-main{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px;overflow:hidden}');
+    d.write('.pv-slide-col{display:flex;flex-direction:column;gap:8px;min-height:0}');
+    d.write('.pv-slide-box{background:#212121;border:1px solid #333;border-radius:6px;padding:8px;flex:0 0 auto}');
+    d.write('.pv-slide-box h4{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}');
+    d.write('.pv-slide-title{font-size:13px;color:#fff;font-weight:600;margin-top:4px;line-height:1.3}');
+    d.write('.pv-notes-col{display:flex;flex-direction:column;min-height:0}');
+    d.write('.pv-notes-col h3{font-size:12px;color:#EE0000;text-transform:uppercase;letter-spacing:0.5px;padding-bottom:6px;border-bottom:1px solid #333;margin-bottom:8px;flex-shrink:0}');
+    d.write('.pv-notes{flex:1;overflow-y:auto;font-size:15px;line-height:1.6;color:#d2d2d2;white-space:pre-wrap;padding-right:8px}');
+    d.write('.pv-notes strong{color:#fff}');
+    d.write('.pv-footer{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 16px;background:#111;border-top:1px solid #333}');
+    d.write('.pv-btn{background:#333;color:#fff;border:1px solid #555;border-radius:4px;padding:6px 18px;font-size:13px;cursor:pointer;font-family:inherit}');
+    d.write('.pv-btn:hover{background:#444}');
+    d.write('.pv-counter{font-size:15px;font-weight:600;min-width:80px;text-align:center}');
+    d.write('.pv-notes::-webkit-scrollbar{width:6px}.pv-notes::-webkit-scrollbar-track{background:#1a1a1a}.pv-notes::-webkit-scrollbar-thumb{background:#444;border-radius:3px}');
+    d.write('</style></head><body>');
+    d.write('<div class="pv-header"><span class="pv-title">Presenter View</span><span class="pv-timer" id="pv-timer">00:00</span><span class="pv-clock" id="pv-clock"></span></div>');
+    d.write('<div class="pv-main">');
+    d.write('<div class="pv-slide-col">');
+    d.write('<div class="pv-slide-box"><h4>Current Slide</h4><div class="pv-slide-title" id="pv-cur-title"></div></div>');
+    d.write('<div class="pv-slide-box"><h4>Next Slide</h4><div class="pv-slide-title" id="pv-next-title"></div></div>');
+    d.write('</div>');
+    d.write('<div class="pv-notes-col"><h3>Speaker Notes</h3><div class="pv-notes" id="pv-notes"></div></div>');
+    d.write('</div>');
+    d.write('<div class="pv-footer"><button class="pv-btn" id="pv-prev">\u25C0 Prev</button><span class="pv-counter" id="pv-counter"></span><button class="pv-btn" id="pv-next">Next \u25B6</button></div>');
+    d.write('</body></html>');
+    d.close();
+
+    var pvNotes=notes.slice();
+    var pvTitles=titles.slice();
+    var pvTotal=total;
+    var pvCurrent=cur;
+    var startTime=Date.now();
+    var pvChannel=null;
+    try{pvChannel=new BroadcastChannel("presenter-sync")}catch(e){}
+
+    function updatePV(idx){
+      pvCurrent=idx;
+      var dd=presenterWin.document;
+      if(!dd||!dd.getElementById)return;
+      dd.getElementById("pv-cur-title").textContent=(idx+1)+". "+(pvTitles[idx]||"");
+      dd.getElementById("pv-next-title").textContent=idx+1<pvTotal?(idx+2)+". "+(pvTitles[idx+1]||""):"(End)";
+      dd.getElementById("pv-notes").textContent=pvNotes[idx]||"(No notes for this slide)";
+      dd.getElementById("pv-counter").textContent=(idx+1)+" / "+pvTotal;
+    }
+    function pvNavigate(idx){
+      idx=Math.max(0,Math.min(pvTotal-1,idx));
+      updatePV(idx);
+      if(pvChannel)pvChannel.postMessage({type:"navigate",index:idx});
+    }
+    if(pvChannel){
+      pvChannel.onmessage=function(e){
+        if(e.data&&e.data.type==="navigate")updatePV(e.data.index);
+      };
+    }
+    presenterWin.document.getElementById("pv-prev").onclick=function(){pvNavigate(pvCurrent-1)};
+    presenterWin.document.getElementById("pv-next").onclick=function(){pvNavigate(pvCurrent+1)};
+    presenterWin.document.addEventListener("keydown",function(e){
+      if(e.key==="ArrowRight"||e.key===" "){e.preventDefault();pvNavigate(pvCurrent+1)}
+      if(e.key==="ArrowLeft"){e.preventDefault();pvNavigate(pvCurrent-1)}
+    });
+    setInterval(function(){
+      if(presenterWin.closed)return;
+      var elapsed=Math.floor((Date.now()-startTime)/1000);
+      var mm=String(Math.floor(elapsed/60)).padStart(2,"0");
+      var ss=String(elapsed%60).padStart(2,"0");
+      var dd=presenterWin.document;
+      if(dd&&dd.getElementById){
+        dd.getElementById("pv-timer").textContent=mm+":"+ss;
+        dd.getElementById("pv-clock").textContent=new Date().toLocaleTimeString();
+      }
+    },1000);
+    updatePV(cur);
+  };
+})();
+</script>
+<script>
+(function(){
+var COLORS={red:'#CC0000',cyan:'#007A87',pink:'#C2185B',teal:'#00796B',blue:'#0050A0',blueLight:'#2979c4',green:'#2E7D32',purple:'#7B1FA2',orange:'#E6A200',amber:'#E6A200',bg:'#ffffff',surface:'#f5f5f5',raised:'#eeeeee',border:'#d0d0d0',text:'#151515',textDim:'#333333',textMuted:'#777777'};
+
+function createSvg(container,w,h){var el=document.querySelector(container);if(!el)return null;el.querySelectorAll('svg').forEach(function(s){s.remove()});var svg=d3.select(container).append('svg').attr('viewBox','0 0 '+w+' '+h).attr('preserveAspectRatio','xMidYMid meet');
+var defs=svg.append('defs');
+['cyan','pink','amber','red','green','purple','teal','blue'].forEach(function(c){var col=COLORS[c];defs.append('filter').attr('id','glow-'+c).append('feDropShadow').attr('dx',0).attr('dy',0).attr('stdDeviation',4).attr('flood-color',col).attr('flood-opacity',0.2)});
+defs.append('linearGradient').attr('id','grad-surface').attr('x1',0).attr('y1',0).attr('x2',0).attr('y2',1).html('<stop offset="0%" stop-color="rgba(0,0,0,0.03)"/><stop offset="100%" stop-color="rgba(0,0,0,0.01)"/>');
+return svg}
+
+function drawBox(svg,x,y,w,h,label,color,opts){opts=opts||{};var g=svg.append('g').style('opacity',0);g.transition().delay(opts.delay||0).duration(400).ease(d3.easeCubicOut).style('opacity',1);g.append('rect').attr('x',x).attr('y',y).attr('width',w).attr('height',h).attr('rx',opts.rx||6).attr('fill',opts.fill||'none').attr('stroke',color).attr('stroke-width',opts.strokeWidth||1).attr('opacity',opts.opacity||1);if(label){var lines=label.split('\\n');var textY=y+h/2-(lines.length-1)*(opts.fontSize||11)*0.6;lines.forEach(function(line,i){g.append('text').attr('x',x+w/2).attr('y',textY+i*((opts.fontSize||11)*1.25)).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('fill',opts.textColor||COLORS.text).attr('font-family',"'Red Hat Display',sans-serif").attr('font-size',opts.fontSize||11).attr('font-weight',opts.bold?700:400).text(line)})}return g}
+
+function drawArrow(svg,x1,y1,x2,y2,color,opts){opts=opts||{};var id='ah-'+Math.random().toString(36).substr(2,6);svg.append('defs').append('marker').attr('id',id).attr('viewBox','0 0 10 8').attr('refX',9).attr('refY',4).attr('markerWidth',7).attr('markerHeight',5).attr('orient','auto').append('path').attr('d','M0,0 L10,4 L0,8 Z').attr('fill',color);var line=svg.append('line').attr('x1',x1).attr('y1',y1).attr('x2',x2).attr('y2',y2).attr('stroke',color).attr('stroke-width',opts.width||1.5).attr('marker-end','url(#'+id+')').style('opacity',0);line.transition().delay(opts.delay||400).duration(350).style('opacity',0.8);if(opts.dashed)line.attr('stroke-dasharray','5,3');return line}
+
+function drawLabel(svg,x,y,text,opts){opts=opts||{};var lines=String(text).split('\\n');var fs=opts.fontSize||10;var lh=fs*1.25;if(lines.length===1){var el=svg.append('text').attr('x',x).attr('y',y).attr('text-anchor',opts.anchor||'middle').attr('dominant-baseline',opts.baseline||'middle').attr('fill',opts.color||COLORS.textMuted).attr('font-family',"'Red Hat Display',sans-serif").attr('font-size',fs).attr('font-weight',opts.bold?700:400).text(text).style('opacity',0);el.transition().delay(opts.delay||400).duration(350).style('opacity',1);if(opts.transform)el.attr('transform',opts.transform);return el}var g=svg.append('g').style('opacity',0);g.transition().delay(opts.delay||400).duration(350).style('opacity',1);if(opts.transform)g.attr('transform',opts.transform);lines.forEach(function(line,i){g.append('text').attr('x',x).attr('y',y+i*lh).attr('text-anchor',opts.anchor||'middle').attr('dominant-baseline',opts.baseline||'middle').attr('fill',opts.color||COLORS.textMuted).attr('font-family',"'Red Hat Display',sans-serif").attr('font-size',fs).attr('font-weight',opts.bold?700:400).text(line)});return g}
+
+/* ── 7 ORIGINAL DIAGRAM FUNCTIONS ── */
+
+function renderThreeComponents(){var svg=createSvg('#d-three-components',900,350);if(!svg)return;
+var cW=240,cH=280,gap=45,startX=(900-3*cW-2*gap)/2;
+var components=[
+{name:'Model',color:COLORS.cyan,icon:'M -12,-14 L 12,-14 L 12,6 L 0,6 L 0,14 L -6,14 L -6,6 L -12,6 Z M -6,-10 L -2,-10 L -2,-6 L -6,-6 Z M 2,-10 L 6,-10 L 6,-6 L 2,-6 Z M -4,-2 L 4,-2 L 4,2 L -4,2 Z',items:['Stateless inference','OpenAI-compatible API','Any: Llama, Nemotron,','DeepSeek, Qwen, Mistral'],lifecycle:'Version & swap independently'},
+{name:'Harness',color:COLORS.pink,icon:'M 0,-16 A 4,4 0 1,1 0,-8 A 4,4 0 1,1 0,-16 Z M -2,-8 L -8,0 L -14,14 L -4,10 L 0,16 L 4,10 L 14,14 L 8,0 L 2,-8 Z',items:['Owns the loop','Memory & context window','Tool-call orchestration'],lifecycle:'OpenClaw \u00b7 LangGraph \u00b7 Custom'},
+{name:'Sandbox',color:COLORS.amber,icon:'M -12,-6 L -12,-12 L -6,-12 L -6,-14 L 6,-14 L 6,-12 L 12,-12 L 12,-6 L 14,-6 L 14,10 L -14,10 L -14,-6 Z M -6,-4 L -6,4 L 6,4 L 6,-4 Z',items:['Files, binaries, endpoints','Kernel-level isolation','Egress & syscall policy'],lifecycle:'OpenShell \u00b7 Kata \u00b7 agent-sandbox'}
+];
+components.forEach(function(c,i){
+var x=startX+i*(cW+gap),y=20;
+var g=svg.append('g').attr('transform','translate('+x+','+y+')').style('opacity',0);
+g.transition().delay(150+i*200).duration(500).ease(d3.easeCubicOut).style('opacity',1);
+g.append('rect').attr('width',cW).attr('height',cH).attr('rx',10).attr('fill','url(#grad-surface)').attr('stroke',c.color).attr('stroke-width',1.5);
+g.append('rect').attr('width',cW).attr('height',3).attr('rx',1.5).attr('fill',c.color);
+var glowId=c.color===COLORS.cyan?'cyan':c.color===COLORS.pink?'pink':'amber';
+g.append('path').attr('d',c.icon).attr('transform','translate('+(cW/2)+',38)').attr('fill',c.color).attr('filter','url(#glow-'+glowId+')');
+drawLabel(g,cW/2,68,c.name,{bold:true,fontSize:14,color:c.color,delay:0});
+c.items.forEach(function(t,j){drawLabel(g,cW/2,100+j*26,t,{fontSize:10,color:COLORS.textDim,delay:0});});
+g.append('rect').attr('x',16).attr('y',cH-44).attr('width',cW-32).attr('height',28).attr('rx',14).attr('fill',c.color).attr('fill-opacity',0.12);
+drawLabel(g,cW/2,cH-26,c.lifecycle,{fontSize:9,color:c.color,delay:0,bold:true});
+});
+for(var i=0;i<2;i++){
+var x1=startX+(i+1)*(cW+gap)-gap+5,x2=startX+(i+1)*(cW+gap)-5,cy=20+cH/2;
+drawArrow(svg,x1,cy,x2,cy,COLORS.textMuted,{delay:800+i*150,dashed:true});
+}
+drawLabel(svg,450,cH+40,'Separate lifecycles \u2192 separate scaling \u2192 separate security',{bold:true,fontSize:11,color:COLORS.text,delay:1000});
+}
+
+function renderAgentAssumptions(){var svg=createSvg('#d-agent-assumptions',900,340);if(!svg)return;
+drawLabel(svg,300,14,'YOUR INFRASTRUCTURE ASSUMES\u2026',{bold:true,fontSize:11,color:COLORS.textMuted,delay:0});
+drawLabel(svg,670,14,'AGENTS VIOLATE ALL FIVE',{bold:true,fontSize:11,color:COLORS.red,delay:100});
+var items=[
+{assumption:'Requests are short-lived',micro:'ms\u2013s, stateless',agent:'Minutes to days, stateful',color:COLORS.orange},
+{assumption:'Workload does what you coded',micro:'Deterministic, auditable at build',agent:'Model decides, audit only at runtime',color:COLORS.purple},
+{assumption:'Network policy = security',micro:'Known callers, service mesh',agent:'Agent picks its own destinations',color:COLORS.blue},
+{assumption:'Credentials are static secrets',micro:'Vault-injected, rotated quarterly',agent:'Workspace attackable via prompt',color:COLORS.red},
+{assumption:'One model, one endpoint',micro:'Fixed graph, one SLA',agent:'3 routing decisions per call',color:COLORS.teal}
+];
+var rowH=56,startY=30,colX=[20,310,610];
+drawBox(svg,colX[0],startY,275,30,'Assumption',COLORS.textMuted,{fill:COLORS.textMuted+'08',delay:50,fontSize:11,bold:true});
+drawBox(svg,colX[1],startY,280,30,'Microservice \u2713',COLORS.green,{fill:COLORS.green+'06',delay:70,fontSize:11,bold:true});
+drawBox(svg,colX[2],startY,275,30,'Agent \u2717',COLORS.red,{fill:COLORS.red+'06',delay:90,fontSize:11,bold:true});
+items.forEach(function(it,i){var y=startY+34+i*rowH;
+drawBox(svg,colX[0],y,275,48,it.assumption,it.color,{fill:it.color+'0a',delay:120+i*60,fontSize:11,bold:true});
+drawBox(svg,colX[1],y,280,48,it.micro,COLORS.textMuted,{fill:'transparent',delay:140+i*60,fontSize:10});
+drawBox(svg,colX[2],y,275,48,it.agent,COLORS.red,{fill:COLORS.red+'06',delay:160+i*60,fontSize:10,bold:true})
+})}
+
+function renderFiveDecisions(){var svg=createSvg('#d-five-decisions',900,360);if(!svg)return;
+var decisions=[
+{num:'1',title:'Isolate',sub:'Sandbox \u00b7 supervisor \u00b7 rings',color:COLORS.red,techs:['OpenShell','Kata','seccomp','Landlock']},
+{num:'2',title:'Govern Tools',sub:'MCP Gateway \u00b7 claims auth',color:COLORS.teal,techs:['MCP Gateway','Envoy','Kuadrant','Authorino']},
+{num:'3',title:'Route Inference',sub:'Security \u00b7 cost \u00b7 efficiency',color:COLORS.purple,techs:['Egress Router','Semantic Router','llm-d EPP','AI Gateway']},
+{num:'4',title:'Prove Identity',sub:'SPIFFE \u00b7 JWT-SVID \u00b7 0 keys',color:COLORS.cyan,techs:['SPIFFE','SPIRE','JWT-SVID','Keycloak']},
+{num:'5',title:'Place Loop',sub:'Workload vs Service',color:COLORS.amber,techs:['OGX','OpenClaw','LangGraph','Responses API']}
+];
+var cardW=164,cardH=290,gap=10,startX=18;
+decisions.forEach(function(d,i){var cx=startX+i*(cardW+gap),cy=8;
+var g=svg.append('g').style('opacity',0).attr('transform','translate(0,15)');
+g.transition().delay(i*100).duration(450).ease(d3.easeCubicOut).style('opacity',1).attr('transform','translate(0,0)');
+g.append('rect').attr('x',cx).attr('y',cy).attr('width',cardW).attr('height',cardH).attr('rx',8).attr('fill','url(#grad-surface)').attr('stroke',d.color).attr('stroke-width',1);
+g.append('rect').attr('x',cx).attr('y',cy).attr('width',3).attr('height',cardH).attr('rx',1.5).attr('fill',d.color);
+var glowId=d.color===COLORS.red?'red':d.color===COLORS.teal?'teal':d.color===COLORS.purple?'purple':d.color===COLORS.cyan?'cyan':'amber';
+g.append('circle').attr('cx',cx+cardW/2).attr('cy',cy+30).attr('r',17).attr('fill',d.color+'20').attr('stroke',d.color).attr('stroke-width',1.5).attr('filter','url(#glow-'+glowId+')');
+drawLabel(g,cx+cardW/2,cy+34,d.num,{bold:true,fontSize:15,color:d.color,delay:0});
+drawLabel(g,cx+cardW/2,cy+62,d.title,{bold:true,fontSize:11,color:COLORS.text,delay:0});
+drawLabel(g,cx+cardW/2,cy+82,d.sub,{fontSize:8,color:COLORS.textMuted,delay:0});
+d.techs.forEach(function(t,ti){
+g.append('rect').attr('x',cx+8).attr('y',cy+100+ti*32).attr('width',cardW-16).attr('height',24).attr('rx',12).attr('fill',d.color+'10').attr('stroke',d.color).attr('stroke-width',0.5);
+g.append('text').attr('x',cx+cardW/2).attr('y',cy+114+ti*32).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('fill',COLORS.text).attr('font-family',"'Red Hat Display',sans-serif").attr('font-size',9).text(t)
+})});
+drawLabel(svg,450,330,'Open interfaces: OpenAI-compatible \u00b7 MCP \u00b7 agent-sandbox API \u00b7 SPIFFE',{fontSize:10,color:COLORS.textMuted,delay:700})}
+
+function renderAgentPodAnatomy(){var svg=createSvg('#d-agent-pod',900,360);if(!svg)return;
+var podX=160,podY=6,podW=580,podH=220;
+drawBox(svg,podX,podY,podW,podH,'',COLORS.blue,{fill:'url(#grad-surface)',delay:0,rx:10,strokeWidth:1.5});
+drawLabel(svg,podX+podW/2,podY+16,'AGENT POD',{bold:true,fontSize:12,color:COLORS.blue,delay:30});
+var supX=podX+16,supY=podY+28,supW=podW-32,supH=68;
+drawBox(svg,supX,supY,supW,supH,'',COLORS.teal,{fill:COLORS.teal+'08',delay:80,rx:6});
+drawLabel(svg,supX+supW/2,supY+14,'Supervisor (PID 1)',{bold:true,fontSize:11,color:COLORS.teal,delay:100});
+['seccomp','Landlock','Network NS','Binary allowlist','Egress proxy'].forEach(function(s,i){var bx=supX+8+i*(supW/5);drawBox(svg,bx,supY+26,supW/5-6,34,s,COLORS.teal,{fill:COLORS.teal+'10',delay:150+i*30,fontSize:8.5,rx:5})});
+var agentX=podX+50,agentY=supY+supH+10,agentW=220,agentH=72;
+drawBox(svg,agentX,agentY,agentW,agentH,'',COLORS.purple,{fill:COLORS.purple+'08',delay:300,rx:6});
+drawLabel(svg,agentX+agentW/2,agentY+16,'Agent Harness',{bold:true,fontSize:11,color:COLORS.purple,delay:320});
+drawLabel(svg,agentX+agentW/2,agentY+34,'Loop \u00b7 Memory \u00b7 Context',{fontSize:9,color:COLORS.textMuted,delay:340});
+drawLabel(svg,agentX+agentW/2,agentY+50,'OpenClaw / LangGraph',{fontSize:9,color:COLORS.purple,delay:350});
+var authX=podX+310,authY=agentY,authW=220,authH=72;
+drawBox(svg,authX,authY,authW,authH,'',COLORS.red,{fill:COLORS.red+'08',delay:300,rx:6});
+drawLabel(svg,authX+authW/2,authY+16,'Auth Sidecar',{bold:true,fontSize:11,color:COLORS.red,delay:320});
+drawLabel(svg,authX+authW/2,authY+34,'SPIFFE SVID \u2192 Token',{fontSize:9,color:COLORS.textMuted,delay:340});
+drawLabel(svg,authX+authW/2,authY+50,'5-min short-lived claims',{fontSize:9,color:COLORS.red,delay:350});
+var ringY=podY+podH+16;
+var rings=[{label:'Ring 1: Process',detail:'seccomp, Landlock, binary allowlist',color:COLORS.teal},{label:'Ring 2: Pod',detail:'PSS, SELinux, NetworkPolicy, Kata',color:COLORS.blue},{label:'Ring 3: Hardware/VM',detail:'Confidential Containers',color:COLORS.purple}];
+rings.forEach(function(r,i){var rx=podX+i*195;
+drawBox(svg,rx,ringY,185,55,r.label,r.color,{fill:r.color+'08',delay:420+i*60,fontSize:10,bold:true,rx:6});
+drawLabel(svg,rx+92,ringY+38,r.detail,{fontSize:8,color:COLORS.textMuted,delay:450+i*60});
+if(i<rings.length-1)drawArrow(svg,rx+185,ringY+27,rx+195,ringY+27,COLORS.textMuted,{delay:500+i*60})});
+drawLabel(svg,podX+podW/2,ringY+68,'Each ring assumes the ring inside it has already failed',{fontSize:10,bold:true,color:COLORS.text,delay:650})}
+
+function renderMcpGateway(){var svg=createSvg('#d-mcp-gateway',900,340);if(!svg)return;
+var agentX=20,agentY=70,agentW=130;
+drawBox(svg,agentX,agentY,agentW,48,'Agent Pod',COLORS.blue,{fill:COLORS.blue+'08',delay:0,bold:true,fontSize:11,rx:6});
+drawLabel(svg,agentX+agentW/2,agentY+36,'Bearer token',{fontSize:8,color:COLORS.textMuted,delay:30});
+drawArrow(svg,agentX+agentW,agentY+24,220,agentY+24,COLORS.teal,{delay:80});
+var gwX=220,gwY=34,gwW=200,gwH=110;
+drawBox(svg,gwX,gwY,gwW,gwH,'',COLORS.teal,{fill:'url(#grad-surface)',delay:100,rx:8,strokeWidth:1.5});
+drawLabel(svg,gwX+gwW/2,gwY+16,'MCP Gateway',{bold:true,fontSize:12,color:COLORS.teal,delay:120});
+drawLabel(svg,gwX+gwW/2,gwY+32,'Envoy + Kuadrant/Authorino',{fontSize:8,color:COLORS.textMuted,delay:140});
+drawBox(svg,gwX+16,gwY+44,gwW-32,26,'Validate token claims',COLORS.teal,{fill:COLORS.teal+'10',delay:180,fontSize:9,rx:5});
+drawBox(svg,gwX+16,gwY+74,gwW-32,26,'Check tool \u2208 allowed set',COLORS.teal,{fill:COLORS.teal+'10',delay:210,fontSize:9,rx:5});
+var toolX=500,toolGap=44;
+[{label:'CUDA-X Service',color:COLORS.purple},{label:'OR-Tools API',color:COLORS.blue},{label:'RAG Service',color:COLORS.orange},{label:'SaaS Endpoint',color:COLORS.red}].forEach(function(t,i){var ty=18+i*toolGap;
+drawArrow(svg,gwX+gwW,gwY+gwH/2,toolX,ty+16,COLORS.textMuted,{delay:280+i*30});
+drawBox(svg,toolX,ty,150,32,t.label,t.color,{fill:t.color+'08',delay:300+i*40,fontSize:10,rx:6})});
+var flowY=192;
+drawLabel(svg,450,flowY,'PROMPT INJECTION DEFENSE',{bold:true,fontSize:11,color:COLORS.red,delay:450});
+[{label:'1. Injected prompt forces\nunauthorized tool call',color:COLORS.red},{label:'2. Gateway checks token\nclaims, not prompt',color:COLORS.teal},{label:'3. Tool not in allowed set\n\u2192 Request DENIED',color:COLORS.green}].forEach(function(s,i){var sx=60+i*280;
+drawBox(svg,sx,flowY+12,250,55,s.label,s.color,{fill:s.color+'06',delay:500+i*80,fontSize:10,rx:6})});
+drawLabel(svg,450,flowY+82,'Authorization is not the model\u2019s decision to make',{fontSize:10,bold:true,color:COLORS.text,delay:750})}
+
+function renderSpiffeFlow(){var svg=createSvg('#d-spiffe-flow',900,340);if(!svg)return;
+drawLabel(svg,450,10,'ZERO STATIC KEYS \u2014 SPIFFE IDENTITY FLOW',{bold:true,fontSize:12,color:COLORS.red,delay:0});
+var steps=[
+{num:'1',title:'SVID Issued',detail:'SPIRE issues JWT-SVID\nAuto-rotated, short-lived\nPer-pod identity',color:COLORS.red},
+{num:'2',title:'Auth Bridge',detail:'Presents SVID to\nKeycloak (RFC 8693)\nReturns scoped token',color:COLORS.cyan},
+{num:'3',title:'Token Claims',detail:'sub: field-optimizer\ntools: [cuopt, rag]\nexp: 5 min',color:COLORS.teal},
+{num:'4',title:'Every Call Authed',detail:'MCP Gw validates\nAI Gw validates\nNo static key anywhere',color:COLORS.green}
+];
+var stepW=180,stepH=150,gap=32,startX=24,startY=26;
+steps.forEach(function(s,i){var cx=startX+i*(stepW+gap);
+drawBox(svg,cx,startY,stepW,stepH,'',s.color,{fill:'url(#grad-surface)',delay:i*100,rx:8});
+var glowId=s.color===COLORS.red?'red':s.color===COLORS.cyan?'cyan':s.color===COLORS.teal?'teal':'green';
+svg.append('circle').attr('cx',cx+stepW/2).attr('cy',startY+22).attr('r',13).attr('fill',s.color+'20').attr('stroke',s.color).attr('stroke-width',1.5).attr('filter','url(#glow-'+glowId+')').style('opacity',0).transition().delay(i*100+40).duration(350).style('opacity',1);
+drawLabel(svg,cx+stepW/2,startY+26,s.num,{bold:true,fontSize:13,color:s.color,delay:i*100+60});
+drawLabel(svg,cx+stepW/2,startY+46,s.title,{bold:true,fontSize:11,color:COLORS.text,delay:i*100+80});
+drawLabel(svg,cx+stepW/2,startY+76,s.detail,{fontSize:8.5,color:COLORS.textMuted,delay:i*100+120});
+if(i<steps.length-1){var ax=cx+stepW,ax2=cx+stepW+gap;
+drawArrow(svg,ax+4,startY+stepH/2,ax2-4,startY+stepH/2,COLORS.textMuted,{delay:i*100+150})}
+});
+var compY=startY+stepH+18;
+drawBox(svg,24,compY,410,44,'BEFORE: Static API keys, rotated quarterly,\none key = full access, leaked prompt = game over',COLORS.red,{fill:COLORS.red+'06',delay:500,fontSize:9,rx:6});
+drawBox(svg,452,compY,424,44,'AFTER: Per-agent crypto identity, auto-rotated,\nper-tool entitlements, nothing durable to steal',COLORS.green,{fill:COLORS.green+'06',delay:580,fontSize:9,rx:6});
+drawLabel(svg,450,compY+58,'Containment economics: revoke one identity = one targeted operation',{fontSize:10,bold:true,color:COLORS.text,delay:700})}
+
+function renderAgentBenchmark(){var svg=createSvg('#d-agent-benchmark',900,340);if(!svg)return;
+drawLabel(svg,450,8,'SAME IMAGE \u00b7 SAME AGENT \u00b7 SAME MODEL \u00b7 THREE PROTECTION LAYERS',{bold:true,fontSize:11,color:COLORS.text,delay:0});
+var pods=[{label:'Pod 1: Kata Only',tech:'Kata micro-VM, no OpenShell',color:COLORS.purple},{label:'Pod 2: OpenShell Only',tech:'OpenShell + egress proxy, runc',color:COLORS.teal},{label:'Pod 3: Both (Dual)',tech:'OpenShell inside Kata',color:COLORS.green}];
+var podW=270,podH=40,startY=24;
+pods.forEach(function(p,i){var px=30+i*(podW+14);
+drawBox(svg,px,startY,podW,podH,p.label,p.color,{fill:p.color+'08',delay:40+i*60,fontSize:11,bold:true,rx:6});
+drawLabel(svg,px+podW/2,startY+podH-6,p.tech,{fontSize:8,color:COLORS.textMuted,delay:60+i*60})});
+var atkY=78;
+drawLabel(svg,450,atkY,'ATTACK 1: Prompt Injection Exfiltration',{bold:true,fontSize:10,color:COLORS.red,delay:200});
+var atk1=[{result:'DATA LEAKED',color:COLORS.red,detail:'curl succeeded'},{result:'BLOCKED',color:COLORS.green,detail:'Egress denied'},{result:'BLOCKED',color:COLORS.green,detail:'Egress denied'}];
+atk1.forEach(function(a,i){var ax=30+i*(podW+14),ay=atkY+12;
+drawBox(svg,ax,ay,podW,44,'',a.color,{fill:a.color+'06',delay:240+i*50,rx:6});
+drawLabel(svg,ax+podW/2,ay+18,a.result,{bold:true,fontSize:13,color:a.color,delay:260+i*50});
+drawLabel(svg,ax+podW/2,ay+34,a.detail,{fontSize:8,color:COLORS.textMuted,delay:280+i*50})});
+var atk2Y=atkY+68;
+drawLabel(svg,450,atk2Y,'ATTACK 2: CVE-2026-31431 Container Escape',{bold:true,fontSize:10,color:COLORS.red,delay:400});
+var atk2=[{result:'CONTAINED',color:COLORS.green,detail:'virtiofs blocks page cache'},{result:'HOST COMPROMISED',color:COLORS.red,detail:'Page-cache corruption escaped'},{result:'CONTAINED',color:COLORS.green,detail:'VM boundary blocked'}];
+atk2.forEach(function(a,i){var ax=30+i*(podW+14),ay=atk2Y+12;
+drawBox(svg,ax,ay,podW,44,'',a.color,{fill:a.color+'06',delay:440+i*50,rx:6});
+drawLabel(svg,ax+podW/2,ay+18,a.result,{bold:true,fontSize:13,color:a.color,delay:460+i*50});
+drawLabel(svg,ax+podW/2,ay+34,a.detail,{fontSize:8,color:COLORS.textMuted,delay:480+i*50})});
+var matY=atk2Y+68;
+drawLabel(svg,450,matY,'RESULTS MATRIX',{bold:true,fontSize:10,color:COLORS.text,delay:600});
+// Columns match pod positions: 30, 314, 598 (podW=270, gap=14)
+var px0=30,px1=314,px2=598,rh=26;
+// Header row
+drawBox(svg,px0,matY+14,podW,rh,'Kata Only',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:620,fontSize:10,bold:true,rx:3});
+drawBox(svg,px1,matY+14,podW,rh,'OpenShell Only',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:640,fontSize:10,bold:true,rx:3});
+drawBox(svg,px2,matY+14,podW,rh,'Both',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:660,fontSize:10,bold:true,rx:3});
+// Row 1: Prompt Injection
+var r1y=matY+44;
+drawLabel(svg,450,r1y,'Prompt Injection',{bold:true,fontSize:9,color:COLORS.red,delay:670});
+var r1=[{t:'LEAKED',c:COLORS.red},{t:'BLOCKED',c:COLORS.green},{t:'BLOCKED',c:COLORS.green}];
+var pxArr=[px0,px1,px2];
+r1.forEach(function(r,ci){drawBox(svg,pxArr[ci],r1y+6,podW,rh,r.t,r.c,{fill:r.c+'10',delay:680+ci*20,fontSize:10,bold:true,rx:3})});
+// Row 2: Container Escape
+var r2y=r1y+38;
+drawLabel(svg,450,r2y,'Container Escape',{bold:true,fontSize:9,color:COLORS.red,delay:710});
+var r2=[{t:'CONTAINED',c:COLORS.green},{t:'COMPROMISED',c:COLORS.red},{t:'CONTAINED',c:COLORS.green}];
+r2.forEach(function(r,ci){drawBox(svg,pxArr[ci],r2y+6,podW,rh,r.t,r.c,{fill:r.c+'10',delay:720+ci*20,fontSize:10,bold:true,rx:3})});
+drawLabel(svg,450,r2y+44,'Dual protection stops both attack classes',{fontSize:10,bold:true,color:COLORS.text,delay:780})}
+
+/* ── 5 NEW DIAGRAM FUNCTIONS (replacing article PNGs) ── */
+
+function renderBlueprintArch(){var svg=createSvg('#d-blueprint-arch',1100,420);if(!svg)return;
+var W=1090,M=5,d=0;
+
+// ── CONTROL PLANE ROW ──
+var cy=4;
+drawBox(svg,M,cy,720,66,'',COLORS.blue,{fill:COLORS.blue+'05',delay:d,rx:8});
+drawLabel(svg,M+10,cy+13,'CONTROL / SECURITY PLANE',{anchor:'start',bold:true,fontSize:10,color:COLORS.blue,delay:d+=10});
+
+var cpW=165,cpH=38,cpX=M+12;
+var cps=[
+{l:'Agent Blueprint / GitOps',sub:'Helm \u00b7 NemoClaw'},
+{l:'Sandbox Control Plane',sub:'OpenShell Gateway'},
+{l:'Sandbox CRD + Controller',sub:'agent-sandbox SIG'},
+{l:'Workload Identity',sub:'SPIFFE/SPIRE \u00b7 JWT-SVID'}];
+cps.forEach(function(c,i){var cx=cpX+i*178;
+drawBox(svg,cx,cy+20,cpW,cpH,c.l,COLORS.blue,{fill:COLORS.blue+'0a',delay:d+=20,fontSize:10,bold:true,rx:5});
+drawLabel(svg,cx+cpW/2,cy+52,c.sub,{fontSize:8,color:COLORS.textMuted,delay:d+10})});
+for(var ai=0;ai<3;ai++){var ax1=cpX+(ai+1)*178-13,ax2=cpX+(ai+1)*178;
+drawArrow(svg,ax1,cy+39,ax2,cy+39,COLORS.blue,{delay:d+=8,dashed:true})}
+
+// External LLM (top right)
+drawBox(svg,740,cy,200,50,'External LLM (optional)',COLORS.orange,{fill:COLORS.orange+'08',delay:40,fontSize:11,bold:true,rx:6});
+drawLabel(svg,840,cy+38,'disguised queries only',{fontSize:8,color:COLORS.orange,delay:55});
+
+// ── EXECUTION ZONE ──
+var ey=78;
+
+// -- Skill backends (left column) --
+var sbW=165,sbH=230;
+drawBox(svg,M,ey,sbW,sbH,'',COLORS.textMuted,{fill:COLORS.textMuted+'03',delay:d+=15,rx:7,strokeWidth:0.5});
+drawLabel(svg,M+sbW/2,ey+14,'Skill Backends',{bold:true,fontSize:10,color:COLORS.textMuted,delay:d+5});
+
+var sbs=[
+{l:'Optimization',sub:'cuOpt \u00b7 OR-Tools',c:COLORS.amber},
+{l:'Domain AI',sub:'NIM \u00b7 RAG service',c:COLORS.amber},
+{l:'Batch compute',sub:'PhysicsNeMo \u00b7 JAX',c:COLORS.amber}];
+sbs.forEach(function(s,i){var sy=ey+28+i*58;
+drawBox(svg,M+8,sy,sbW-16,48,s.l,s.c,{fill:s.c+'08',delay:d+=25,fontSize:10,bold:true,rx:4});
+drawLabel(svg,M+sbW/2,sy+36,s.sub,{fontSize:8,color:COLORS.textMuted,delay:d+10})});
+drawLabel(svg,M+sbW/2,ey+216,'via MCP Gateway',{fontSize:8,color:COLORS.teal,bold:true,delay:d+20});
+
+// -- Agent Pod (center) --
+var apx=M+sbW+12,apy=ey,apW=360,apH=230;
+drawBox(svg,apx,apy,apW,apH,'',COLORS.blue,{fill:COLORS.blue+'04',delay:d+=10,rx:8,strokeWidth:1.5});
+drawLabel(svg,apx+apW/2,apy+15,'Agent Pod: one per Sandbox CR',{bold:true,fontSize:11,color:COLORS.blue,delay:d+=10});
+drawLabel(svg,apx+apW/2,apy+28,'kata (optional) \u00b7 SELinux \u00b7 netns isolated',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+
+// Harness + Supervisor
+var hbW=170;
+drawBox(svg,apx+8,apy+38,hbW,44,'Agent Harness',COLORS.purple,{fill:COLORS.purple+'0a',delay:d+=20,fontSize:11,bold:true,rx:5});
+drawLabel(svg,apx+8+hbW/2,apy+68,'OpenClaw \u00b7 LangGraph',{fontSize:8,color:COLORS.textMuted,delay:d+10});
+
+drawBox(svg,apx+182,apy+38,hbW,44,'Sandbox Supervisor',COLORS.teal,{fill:COLORS.teal+'0a',delay:d+=20,fontSize:11,bold:true,rx:5});
+drawLabel(svg,apx+182+hbW/2,apy+68,'OpenShell \u00b7 PII guard',{fontSize:8,color:COLORS.textMuted,delay:d+10});
+
+// Skills grid
+drawLabel(svg,apx+apW/2,apy+96,'Agent skills: thin clients, no GPU in pod',{fontSize:8,color:COLORS.textMuted,delay:d+=15});
+var skills=['DataFrames','Research/RAG','Physics sim','Optimization','Model ops','Quantum'];
+skills.forEach(function(sk,i){
+var col=i%3,row=Math.floor(i/3);
+var sx=apx+8+col*118,sy=apy+106+row*38;
+drawBox(svg,sx,sy,112,30,sk,COLORS.amber,{fill:COLORS.amber+'0c',delay:d+=8,fontSize:9.5,bold:true,rx:4})});
+drawLabel(svg,apx+apW/2,apy+192,'pattern 1: in-pod with explicit GPU request',{fontSize:7.5,color:COLORS.textMuted,delay:d+10});
+
+// Arrow: pod ← skill backends
+var arY=apy+60;
+drawArrow(svg,M+sbW,arY,apx,arY,COLORS.teal,{delay:d+=15,dashed:true});
+drawLabel(svg,(M+sbW+apx)/2,arY-9,'tool calls',{fontSize:8,color:COLORS.teal,delay:d});
+
+// -- Inference plane (right) --
+var ipx=apx+apW+12,ipy=ey,ipW=360;
+
+// Arrow: pod → external LLM
+drawArrow(svg,apx+apW,apy+16,740,cy+32,COLORS.orange,{delay:d+=10,dashed:true});
+drawLabel(svg,610,cy+20,'PII masked',{fontSize:8,color:COLORS.orange,delay:d});
+
+// Arrow: pod → inference
+drawArrow(svg,apx+apW,apy+60,ipx,ipy+30,COLORS.green,{delay:d+=10});
+drawLabel(svg,(apx+apW+ipx)/2,apy+72,'in-cluster',{fontSize:8,color:COLORS.green,delay:d});
+
+// AI Gateway
+drawBox(svg,ipx,ipy,174,56,'AI Gateway (MaaS)',COLORS.green,{fill:COLORS.green+'0a',delay:d+=15,fontSize:11,bold:true,rx:6});
+drawLabel(svg,ipx+87,ipy+36,'OpenResponses / OGX',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+87,ipy+47,'auth \u00b7 quota \u00b7 guardrails',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+
+// Semantic routing
+drawBox(svg,ipx+182,ipy,174,56,'Semantic Routing',COLORS.purple,{fill:COLORS.purple+'06',delay:d+=15,fontSize:11,bold:true,rx:6});
+drawLabel(svg,ipx+269,ipy+36,'Tier 2: which model?',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+269,ipy+47,'Red Hat AI gateway',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+
+// Model Workers
+drawBox(svg,ipx,ipy+66,174,56,'Model Workers',COLORS.blue,{fill:COLORS.blue+'08',delay:d+=15,fontSize:11,bold:true,rx:6});
+drawLabel(svg,ipx+87,ipy+98,'vLLM \u00b7 any accelerator',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+87,ipy+110,'Nemotron \u00b7 Llama \u00b7 DeepSeek',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+
+// Inference Scheduler
+drawBox(svg,ipx+182,ipy+66,174,56,'Inference Scheduler',COLORS.teal,{fill:COLORS.teal+'06',delay:d+=15,fontSize:11,bold:true,rx:6});
+drawLabel(svg,ipx+269,ipy+98,'Tier 3: which replica?',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+269,ipy+110,'llm-d EPP \u00b7 Gateway API',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+
+// Inference arrows
+drawArrow(svg,ipx+174,ipy+28,ipx+182,ipy+28,COLORS.textMuted,{delay:d+=5});
+drawArrow(svg,ipx+87,ipy+56,ipx+87,ipy+66,COLORS.textMuted,{delay:d+=5});
+drawArrow(svg,ipx+269,ipy+56,ipx+269,ipy+66,COLORS.textMuted,{delay:d+=5});
+
+// Audit & Tracing
+drawBox(svg,ipx,ipy+132,ipW,32,'Audit & Tracing',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:d+=15,fontSize:10,bold:true,rx:4});
+drawLabel(svg,ipx+ipW/2,ipy+154,'MLflow \u00b7 OpenTelemetry \u00b7 end-to-end traces',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+
+// ── MCP GATEWAY BAR ──
+var mgY=ey+apH+8;
+drawBox(svg,M,mgY,W,32,'',COLORS.teal,{fill:COLORS.teal+'0c',delay:d+=20,rx:5,strokeWidth:1.2});
+drawLabel(svg,W/2+M,mgY+12,'MCP Gateway: tool authorization',{bold:true,fontSize:11,color:COLORS.teal,delay:d+5});
+drawLabel(svg,W/2+M,mgY+25,'Envoy \u00b7 Kuadrant / Authorino \u00b7 SVID token claims',{fontSize:8,color:COLORS.textMuted,delay:d+10});
+
+// ── PLATFORM BARS (3 tiers) ──
+var p1y=mgY+38;
+drawBox(svg,M,p1y,W,28,'',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:d+=15,rx:4});
+drawLabel(svg,W/2+M,p1y+10,'Kubernetes / OpenShift',{bold:true,fontSize:10,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,W/2+M,p1y+22,'agent-sandbox \u00b7 kata \u00b7 confidential containers \u00b7 Gateway API \u00b7 NetworkPolicy',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+
+var p2y=p1y+30;
+drawBox(svg,M,p2y,W,24,'',COLORS.textMuted,{fill:COLORS.textMuted+'04',delay:d+=15,rx:4});
+drawLabel(svg,W/2+M,p2y+9,'Linux kernel',{bold:true,fontSize:9,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,W/2+M,p2y+20,'SELinux \u00b7 seccomp \u00b7 Landlock \u00b7 netns',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+
+var p3y=p2y+26;
+drawBox(svg,M,p3y,W,24,'',COLORS.textMuted,{fill:COLORS.textMuted+'04',delay:d+=15,rx:4});
+drawLabel(svg,W/2+M,p3y+9,'Accelerated infrastructure: silicon of choice',{bold:true,fontSize:9,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,W/2+M,p3y+20,'NVIDIA CUDA \u00b7 AMD ROCm \u00b7 Intel Gaudi \u00b7 Google TPU',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+}
+
+function renderWorkloadVsService(){var svg=createSvg('#d-workload-vs-service',900,350);if(!svg)return;
+var colW=400,colH=280,gap=40,sx=30;
+// Left: Agent-as-a-Workload
+var lx=sx;
+drawBox(svg,lx,6,colW,colH,'',COLORS.blue,{fill:'url(#grad-surface)',delay:0,rx:10,strokeWidth:1});
+drawLabel(svg,lx+colW/2,24,'Agent as a Workload',{bold:true,fontSize:14,color:COLORS.blue,delay:30});
+drawLabel(svg,lx+colW/2,40,'Loop ships inside the agent pod',{fontSize:9,color:COLORS.textMuted,delay:50});
+drawBox(svg,lx+80,52,240,30,'Caller / trigger',COLORS.textMuted,{fill:COLORS.textMuted+'08',delay:80,fontSize:10,rx:5});
+drawArrow(svg,lx+200,82,lx+200,94,COLORS.blue,{delay:110});
+drawBox(svg,lx+40,94,320,38,'Agent Harness runs the loop',COLORS.blue,{fill:COLORS.blue+'0c',delay:130,fontSize:11,bold:true,rx:6});
+drawLabel(svg,lx+200,120,'plan \u2192 act \u2192 observe \u2192 memory \u2192 context',{fontSize:8,color:COLORS.textMuted,delay:150});
+drawArrow(svg,lx+200,132,lx+200,144,COLORS.teal,{delay:170});
+drawBox(svg,lx+40,144,320,34,'Sandbox Supervisor \u00b7 rings \u00b7 egress proxy',COLORS.teal,{fill:COLORS.teal+'0a',delay:190,fontSize:10,rx:6});
+drawArrow(svg,lx+140,178,lx+140,196,COLORS.teal,{delay:220});
+drawArrow(svg,lx+260,178,lx+260,196,COLORS.green,{delay:230});
+drawBox(svg,lx+30,196,190,36,'MCP Gateway\n+ tool servers',COLORS.teal,{fill:COLORS.teal+'08',delay:250,fontSize:10,bold:true,rx:6});
+drawBox(svg,lx+230,196,160,36,'Model serving\nvLLM \u00b7 OpenAI API',COLORS.green,{fill:COLORS.green+'08',delay:260,fontSize:9,rx:6});
+drawLabel(svg,lx+colW/2,252,'Per-agent isolation and identity',{fontSize:10,bold:true,color:COLORS.blue,delay:300});
+drawLabel(svg,lx+colW/2,266,'Governance multiplied per agent',{fontSize:8.5,color:COLORS.textMuted,delay:310});
+
+// Right: Agent-as-a-Service
+var rx=sx+colW+gap;
+drawBox(svg,rx,6,colW,colH,'',COLORS.green,{fill:'url(#grad-surface)',delay:80,rx:10,strokeWidth:1});
+drawLabel(svg,rx+colW/2,24,'Agent as a Service',{bold:true,fontSize:14,color:COLORS.green,delay:100});
+drawLabel(svg,rx+colW/2,40,'Loop runs in a shared runtime',{fontSize:9,color:COLORS.textMuted,delay:120});
+drawBox(svg,rx+80,52,240,30,'Thin client \u00b7 SDK only',COLORS.textMuted,{fill:COLORS.textMuted+'08',delay:150,fontSize:10,rx:5});
+drawArrow(svg,rx+200,82,rx+200,94,COLORS.green,{delay:170});
+drawBox(svg,rx+40,94,320,38,'OGX runs the loop \u00b7 Responses API',COLORS.green,{fill:COLORS.green+'0c',delay:190,fontSize:11,bold:true,rx:6});
+drawLabel(svg,rx+200,120,'advertise \u2192 execute \u2192 iterate \u2192 server-side',{fontSize:8,color:COLORS.textMuted,delay:210});
+drawArrow(svg,rx+200,132,rx+200,144,COLORS.teal,{delay:230});
+drawBox(svg,rx+40,144,320,34,'Trace store \u00b7 single policy point',COLORS.teal,{fill:COLORS.teal+'0a',delay:250,fontSize:10,rx:6});
+drawArrow(svg,rx+140,178,rx+140,196,COLORS.teal,{delay:270});
+drawArrow(svg,rx+260,178,rx+260,196,COLORS.green,{delay:280});
+drawBox(svg,rx+30,196,190,36,'MCP tool servers\nshared \u00b7 aggregated',COLORS.teal,{fill:COLORS.teal+'08',delay:290,fontSize:10,bold:true,rx:6});
+drawBox(svg,rx+230,196,160,36,'Model serving\nvLLM \u00b7 OpenAI API',COLORS.green,{fill:COLORS.green+'08',delay:300,fontSize:9,rx:6});
+drawLabel(svg,rx+colW/2,252,'Centralized enforcement and audit',{fontSize:10,bold:true,color:COLORS.green,delay:340});
+drawLabel(svg,rx+colW/2,266,'Shared blast radius',{fontSize:8.5,color:COLORS.textMuted,delay:350});
+
+drawLabel(svg,450,310,'Duration and ownership pick the pattern \u2014 same governance across both',{fontSize:11,bold:true,color:COLORS.text,delay:400});
+}
+
+function renderRoutingTiers(){var svg=createSvg('#d-routing-tiers',900,370);if(!svg)return;
+// Main horizontal flow
+var nodes=[
+{x:20,y:100,w:100,h:55,label:'Agent',sub:'sandbox pod\nsends LLM call',color:COLORS.blue},
+{x:160,y:80,w:170,h:95,label:'Tier 1: Egress Router',sub:'WHERE may it go?\npolicy \u00b7 PII mask\nruns in supervisor',color:COLORS.red},
+{x:380,y:80,w:170,h:95,label:'Tier 2: Semantic Routing',sub:'WHICH model?\nintent \u00b7 complexity \u00b7 cost\nAI gateway \u00b7 vLLM SR',color:COLORS.purple},
+{x:600,y:80,w:170,h:95,label:'Tier 3: llm-d EPP',sub:'WHICH replica?\nKV cache \u00b7 load\nprefill/decode split',color:COLORS.teal},
+{x:810,y:100,w:80,h:55,label:'vLLM\nworkers',sub:'',color:COLORS.green}
+];
+nodes.forEach(function(n,i){
+drawBox(svg,n.x,n.y,n.w,n.h,n.label,n.color,{fill:n.color+'0a',delay:i*80,fontSize:n.w>100?11:10,bold:true,rx:6});
+if(n.sub)drawLabel(svg,n.x+n.w/2,n.y+n.h-20,n.sub,{fontSize:7.5,color:COLORS.textMuted,delay:i*80+30});
+});
+// Arrows between nodes
+drawArrow(svg,120,128,160,128,COLORS.textMuted,{delay:100});
+drawArrow(svg,330,128,380,128,COLORS.textMuted,{delay:200});
+drawArrow(svg,550,128,600,128,COLORS.textMuted,{delay:300});
+drawArrow(svg,770,128,810,128,COLORS.textMuted,{delay:400});
+
+// Branch to External LLM
+drawBox(svg,330,10,180,36,'External LLM (optional)',COLORS.orange,{fill:COLORS.orange+'08',delay:150,fontSize:10,rx:6});
+drawLabel(svg,420,36,'allow-listed \u00b7 PII-disguised',{fontSize:7,color:COLORS.textMuted,delay:180});
+drawArrow(svg,245,80,340,46,COLORS.orange,{delay:200,dashed:true});
+drawLabel(svg,270,62,'if external\nallowed',{fontSize:7,color:COLORS.orange,delay:220,anchor:'start'});
+
+// Labels on arrows
+drawLabel(svg,140,118,'prompt',{fontSize:7,color:COLORS.textMuted,delay:120});
+drawLabel(svg,355,118,'in-\ncluster',{fontSize:7,color:COLORS.textMuted,delay:220});
+drawLabel(svg,575,118,'model\npool',{fontSize:7,color:COLORS.textMuted,delay:320});
+drawLabel(svg,790,118,'replica\npods',{fontSize:7,color:COLORS.textMuted,delay:420});
+
+// Footer
+var fy=210;
+drawBox(svg,20,fy,860,40,'Traceable end to end: OpenTelemetry spans across all three tiers \u00b7 MLflow records tool calls, latencies, and costs',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:500,fontSize:9,rx:6});
+drawBox(svg,20,fy+48,860,34,'Decoupled at every hop: every hop speaks OpenAI-compatible / Open Responses APIs \u2014 swap the model and the agent never notices',COLORS.textMuted,{fill:COLORS.textMuted+'04',delay:550,fontSize:8,rx:6});
+}
+
+function renderDefenseRings(){var svg=createSvg('#d-defense-rings',900,380);if(!svg)return;
+// Concentric rounded rects (outside-in)
+var rings=[
+{x:30,y:6,w:460,h:290,label:'Ring 3: Hardware / VM',detail:'confidential containers \u00b7 Kata microVM \u00b7 attestation',color:COLORS.purple},
+{x:56,y:42,w:408,h:222,label:'Ring 2: Pod boundary',detail:'PSS/SCC \u00b7 SELinux/AppArmor \u00b7 NetworkPolicy \u00b7 quota',color:COLORS.blue},
+{x:82,y:80,w:356,h:152,label:'Ring 1: Process sandbox',detail:'supervisor PID 1 \u00b7 seccomp \u00b7 Landlock \u00b7 netns \u00b7 proxy',color:COLORS.teal}
+];
+rings.forEach(function(r,i){
+drawBox(svg,r.x,r.y,r.w,r.h,'',r.color,{fill:r.color+'04',delay:i*100,rx:10,strokeWidth:1.5});
+drawLabel(svg,r.x+12,r.y+16,r.label,{anchor:'start',bold:true,fontSize:11,color:r.color,delay:i*100+30});
+drawLabel(svg,r.x+12,r.y+30,r.detail,{anchor:'start',fontSize:9,color:COLORS.textMuted,delay:i*100+50});
+});
+// Agent process (innermost)
+drawBox(svg,118,126,270,80,'',COLORS.amber,{fill:COLORS.amber+'08',delay:350,rx:8});
+drawLabel(svg,253,152,'Agent process',{bold:true,fontSize:13,color:COLORS.amber,delay:380});
+drawLabel(svg,253,172,'harness \u2192 skills \u2192 least privilege',{fontSize:10,color:COLORS.textMuted,delay:400});
+// Cross-cutting controls (right side)
+drawLabel(svg,690,14,'Cross-cutting controls',{bold:true,fontSize:12,color:COLORS.blue,delay:200});
+var ccc=[
+{label:'Workload identity',detail:'SPIFFE SVIDs \u00b7 short-lived \u00b7 rotated\nno static keys to steal',color:COLORS.blue},
+{label:'Tool authorization',detail:'MCP Gateway \u00b7 token claims \u00b7 RBAC\nignores prompt content',color:COLORS.teal},
+{label:'Inference guardrails',detail:'Input/output screening at boundary\nTrustyAI \u00b7 NeMo Guardrails',color:COLORS.purple},
+{label:'Pre-production testing',detail:'Adversarial scans in CI/CD\nGarak \u00b7 evaluation pipelines',color:COLORS.green}
+];
+ccc.forEach(function(c,i){var cy=32+i*72;
+drawBox(svg,545,cy,340,62,'',c.color,{fill:c.color+'06',delay:250+i*60,rx:6});
+drawLabel(svg,558,cy+16,c.label,{anchor:'start',bold:true,fontSize:11,color:c.color,delay:270+i*60});
+drawLabel(svg,558,cy+38,c.detail,{anchor:'start',fontSize:9,color:COLORS.textMuted,delay:290+i*60});
+});
+
+// Footer — well within viewBox
+drawLabel(svg,253,320,'A breach of one ring is contained by the next',{fontSize:10,bold:true,color:COLORS.text,delay:500});
+drawLabel(svg,690,320,'Applied across all rings \u2014 every action traced',{fontSize:10,color:COLORS.textMuted,delay:520});
+}
+
+function renderSupervisorPattern(){var svg=createSvg('#d-supervisor-pattern',900,380);if(!svg)return;
+// Left: The WHAT (cloud orchestration)
+drawBox(svg,20,10,200,100,'',COLORS.red,{fill:COLORS.red+'06',delay:0,rx:8,strokeWidth:1});
+drawLabel(svg,120,24,'The WHAT',{bold:true,fontSize:11,color:COLORS.red,delay:20});
+drawBox(svg,35,38,170,34,'Claude Managed Agent',COLORS.red,{fill:COLORS.red+'0a',delay:40,fontSize:10,bold:true,rx:5});
+drawLabel(svg,120,82,'Decomposes, routes, synthesizes\nNever sees raw data',{fontSize:8,color:COLORS.textMuted,delay:60});
+
+// Right: The HOW (your cluster)
+drawBox(svg,260,10,620,400,'',COLORS.blue,{fill:COLORS.blue+'03',delay:40,rx:8,strokeWidth:1});
+drawLabel(svg,570,24,'The HOW \u2014 Your OpenShift Cluster',{bold:true,fontSize:11,color:COLORS.blue,delay:60});
+
+// Worker pod
+drawBox(svg,420,38,300,36,'Worker Pod',COLORS.blue,{fill:COLORS.blue+'08',delay:80,fontSize:10,bold:true,rx:5});
+drawLabel(svg,570,60,'dispatch \u2192 create sandbox \u2192 collect results',{fontSize:7,color:COLORS.textMuted,delay:100});
+
+// Arrow from WHAT to HOW
+drawArrow(svg,220,50,420,56,COLORS.red,{delay:120,dashed:true});
+drawLabel(svg,320,44,'task descriptions',{fontSize:7,color:COLORS.red,delay:140});
+
+// Three sandboxed agents
+var agents=[
+{name:'Metrics Agent',color:COLORS.blue,detail:'Prometheus queries\nLatency, errors, CPU\nReasons via vLLM',policy:'vLLM + Prometheus'},
+{name:'Log Agent',color:COLORS.teal,detail:'Application log search\nNPE 3400 since 14:31\nReasons via vLLM',policy:'vLLM + Loki'},
+{name:'Runbook Agent',color:COLORS.purple,detail:'Past incident search\nINC-2847 matches\nReasons via vLLM',policy:'vLLM + read-only FS'}
+];
+var agW=180,agH=150,agGap=18,agStartX=290,agY=90;
+agents.forEach(function(a,i){var ax=agStartX+i*(agW+agGap);
+drawBox(svg,ax,agY,agW,agH,'',a.color,{fill:a.color+'06',delay:160+i*60,rx:6});
+drawLabel(svg,ax+2,agY-4,'SANDBOX '+(i+1),{anchor:'start',fontSize:7,color:a.color,bold:true,delay:170+i*60});
+drawLabel(svg,ax+agW/2,agY+16,a.name,{bold:true,fontSize:10,color:a.color,delay:180+i*60});
+drawLabel(svg,ax+agW/2,agY+52,a.detail,{fontSize:7.5,color:COLORS.textMuted,delay:200+i*60});
+drawBox(svg,ax+6,agY+agH-30,agW-12,22,'Policy: '+a.policy,a.color,{fill:a.color+'0c',delay:240+i*60,fontSize:7.5,bold:true,rx:4});
+});
+
+// vLLM Pod
+var vy=agY+agH+18;
+drawBox(svg,380,vy,360,36,'vLLM Pod (cluster-internal) \u2014 Qwen3-8B \u00b7 Llama 3.2',COLORS.green,{fill:COLORS.green+'08',delay:400,fontSize:10,bold:true,rx:6});
+// Arrows from agents to vLLM
+agents.forEach(function(a,i){var ax=agStartX+i*(agW+agGap)+agW/2;
+drawArrow(svg,ax,agY+agH,ax,vy,COLORS.textMuted,{delay:420+i*30})});
+
+// Footer principles
+var fy=vy+48;
+var principles=[
+{t:'Task-level data partitioning',d:'Each agent reads only its data'},
+{t:'Independent local reasoning',d:'Each agent reasons with vLLM'},
+{t:'Different policy per agent',d:'No agent accesses another\u2019s endpoints'}
+];
+principles.forEach(function(p,i){var px=290+i*200;
+drawLabel(svg,px+85,fy,p.t,{bold:true,fontSize:8,color:COLORS.text,delay:480+i*40});
+drawLabel(svg,px+85,fy+14,p.d,{fontSize:7,color:COLORS.textMuted,delay:500+i*40})});
+
+// Security boundary label
+drawLabel(svg,570,fy+34,'OpenShell Gateway \u00b7 Kernel-enforced isolation \u00b7 Deny-all by default',{fontSize:8,color:COLORS.teal,delay:560,bold:true});
+}
+
+var D3_FN_MAP={renderThreeComponents:renderThreeComponents,renderAgentAssumptions:renderAgentAssumptions,renderFiveDecisions:renderFiveDecisions,renderAgentPodAnatomy:renderAgentPodAnatomy,renderMcpGateway:renderMcpGateway,renderSpiffeFlow:renderSpiffeFlow,renderAgentBenchmark:renderAgentBenchmark,renderBlueprintArch:renderBlueprintArch,renderWorkloadVsService:renderWorkloadVsService,renderRoutingTiers:renderRoutingTiers,renderDefenseRings:renderDefenseRings,renderSupervisorPattern:renderSupervisorPattern};
+
+var renderedSlides={};
+window._triggerDiagram=function(slideEl){
+  if(!slideEl)return;
+  var fn=slideEl.getAttribute('data-diagram-fn');
+  var cid=slideEl.getAttribute('data-diagram-id');
+  if(!fn||renderedSlides[cid||fn])return;
+  renderedSlides[cid||fn]=true;
+  var renderFn=D3_FN_MAP[fn];
+  if(typeof renderFn==='function')setTimeout(renderFn,80);
+};
+setTimeout(function(){
+  var first=document.querySelector('.slide[data-diagram-fn]');
+  if(first)window._triggerDiagram(first);
+},300);
+})();
+</script>
+</body>
+</html>
