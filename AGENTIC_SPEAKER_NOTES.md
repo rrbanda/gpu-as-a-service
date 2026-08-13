@@ -424,7 +424,25 @@ This composability means you're not making a one-time architectural choice. You'
 
 ---
 
-### Slide 34: Benchmark results
+### Slide 34: The supervisor pattern
+
+This slide shows a concrete multi-agent deployment pattern that puts all five decisions together.
+
+The supervisor pattern splits orchestration from execution. The brain — which could be Claude, or any orchestration layer — handles task decomposition, agent routing, and result synthesis. It never touches your data or your infrastructure. The workers are pods running on your OpenShift cluster, each inside its own OpenShell sandbox with its own per-agent network policy.
+
+Look at the three sandboxes in this diagram. The metrics agent can reach Prometheus and vLLM — nothing else. The log agent can reach the log aggregator and vLLM — nothing else. The runbook agent gets vLLM and a read-only filesystem — no network access to live systems. Each policy is enforced at the kernel level with Landlock for filesystem, seccomp for syscalls, and L7 network rules scoped per binary.
+
+Why does this matter? Consider the blast radius. If the log agent gets prompt-injected through a malicious log entry, the attacker can search logs — but cannot reach the Prometheus API, the runbook system, or any external endpoint. The blast radius is one agent's sandbox, not your entire monitoring stack.
+
+The sandbox lifecycle is create, install dependencies, apply per-agent network policy, run, collect stdout, delete. When the agent finishes, its sandbox is destroyed. No state leaks between agents. No credentials persist. This is ephemeral isolation at the agent level, not just the pod level.
+
+The key architectural insight: the brain decides WHAT to investigate, the sandboxed agents decide HOW. Reasoning stays on your cluster. Only summarized results cross back to the orchestration layer. Raw data — including customer PII in log entries — never leaves the sandbox.
+
+This pattern makes sense when your workload touches multiple data sources with different sensitivity levels. Incident investigation, KYC onboarding, compliance reviews, CI/CD pipelines — anywhere a single agent would need access to more systems than it should.
+
+---
+
+### Slide 35: Benchmark results
 
 Now let's prove this architecture works. This data comes from Eitan Geiger's published benchmark at Red Hat Developers, July 2026.
 
@@ -438,7 +456,7 @@ Only the dual-protected pod stopped both attacks.
 
 ---
 
-### Slide 35: Vendor gravity
+### Slide 36: Vendor gravity
 
 Let me address the elephant in the room: vendor lock-in.
 
@@ -450,7 +468,7 @@ The architecture controls the PRICE of the swap. Skill backends sit behind neutr
 
 ---
 
-### Slide 36: The open architecture rule
+### Slide 37: The open architecture rule
 
 I want to leave you with one sentence that captures the architectural philosophy.
 
@@ -460,7 +478,7 @@ This is from the Red Hat Developers article published in July 2026. It's the des
 
 ---
 
-### Slide 37: Maturity map
+### Slide 38: Maturity map
 
 Let's be precise about what's mature today versus what's emerging. Build your base decisions on the mature column. Adopt from the preview column behind pinned versions and feature gates.
 
@@ -476,7 +494,7 @@ Agentic Loop: client-side loops in harnesses are production-grade. OGX server-si
 
 ---
 
-### Slide 38: Open items
+### Slide 39: Open items
 
 I want to be transparent about what the blueprint does NOT solve yet.
 
@@ -494,7 +512,7 @@ Confidential compute: protects memory at runtime but does nothing about prompt-l
 
 ---
 
-### Slide 39: Phased adoption
+### Slide 40: Phased adoption
 
 Here's a practical adoption path in four phases.
 
@@ -508,7 +526,7 @@ Phase 4, Optimization, weeks eight through twelve: Add semantic routing for cost
 
 ---
 
-### Slide 40: End-to-end walkthrough
+### Slide 41: End-to-end walkthrough
 
 Let me trace one request through the entire blueprint so you can see all the components working together.
 
@@ -526,7 +544,7 @@ At no point does the architecture depend on the model performing predictably. Ev
 
 ---
 
-### Slide 41: Resources
+### Slide 42: Resources
 
 Here are the resources to get started.
 
@@ -542,7 +560,7 @@ The Red Hat Developers article — "Architect an Open Blueprint for Cloud-Native
 
 ---
 
-### Slide 42: Closing
+### Slide 43: Closing
 
 I want to leave you with this framing.
 
