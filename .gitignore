@@ -1,5 +1,7 @@
 node_modules/
 encrypted/
+agentic-encrypted/
 .staticrypt.json
 package-lock.json
 slides.html
+agentic-slides.html
