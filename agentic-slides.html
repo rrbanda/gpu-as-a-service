@@ -1705,15 +1705,15 @@ drawBox(svg,10,otelY,880,32,'OpenTelemetry spans across every hop \u00b7 MLflow 
 drawLabel(svg,450,otelY+42,'If the model is compromised at any step, the path holds \u2014 permissions and routing are outside the model\u2019s reach',{fontSize:9.5,color:COLORS.text,delay:900,bold:true});
 }
 
-function renderMigrationPath(){var svg=createSvg('#d-migration-path',900,310);if(!svg)return;
+function renderMigrationPath(){var svg=createSvg('#d-migration-path',960,310);if(!svg)return;
 var steps=[
 {num:'Today',label:'Ungoverned',detail:'Standard Deployments\nstatic API keys\nno tool-call auth',color:COLORS.textMuted},
 {num:'Step 1',label:'Add Identity',detail:'SPIFFE/SPIRE\ninject SVIDs via\ninit container',color:COLORS.blue},
 {num:'Step 2',label:'Add Gateway',detail:'MCP Gateway\npassthrough first\nthen enable claims',color:COLORS.teal},
 {num:'Step 3',label:'Add Sandbox',detail:'Kata RuntimeClass\none YAML change\nthen OpenShell',color:COLORS.purple},
-{num:'Step 4',label:'Add Routing',detail:'Point pods at AI Gateway\nnot direct vLLM\nagents never notice',color:COLORS.red}
+{num:'Step 4',label:'Add Routing',detail:'Route through\nAI Gateway — not\ndirect vLLM',color:COLORS.red}
 ];
-var stepW=155,stepH=160,gap=16,startX=14;
+var stepW=174,stepH=160,gap=14,startX=10;
 steps.forEach(function(s,i){
 var x=startX+i*(stepW+gap),y=20;
 var g=svg.append('g').style('opacity',0);
@@ -1726,7 +1726,7 @@ g.append('circle').attr('cx',x+stepW/2).attr('cy',y+30).attr('r',16).attr('fill'
 g.append('text').attr('x',x+stepW/2).attr('y',y+34).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('font-size',13).attr('fill',s.color).attr('font-weight',700).attr('font-family',"'Red Hat Display',sans-serif").text(String(i));
 }
 drawLabel(g,x+stepW/2,y+(i>0?56:30),s.num,{bold:true,fontSize:10,color:s.color,delay:0});
-drawLabel(g,x+stepW/2,y+(i>0?72:48),s.label,{bold:true,fontSize:12,color:s.color,delay:0});
+drawLabel(g,x+stepW/2,y+(i>0?72:48),s.label,{bold:true,fontSize:13,color:s.color,delay:0});
 drawLabel(g,x+stepW/2,y+(i>0?105:85),s.detail,{fontSize:9,color:COLORS.textMuted,delay:0});
 });
 for(var i=0;i<4;i++){
@@ -1734,7 +1734,7 @@ var ax1=startX+(i+1)*(stepW+gap)-gap+4,ax2=startX+(i+1)*(stepW+gap)-4;
 drawArrow(svg,ax1,20+stepH/2,ax2,20+stepH/2,steps[i+1].color,{delay:600+i*100});
 }
 var fy=20+stepH+20;
-drawBox(svg,50,fy,800,34,'Each step is independently deployable and independently valuable \u2014 you do not need the full stack to start',COLORS.green,{fill:COLORS.green+'06',delay:1000,fontSize:10.5,bold:true,rx:6});
+drawBox(svg,40,fy,870,34,'Each step is independently deployable and independently valuable \u2014 you do not need the full stack to start',COLORS.green,{fill:COLORS.green+'06',delay:1000,fontSize:10.5,bold:true,rx:6});
 }
 
 var D3_FN_MAP={renderThreeComponents:renderThreeComponents,renderAgentAssumptions:renderAgentAssumptions,renderFiveDecisions:renderFiveDecisions,renderAgentPodAnatomy:renderAgentPodAnatomy,renderMcpGateway:renderMcpGateway,renderSpiffeFlow:renderSpiffeFlow,renderAgentBenchmark:renderAgentBenchmark,renderBlueprintArch:renderBlueprintArch,renderWorkloadVsService:renderWorkloadVsService,renderRoutingTiers:renderRoutingTiers,renderDefenseRings:renderDefenseRings,renderSupervisorPattern:renderSupervisorPattern,renderAttackWalkthrough:renderAttackWalkthrough,renderAIGatewayHub:renderAIGatewayHub,renderAuthBridgeFlow:renderAuthBridgeFlow,renderPhasedAdoption:renderPhasedAdoption,renderEndToEndTrace:renderEndToEndTrace,renderMigrationPath:renderMigrationPath};
