@@ -418,15 +418,10 @@ kbd{background:#e0e0e0;border:1px solid #ccc;border-radius:2px;padding:1px 5px;f
   </div>
 </div>
 
-<div class="slide">
+<div class="slide" data-diagram-fn="renderAttackWalkthrough" data-diagram-id="d-renderAttackWalkthrough">
 <h2>Walk through the attack: injected prompt tries to call an unauthorized tool — what happens?</h2>
-  <div class="glass-card">
-    <ul class="content-list">  <li>Step 1: Attacker embeds a prompt injection in a document the agent processes — the model now believes it should call /exfil</li>
-  <li>Step 2: The harness issues a tool call to /exfil (it trusts the model's output — that is its job)</li>
-  <li>Step 3: The request reaches the MCP Gateway — the gateway checks the JWT token's tools claim, not the prompt</li>
-  <li>Step 4: /exfil is not in the agent's allowed tool set — request denied, incident logged, agent continues</li>
-  <li>The key insight: the model was successfully compromised, and it did not matter — authorization lives outside the blast radius</li>
-</ul>
+  <div class="glass-card diagram-card">
+    <div id="d-attack-walkthrough" class="diagram-container"></div>
   </div>
 </div>
 
@@ -443,18 +438,11 @@ kbd{background:#e0e0e0;border:1px solid #ccc;border-radius:2px;padding:1px 5px;f
 </div>
 
 <!-- Block E: AI Gateway -->
-<div class="slide">
+<div class="slide" data-diagram-fn="renderAIGatewayHub" data-diagram-id="d-renderAIGatewayHub">
 <div class="section-label">DEEP DIVE — AI GATEWAY</div>
-<h2>The AI Gateway: why every inference request enters through one front door — even internal ones</h2>
-  <div class="glass-card">
-    <ul class="content-list">  <li>A common mistake: letting agent pods call vLLM workers directly — you lose auth, quota, and all observability</li>
-  <li>The gateway is the single control point: auth, per-agent quota, rate limits, model entitlements — all from the same JWT claims</li>
-  <li>It exposes one unified API (OpenAI-compatible / OpenResponses) regardless of how many model backends sit behind it</li>
-  <li>Semantic routing (Tier 2) runs behind this gateway — agents do not choose their model, the classifier does</li>
-  <li>Every request emits OpenTelemetry spans: latency, token count, model selected, cost — this is your FinOps data source</li>
-  <li>Inference-aware autoscaling behind the gateway — scales on KV cache pressure, not just CPU, so you pay for what you use</li>
-  <li>Implementation options: OGX (integrated with RHOAI 3.5), LiteLLM (lightweight), or the emerging Red Hat AI gateway</li>
-</ul>
+<h2>The AI Gateway: one governed front door for all inference — even internal</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-ai-gateway-hub" class="diagram-container"></div>
   </div>
 </div>
 
@@ -467,16 +455,10 @@ kbd{background:#e0e0e0;border:1px solid #ccc;border-radius:2px;padding:1px 5px;f
   </div>
 </div>
 
-<div class="slide">
-  <h2>Deep dive: Auth Bridge — the component most teams overlook</h2>
-  <div class="glass-card">
-    <ul class="content-list">  <li>It is a sidecar in every agent pod — runs alongside the harness, not inside it</li>
-  <li>Boot sequence: SPIRE validates the pod (namespace, SA, labels) → issues a JWT-SVID → Auth Bridge presents it to Keycloak</li>
-  <li>The exchange uses RFC 8693 (token exchange) or RFC 7523 (JWT bearer grant) — both are standard token-swap protocols</li>
-  <li>Output: a 5-minute access token carrying claims — sub (agent identity), tools (allowed set), models (allowed tiers), exp (auto-expiry)</li>
-  <li>This token is what the MCP Gateway and AI Gateway validate — the SVID never leaves the pod, and the token auto-expires</li>
-  <li>Upcoming: OpenShell is converging identity and sandbox — SPIFFE JWT-SVID grants and OAuth2 token exchange are being integrated alongside kernel isolation, targeted for Dev/Tech Preview in RHOAI 3.5/3.6</li>
-</ul>
+<div class="slide" data-diagram-fn="renderAuthBridgeFlow" data-diagram-id="d-renderAuthBridgeFlow">
+  <h2>Deep dive: Auth Bridge — the token exchange most teams overlook</h2>
+  <div class="glass-card diagram-card">
+    <div id="d-auth-bridge-flow" class="diagram-container"></div>
   </div>
 </div>
 
@@ -679,27 +661,17 @@ kbd{background:#e0e0e0;border:1px solid #ccc;border-radius:2px;padding:1px 5px;f
 </div>
 </div>
 
-<div class="slide">
+<div class="slide" data-diagram-fn="renderPhasedAdoption" data-diagram-id="d-renderPhasedAdoption">
 <h2>Phased adoption: start with inference and identity, add isolation, then governance</h2>
-  <div class="glass-card">
-    <ul class="content-list">  <li>Phase 1 — Foundations (Weeks 1-4): Deploy vLLM + llm-d for inference, install SPIFFE/SPIRE for identity</li>
-  <li>Phase 2 — Isolation (Weeks 3-6): Enable OpenShift Sandboxed Containers (Kata), deploy OpenShell (alpha)</li>
-  <li>Phase 3 — Governance (Weeks 5-8): Stand up MCP Gateway with claims-based auth, wire OpenTelemetry + MLflow</li>
-  <li>Phase 4 — Optimization (Weeks 8-12): Add semantic routing for cost, evaluate OGX for request-scoped assistants</li>
-</ul>
+  <div class="glass-card diagram-card">
+    <div id="d-phased-adoption" class="diagram-container"></div>
   </div>
 </div>
 
-<div class="slide">
+<div class="slide" data-diagram-fn="renderMigrationPath" data-diagram-id="d-renderMigrationPath">
 <h2>If you already have agents running — the incremental path from ungoverned to governed</h2>
-  <div class="glass-card">
-    <ul class="content-list">  <li>Most teams are here today: agents running as standard Deployments, static API keys in env vars, no tool-call authorization</li>
-  <li>Step 1 — Add identity without changing agent code: deploy SPIFFE/SPIRE, inject SVIDs into existing pods via init container</li>
-  <li>Step 2 — Add a gateway in front of existing tool endpoints: MCP Gateway in passthrough mode first, then enable claims checking</li>
-  <li>Step 3 — Move agents into sandboxed pods: Kata RuntimeClass first (one YAML change), then add OpenShell for egress control</li>
-  <li>Step 4 — Add inference routing: point agent pods at the AI Gateway instead of direct vLLM endpoints — agents do not notice the change</li>
-  <li>Each step is independently deployable and independently valuable — you do not need the full stack to start improving security</li>
-</ul>
+  <div class="glass-card diagram-card">
+    <div id="d-migration-path" class="diagram-container"></div>
   </div>
 </div>
 
@@ -716,16 +688,10 @@ kbd{background:#e0e0e0;border:1px solid #ccc;border-radius:2px;padding:1px 5px;f
   </div>
 </div>
 
-<div class="slide">
+<div class="slide" data-diagram-fn="renderEndToEndTrace" data-diagram-id="d-renderEndToEndTrace">
 <h2>Trace one request end-to-end — every component from the blueprint appears exactly once</h2>
-  <div class="glass-card">
-    <ul class="content-list">  <li>Goal arrives: a field-service agent in its sandboxed pod receives "optimize tomorrow's dispatch schedule"</li>
-  <li>Tool call: harness calls optimization skill → MCP Gateway checks JWT claims → forwards to backend (cuOpt or OR-Tools)</li>
-  <li>Inference (confidential): planning prompt has customer data → Tier 1 keeps it on in-cluster models → no PII exits</li>
-  <li>Inference (low-risk): follow-up summary → Tier 2 picks a small, cheap model → Tier 3 picks the replica with warm KV cache</li>
-  <li>Audit trail: every tool call, every auth decision, every model hop, latency, and cost → OpenTelemetry + MLflow</li>
-  <li>Stress test: if the model is compromised at any step, the path holds — permissions and routing are outside the model's reach</li>
-</ul>
+  <div class="glass-card diagram-card">
+    <div id="d-end-to-end-trace" class="diagram-container"></div>
   </div>
 </div>
 
@@ -865,9 +831,9 @@ window.SLIDE_TITLES=[
 'Layer 2: MCP Gateway — claims-based tool authorization',
 'Attack walkthrough: prompt injection fails at the infrastructure layer',
 'What the gateway cannot stop — and what picks up the slack',
-'The AI Gateway: one governed front door for all inference',
+'The AI Gateway: one governed front door for all inference — even internal',
 'Layer 4: SPIFFE identity — no more static keys',
-'Deep dive: Auth Bridge — the component most teams overlook',
+'Deep dive: Auth Bridge — the token exchange most teams overlook',
 'Before vs After: static keys replaced by cryptographic identity',
 'Identity gaps: what is not solved yet',
 'Layer 5: Workload vs Service — trade-off matrix',
@@ -1557,7 +1523,231 @@ drawLabel(svg,px+85,fy+14,p.d,{fontSize:7,color:COLORS.textMuted,delay:500+i*40}
 drawLabel(svg,570,fy+34,'OpenShell Gateway \u00b7 Kernel-enforced isolation \u00b7 Deny-all by default',{fontSize:8,color:COLORS.teal,delay:560,bold:true});
 }
 
-var D3_FN_MAP={renderThreeComponents:renderThreeComponents,renderAgentAssumptions:renderAgentAssumptions,renderFiveDecisions:renderFiveDecisions,renderAgentPodAnatomy:renderAgentPodAnatomy,renderMcpGateway:renderMcpGateway,renderSpiffeFlow:renderSpiffeFlow,renderAgentBenchmark:renderAgentBenchmark,renderBlueprintArch:renderBlueprintArch,renderWorkloadVsService:renderWorkloadVsService,renderRoutingTiers:renderRoutingTiers,renderDefenseRings:renderDefenseRings,renderSupervisorPattern:renderSupervisorPattern};
+/* ── NEW DIAGRAM FUNCTIONS (Tier 1 + Tier 2 upgrades) ── */
+
+function renderAttackWalkthrough(){var svg=createSvg('#d-attack-walkthrough',900,310);if(!svg)return;
+var steps=[
+{x:10,w:130,label:'Malicious\nDocument',sub:'prompt injection\nembedded in data',color:COLORS.red,icon:'M8,2 H16 L20,6 V22 H4 V2 Z M14,2 V6 H18'},
+{x:170,w:130,label:'Model',sub:'compromised —\nbelieves it should\ncall /exfil',color:COLORS.red,icon:'M12,2 A10,10 0 1,0 12,22 A10,10 0 1,0 12,2 M8,10 H10 M14,10 H16 M9,16 Q12,14 15,16'},
+{x:330,w:130,label:'Harness',sub:'issues tool call\nto /exfil — trusts\nmodel output',color:COLORS.orange,icon:'M4,4 H20 V20 H4 Z M4,8 H20 M8,8 V20'},
+{x:520,w:150,label:'MCP Gateway',sub:'checks JWT claims\nnot prompt — /exfil\nNOT in allowed set',color:COLORS.green,icon:'M12,2 L22,7 V17 L12,22 L2,17 V7 Z M12,8 L8,12 L12,16 L16,12 Z'},
+{x:720,w:130,label:'Agent\nContinues',sub:'request denied,\nincident logged,\nagent resumes',color:COLORS.blue,icon:'M12,2 A10,10 0 1,0 12,22 A10,10 0 1,0 12,2 M8,12 L11,15 L17,9'}
+];
+var nodeY=20,nodeH=170;
+steps.forEach(function(s,i){
+var g=svg.append('g').style('opacity',0);
+g.transition().delay(i*150).duration(400).ease(d3.easeCubicOut).style('opacity',1);
+var isGateway=i===3;
+g.append('rect').attr('x',s.x).attr('y',nodeY).attr('width',s.w).attr('height',nodeH).attr('rx',8)
+.attr('fill',s.color+(isGateway?'12':'08')).attr('stroke',s.color).attr('stroke-width',isGateway?2.5:1.5);
+if(isGateway){g.append('rect').attr('x',s.x).attr('y',nodeY).attr('width',s.w).attr('height',4).attr('rx',2).attr('fill',s.color)}
+var glowId=s.color===COLORS.red?'red':s.color===COLORS.green?'green':s.color===COLORS.orange?'amber':'blue';
+g.append('circle').attr('cx',s.x+s.w/2).attr('cy',nodeY+30).attr('r',18).attr('fill',s.color+'15').attr('stroke',s.color).attr('stroke-width',1).attr('filter','url(#glow-'+glowId+')');
+g.append('text').attr('x',s.x+s.w/2).attr('y',nodeY+34).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('font-size',12).attr('fill',s.color).attr('font-weight',700).attr('font-family',"'Red Hat Display',sans-serif").text(i<3?(i+1):(i===3?'\u2718':'\u2714'));
+drawLabel(g,s.x+s.w/2,nodeY+62,s.label,{bold:true,fontSize:12,color:s.color,delay:0});
+drawLabel(g,s.x+s.w/2,nodeY+110,s.sub,{fontSize:9,color:COLORS.textMuted,delay:0});
+});
+var arrowY=nodeY+nodeH/2;
+var arrowColors=[COLORS.red,COLORS.red,COLORS.red,COLORS.green];
+[[140,170],[300,330],[460,520],[670,720]].forEach(function(pair,i){
+var aColor=arrowColors[i];
+var opts={delay:600+i*150,dashed:i<3};
+drawArrow(svg,pair[0],arrowY,pair[1],arrowY,aColor,opts);
+});
+drawLabel(svg,155,arrowY-12,'injects',{fontSize:8.5,color:COLORS.red,delay:650});
+drawLabel(svg,315,arrowY-12,'calls /exfil',{fontSize:8.5,color:COLORS.red,delay:800});
+drawLabel(svg,490,arrowY-12,'JWT check',{fontSize:8.5,color:COLORS.red,delay:950});
+drawLabel(svg,695,arrowY-12,'safe',{fontSize:8.5,color:COLORS.green,delay:1100});
+var fy=nodeY+nodeH+24;
+drawBox(svg,80,fy,740,36,'The model was compromised — and it did not matter. Authorization lives outside the blast radius.',COLORS.green,{fill:COLORS.green+'06',delay:1200,fontSize:10.5,bold:true,rx:6});
+}
+
+function renderAIGatewayHub(){var svg=createSvg('#d-ai-gateway-hub',900,340);if(!svg)return;
+var gx=300,gy=40,gw=300,gh=130;
+drawBox(svg,gx,gy,gw,gh,'AI Gateway',COLORS.red,{fill:COLORS.red+'08',delay:0,fontSize:16,bold:true,rx:10,strokeWidth:2});
+drawLabel(svg,gx+gw/2,gy+gh-20,'OpenAI-compatible / OpenResponses API',{fontSize:9,color:COLORS.textMuted,delay:50});
+var agents=[{y:gy+20,label:'Agent Pod A'},{y:gy+55,label:'Agent Pod B'},{y:gy+90,label:'Agent Pod C'}];
+agents.forEach(function(a,i){
+drawBox(svg,30,a.y,130,30,a.label,COLORS.blue,{fill:COLORS.blue+'08',delay:80+i*40,fontSize:10,rx:5});
+drawArrow(svg,160,a.y+15,gx,a.y+15,COLORS.blue,{delay:200+i*40});
+});
+drawLabel(svg,220,gy-6,'all inference',{fontSize:8.5,color:COLORS.blue,delay:300});
+var models=[{y:gy+10,label:'vLLM (Llama 70B)'},{y:gy+45,label:'vLLM (Qwen 7B)'},{y:gy+80,label:'vLLM (Nemotron)'},{y:gy+115,label:'External LLM'}];
+models.forEach(function(m,i){
+var mc=i===3?COLORS.orange:COLORS.green;
+drawBox(svg,740,m.y,150,28,m.label,mc,{fill:mc+'08',delay:80+i*40,fontSize:9.5,rx:5});
+drawArrow(svg,gx+gw,m.y+14,740,m.y+14,mc,{delay:300+i*40});
+});
+var spokes=[
+{label:'Auth',detail:'JWT claims validation\nper-agent entitlements',color:COLORS.red,x:gx-20,y:gy+gh+30},
+{label:'Quota',detail:'Per-agent rate limits\ncost attribution',color:COLORS.orange,x:gx+80,y:gy+gh+30},
+{label:'Tier 2 Routing',detail:'Semantic classifier\npicks cheapest model',color:COLORS.purple,x:gx+gw/2+20,y:gy+gh+30},
+{label:'Tier 3 Routing',detail:'llm-d EPP picks\nwarm KV-cache replica',color:COLORS.teal,x:gx+gw-10,y:gy+gh+30},
+{label:'OTel Spans',detail:'Latency, tokens,\nmodel, cost',color:COLORS.blue,x:gx+gw+70,y:gy+gh+30},
+{label:'Autoscaling',detail:'KV cache pressure\nnot just CPU',color:COLORS.green,x:gx+gw+170,y:gy+gh+30}
+];
+var spokeW=130,spokeH=60;
+spokes.forEach(function(s,i){
+var sx=30+i*144,sy=gy+gh+36;
+drawBox(svg,sx,sy,spokeW,spokeH,'',s.color,{fill:s.color+'08',delay:350+i*60,rx:6});
+drawLabel(svg,sx+spokeW/2,sy+15,s.label,{bold:true,fontSize:10,color:s.color,delay:370+i*60});
+drawLabel(svg,sx+spokeW/2,sy+38,s.detail,{fontSize:8,color:COLORS.textMuted,delay:390+i*60});
+var connX=sx+spokeW/2,connY=sy;
+drawArrow(svg,connX,gy+gh,connX,connY,s.color,{delay:400+i*60,width:1});
+});
+drawBox(svg,100,gy+gh+110,700,32,'No bypass path: even in-cluster inference enters through this gateway — direct-to-vLLM is blocked',COLORS.red,{fill:COLORS.red+'04',delay:800,fontSize:10,bold:true,rx:6});
+}
+
+function renderAuthBridgeFlow(){var svg=createSvg('#d-auth-bridge-flow',900,310);if(!svg)return;
+var podX=20,podY=10,podW=260,podH=200;
+svg.append('rect').attr('x',podX).attr('y',podY).attr('width',podW).attr('height',podH).attr('rx',10).attr('fill',COLORS.blue+'05').attr('stroke',COLORS.blue).attr('stroke-width',1.5).attr('stroke-dasharray','8,4').style('opacity',0).transition().delay(50).duration(400).style('opacity',1);
+drawLabel(svg,podX+podW/2,podY+14,'AGENT POD BOUNDARY',{bold:true,fontSize:9,color:COLORS.blue,delay:60});
+drawBox(svg,podX+15,podY+30,110,50,'Harness',COLORS.purple,{fill:COLORS.purple+'08',delay:100,fontSize:11,bold:true,rx:6});
+drawLabel(svg,podX+70,podY+65,'agentic loop',{fontSize:8,color:COLORS.textMuted,delay:120});
+drawBox(svg,podX+140,podY+30,105,50,'Auth Bridge',COLORS.teal,{fill:COLORS.teal+'08',delay:150,fontSize:11,bold:true,rx:6});
+drawLabel(svg,podX+192,podY+65,'sidecar',{fontSize:8,color:COLORS.textMuted,delay:170});
+drawBox(svg,podX+40,podY+100,180,44,'JWT-SVID',COLORS.cyan,{fill:COLORS.cyan+'10',delay:200,fontSize:12,bold:true,rx:20});
+drawLabel(svg,podX+130,podY+130,'stays inside pod \u2014 never exits',{fontSize:8.5,color:COLORS.cyan,delay:220,bold:true});
+
+var steps=[
+{x:340,y:20,w:150,h:70,label:'SPIRE',sub:'Attests pod:\nnamespace, SA, labels',color:COLORS.blue},
+{x:540,y:20,w:150,h:70,label:'Keycloak',sub:'RFC 8693 exchange\nor RFC 7523 grant',color:COLORS.purple},
+{x:740,y:20,w:150,h:70,label:'Access Token',sub:'5-min TTL, carries:\nsub, tools, models, exp',color:COLORS.green}
+];
+steps.forEach(function(s,i){
+drawBox(svg,s.x,s.y,s.w,s.h,'',s.color,{fill:s.color+'08',delay:250+i*100,rx:6});
+drawLabel(svg,s.x+s.w/2,s.y+16,s.label,{bold:true,fontSize:12,color:s.color,delay:270+i*100});
+drawLabel(svg,s.x+s.w/2,s.y+44,s.sub,{fontSize:8.5,color:COLORS.textMuted,delay:290+i*100});
+});
+drawLabel(svg,340,10,'1',{bold:true,fontSize:11,color:COLORS.blue,delay:260});
+drawLabel(svg,540,10,'2',{bold:true,fontSize:11,color:COLORS.purple,delay:360});
+drawLabel(svg,740,10,'3',{bold:true,fontSize:11,color:COLORS.green,delay:460});
+
+drawArrow(svg,podX+podW,podY+55,340,55,COLORS.blue,{delay:400});
+drawLabel(svg,podX+podW+20,podY+42,'attests',{fontSize:8,color:COLORS.blue,delay:420,anchor:'start'});
+drawArrow(svg,490,55,540,55,COLORS.purple,{delay:500});
+drawLabel(svg,505,42,'exchanges',{fontSize:8,color:COLORS.purple,delay:520});
+drawArrow(svg,690,55,740,55,COLORS.green,{delay:600});
+
+var destY=130;
+var dests=[
+{x:420,label:'MCP Gateway',color:COLORS.teal},
+{x:620,label:'AI Gateway',color:COLORS.red}
+];
+dests.forEach(function(d,i){
+drawBox(svg,d.x,destY,140,40,d.label,d.color,{fill:d.color+'08',delay:700+i*80,fontSize:11,bold:true,rx:6});
+drawArrow(svg,815,90,d.x+70,destY,d.color,{delay:750+i*80});
+});
+drawLabel(svg,815,108,'token flows to',{fontSize:8,color:COLORS.green,delay:760});
+
+drawBox(svg,310,195,580,36,'SVID never leaves the pod. Access token auto-expires in 5 minutes. Nothing durable to steal.',COLORS.green,{fill:COLORS.green+'06',delay:900,fontSize:10,bold:true,rx:6});
+}
+
+function renderPhasedAdoption(){var svg=createSvg('#d-phased-adoption',900,310);if(!svg)return;
+var phases=[
+{label:'Phase 1: Foundations',weeks:'Weeks 1\u20134',color:COLORS.blue,x1:0,x2:0.33,items:['vLLM','llm-d','SPIFFE/SPIRE']},
+{label:'Phase 2: Isolation',weeks:'Weeks 3\u20136',color:COLORS.teal,x1:0.17,x2:0.50,items:['Kata (OSC)','OpenShell']},
+{label:'Phase 3: Governance',weeks:'Weeks 5\u20138',color:COLORS.purple,x1:0.33,x2:0.67,items:['MCP Gateway','OTel + MLflow']},
+{label:'Phase 4: Optimization',weeks:'Weeks 8\u201312',color:COLORS.red,x1:0.58,x2:1.0,items:['Semantic Routing','OGX','EvalHub']}
+];
+var barX=80,barW=780,barStartY=30,barH=52,barGap=10;
+drawLabel(svg,40,barStartY+10,'Week',{fontSize:9,color:COLORS.textMuted,delay:0,anchor:'start',bold:true});
+for(var w=0;w<=12;w++){
+var wx=barX+w*(barW/12);
+drawLabel(svg,wx,barStartY-4,String(w),{fontSize:8,color:COLORS.textMuted,delay:0});
+if(w>0){svg.append('line').attr('x1',wx).attr('y1',barStartY+12).attr('x2',wx).attr('y2',barStartY+12+4*(barH+barGap)).attr('stroke',COLORS.border).attr('stroke-width',0.5).attr('stroke-dasharray','2,3').style('opacity',0.5)}
+}
+phases.forEach(function(p,i){
+var y=barStartY+18+i*(barH+barGap);
+var px1=barX+p.x1*barW,px2=barX+p.x2*barW;
+var g=svg.append('g').style('opacity',0);
+g.transition().delay(150+i*120).duration(500).ease(d3.easeCubicOut).style('opacity',1);
+g.append('rect').attr('x',px1).attr('y',y).attr('width',px2-px1).attr('height',barH).attr('rx',6).attr('fill',p.color+'12').attr('stroke',p.color).attr('stroke-width',1.5);
+g.append('rect').attr('x',px1).attr('y',y).attr('width',4).attr('height',barH).attr('rx',2).attr('fill',p.color);
+drawLabel(g,px1+12,y+14,p.label,{anchor:'start',bold:true,fontSize:11,color:p.color,delay:0});
+drawLabel(g,px1+12,y+30,p.weeks,{anchor:'start',fontSize:9,color:COLORS.textMuted,delay:0});
+var pillX=px1+180;
+p.items.forEach(function(item,j){
+var tw=item.length*6.5+16;
+g.append('rect').attr('x',pillX).attr('y',y+10).attr('width',tw).attr('height',22).attr('rx',11).attr('fill',p.color+'10').attr('stroke',p.color).attr('stroke-width',0.5);
+g.append('text').attr('x',pillX+tw/2).attr('y',y+22).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('font-size',9).attr('fill',p.color).attr('font-family',"'Red Hat Display',sans-serif").text(item);
+pillX+=tw+8;
+});
+});
+drawBox(svg,80,barStartY+4*(barH+barGap)+24,780,34,'Phases overlap \u2014 each step is independently deployable and provides incremental security value',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:700,fontSize:10,bold:true,rx:6});
+}
+
+function renderEndToEndTrace(){var svg=createSvg('#d-end-to-end-trace',900,340);if(!svg)return;
+var nodes=[
+{x:10,w:100,label:'Agent Pod',color:COLORS.blue},
+{x:140,w:110,label:'MCP Gateway',color:COLORS.teal},
+{x:280,w:100,label:'Skill Backend',color:COLORS.purple},
+{x:420,w:110,label:'Tier 1: Egress',color:COLORS.red},
+{x:560,w:120,label:'Tier 2: Semantic',color:COLORS.purple},
+{x:710,w:90,label:'Tier 3: EPP',color:COLORS.teal},
+{x:830,w:60,label:'vLLM',color:COLORS.green}
+];
+var ny=10,nh=40;
+nodes.forEach(function(n,i){
+drawBox(svg,n.x,ny,n.w,nh,n.label,n.color,{fill:n.color+'0a',delay:i*50,fontSize:9.5,bold:true,rx:5});
+});
+
+var laneY=70,laneH=60,laneGap=12;
+var lanes=[
+{label:'Tool Call',color:COLORS.teal,desc:'Harness \u2192 MCP Gateway (JWT check) \u2192 cuOpt / OR-Tools backend',path:[[60,140],[250,280]],stops:[1,2]},
+{label:'Confidential',color:COLORS.red,desc:'Customer data \u2192 Tier 1 keeps in-cluster \u2192 no PII exits \u2192 local model',path:[[60,420],[530,560],[680,710],[800,830]],stops:[3,4,5,6]},
+{label:'Low-Risk',color:COLORS.green,desc:'Summary \u2192 Tier 2 picks small model \u2192 Tier 3 picks warm replica',path:[[60,560],[680,710],[800,830]],stops:[4,5,6]}
+];
+lanes.forEach(function(lane,li){
+var ly=laneY+li*(laneH+laneGap);
+svg.append('rect').attr('x',0).attr('y',ly).attr('width',900).attr('height',laneH).attr('rx',4).attr('fill',lane.color+'05').style('opacity',0).transition().delay(300+li*100).duration(300).style('opacity',1);
+drawLabel(svg,35,ly+16,lane.label,{bold:true,fontSize:11,color:lane.color,delay:320+li*100});
+drawLabel(svg,35,ly+32,lane.desc,{fontSize:8,color:COLORS.textMuted,delay:340+li*100,anchor:'start'});
+
+lane.path.forEach(function(seg,si){
+var lineY=ly+laneH/2+6;
+drawArrow(svg,seg[0],lineY,seg[1],lineY,lane.color,{delay:400+li*100+si*80,width:2});
+});
+});
+
+var otelY=laneY+3*(laneH+laneGap)+6;
+drawBox(svg,10,otelY,880,32,'OpenTelemetry spans across every hop \u00b7 MLflow records tool calls, latency, token count, model, cost',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:800,fontSize:10,bold:true,rx:6});
+drawLabel(svg,450,otelY+42,'If the model is compromised at any step, the path holds \u2014 permissions and routing are outside the model\u2019s reach',{fontSize:9.5,color:COLORS.text,delay:900,bold:true});
+}
+
+function renderMigrationPath(){var svg=createSvg('#d-migration-path',900,310);if(!svg)return;
+var steps=[
+{num:'Today',label:'Ungoverned',detail:'Standard Deployments\nstatic API keys\nno tool-call auth',color:COLORS.textMuted},
+{num:'Step 1',label:'Add Identity',detail:'SPIFFE/SPIRE\ninject SVIDs via\ninit container',color:COLORS.blue},
+{num:'Step 2',label:'Add Gateway',detail:'MCP Gateway\npassthrough first\nthen enable claims',color:COLORS.teal},
+{num:'Step 3',label:'Add Sandbox',detail:'Kata RuntimeClass\none YAML change\nthen OpenShell',color:COLORS.purple},
+{num:'Step 4',label:'Add Routing',detail:'Point pods at AI Gateway\nnot direct vLLM\nagents never notice',color:COLORS.red}
+];
+var stepW=155,stepH=160,gap=16,startX=14;
+steps.forEach(function(s,i){
+var x=startX+i*(stepW+gap),y=20;
+var g=svg.append('g').style('opacity',0);
+g.transition().delay(i*120).duration(450).ease(d3.easeCubicOut).style('opacity',1);
+g.append('rect').attr('x',x).attr('y',y).attr('width',stepW).attr('height',stepH).attr('rx',8).attr('fill',s.color+'08').attr('stroke',s.color).attr('stroke-width',i===0?1:1.5);
+g.append('rect').attr('x',x).attr('y',y).attr('width',stepW).attr('height',4).attr('rx',2).attr('fill',s.color);
+var glowId=s.color===COLORS.blue?'blue':s.color===COLORS.teal?'teal':s.color===COLORS.purple?'purple':s.color===COLORS.red?'red':'blue';
+if(i>0){
+g.append('circle').attr('cx',x+stepW/2).attr('cy',y+30).attr('r',16).attr('fill',s.color+'15').attr('stroke',s.color).attr('stroke-width',1).attr('filter','url(#glow-'+glowId+')');
+g.append('text').attr('x',x+stepW/2).attr('y',y+34).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('font-size',13).attr('fill',s.color).attr('font-weight',700).attr('font-family',"'Red Hat Display',sans-serif").text(String(i));
+}
+drawLabel(g,x+stepW/2,y+(i>0?56:30),s.num,{bold:true,fontSize:10,color:s.color,delay:0});
+drawLabel(g,x+stepW/2,y+(i>0?72:48),s.label,{bold:true,fontSize:12,color:s.color,delay:0});
+drawLabel(g,x+stepW/2,y+(i>0?105:85),s.detail,{fontSize:9,color:COLORS.textMuted,delay:0});
+});
+for(var i=0;i<4;i++){
+var ax1=startX+(i+1)*(stepW+gap)-gap+4,ax2=startX+(i+1)*(stepW+gap)-4;
+drawArrow(svg,ax1,20+stepH/2,ax2,20+stepH/2,steps[i+1].color,{delay:600+i*100});
+}
+var fy=20+stepH+20;
+drawBox(svg,50,fy,800,34,'Each step is independently deployable and independently valuable \u2014 you do not need the full stack to start',COLORS.green,{fill:COLORS.green+'06',delay:1000,fontSize:10.5,bold:true,rx:6});
+}
+
+var D3_FN_MAP={renderThreeComponents:renderThreeComponents,renderAgentAssumptions:renderAgentAssumptions,renderFiveDecisions:renderFiveDecisions,renderAgentPodAnatomy:renderAgentPodAnatomy,renderMcpGateway:renderMcpGateway,renderSpiffeFlow:renderSpiffeFlow,renderAgentBenchmark:renderAgentBenchmark,renderBlueprintArch:renderBlueprintArch,renderWorkloadVsService:renderWorkloadVsService,renderRoutingTiers:renderRoutingTiers,renderDefenseRings:renderDefenseRings,renderSupervisorPattern:renderSupervisorPattern,renderAttackWalkthrough:renderAttackWalkthrough,renderAIGatewayHub:renderAIGatewayHub,renderAuthBridgeFlow:renderAuthBridgeFlow,renderPhasedAdoption:renderPhasedAdoption,renderEndToEndTrace:renderEndToEndTrace,renderMigrationPath:renderMigrationPath};
 
 var renderedSlides={};
 window._triggerDiagram=function(slideEl){
