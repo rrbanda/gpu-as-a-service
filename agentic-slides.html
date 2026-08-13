@@ -1166,20 +1166,20 @@ var steps=[
 {num:'3',title:'Token Claims',detail:'sub: field-optimizer\ntools: [cuopt, rag]\nexp: 5 min',color:COLORS.teal},
 {num:'4',title:'Every Call Authed',detail:'MCP Gw validates\nAI Gw validates\nNo static key anywhere',color:COLORS.green}
 ];
-var stepW=180,stepH=150,gap=32,startX=24,startY=26;
+var stepW=196,stepH=150,gap=20,startX=18,startY=26;
 steps.forEach(function(s,i){var cx=startX+i*(stepW+gap);
 drawBox(svg,cx,startY,stepW,stepH,'',s.color,{fill:'url(#grad-surface)',delay:i*100,rx:8});
 var glowId=s.color===COLORS.red?'red':s.color===COLORS.cyan?'cyan':s.color===COLORS.teal?'teal':'green';
 svg.append('circle').attr('cx',cx+stepW/2).attr('cy',startY+22).attr('r',13).attr('fill',s.color+'20').attr('stroke',s.color).attr('stroke-width',1.5).attr('filter','url(#glow-'+glowId+')').style('opacity',0).transition().delay(i*100+40).duration(350).style('opacity',1);
 drawLabel(svg,cx+stepW/2,startY+26,s.num,{bold:true,fontSize:13,color:s.color,delay:i*100+60});
-drawLabel(svg,cx+stepW/2,startY+46,s.title,{bold:true,fontSize:11,color:COLORS.text,delay:i*100+80});
-drawLabel(svg,cx+stepW/2,startY+76,s.detail,{fontSize:8.5,color:COLORS.textMuted,delay:i*100+120});
+drawLabel(svg,cx+stepW/2,startY+48,s.title,{bold:true,fontSize:12,color:COLORS.text,delay:i*100+80});
+drawLabel(svg,cx+stepW/2,startY+80,s.detail,{fontSize:9,color:COLORS.textMuted,delay:i*100+120});
 if(i<steps.length-1){var ax=cx+stepW,ax2=cx+stepW+gap;
 drawArrow(svg,ax+4,startY+stepH/2,ax2-4,startY+stepH/2,COLORS.textMuted,{delay:i*100+150})}
 });
 var compY=startY+stepH+18;
-drawBox(svg,24,compY,410,44,'BEFORE: Static API keys, rotated quarterly,\none key = full access, leaked prompt = game over',COLORS.red,{fill:COLORS.red+'06',delay:500,fontSize:9,rx:6});
-drawBox(svg,452,compY,424,44,'AFTER: Per-agent crypto identity, auto-rotated,\nper-tool entitlements, nothing durable to steal',COLORS.green,{fill:COLORS.green+'06',delay:580,fontSize:9,rx:6});
+drawBox(svg,18,compY,420,44,'BEFORE: Static API keys, rotated quarterly,\none key = full access, leaked prompt = game over',COLORS.red,{fill:COLORS.red+'06',delay:500,fontSize:9.5,rx:6});
+drawBox(svg,452,compY,430,44,'AFTER: Per-agent crypto identity, auto-rotated,\nper-tool entitlements, nothing durable to steal',COLORS.green,{fill:COLORS.green+'06',delay:580,fontSize:9.5,rx:6});
 drawLabel(svg,450,compY+58,'Containment economics: revoke one identity = one targeted operation',{fontSize:10,bold:true,color:COLORS.text,delay:700})}
 
 function renderAgentBenchmark(){var svg=createSvg('#d-agent-benchmark',900,340);if(!svg)return;
