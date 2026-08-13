@@ -1031,11 +1031,11 @@ var defs=svg.append('defs');
 defs.append('linearGradient').attr('id','grad-surface').attr('x1',0).attr('y1',0).attr('x2',0).attr('y2',1).html('<stop offset="0%" stop-color="rgba(0,0,0,0.03)"/><stop offset="100%" stop-color="rgba(0,0,0,0.01)"/>');
 return svg}
 
-function drawBox(svg,x,y,w,h,label,color,opts){opts=opts||{};var g=svg.append('g').style('opacity',0);g.transition().delay(opts.delay||0).duration(400).ease(d3.easeCubicOut).style('opacity',1);g.append('rect').attr('x',x).attr('y',y).attr('width',w).attr('height',h).attr('rx',opts.rx||6).attr('fill',opts.fill||'none').attr('stroke',color).attr('stroke-width',opts.strokeWidth||1).attr('opacity',opts.opacity||1);if(label){var lines=label.split('\\n');var textY=y+h/2-(lines.length-1)*(opts.fontSize||11)*0.6;lines.forEach(function(line,i){g.append('text').attr('x',x+w/2).attr('y',textY+i*((opts.fontSize||11)*1.25)).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('fill',opts.textColor||COLORS.text).attr('font-family',"'Red Hat Display',sans-serif").attr('font-size',opts.fontSize||11).attr('font-weight',opts.bold?700:400).text(line)})}return g}
+function drawBox(svg,x,y,w,h,label,color,opts){opts=opts||{};var g=svg.append('g').style('opacity',0);g.transition().delay(opts.delay||0).duration(400).ease(d3.easeCubicOut).style('opacity',1);g.append('rect').attr('x',x).attr('y',y).attr('width',w).attr('height',h).attr('rx',opts.rx||6).attr('fill',opts.fill||'none').attr('stroke',color).attr('stroke-width',opts.strokeWidth||1).attr('opacity',opts.opacity||1);if(label){var lines=label.split('\n');var textY=y+h/2-(lines.length-1)*(opts.fontSize||11)*0.6;lines.forEach(function(line,i){g.append('text').attr('x',x+w/2).attr('y',textY+i*((opts.fontSize||11)*1.25)).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('fill',opts.textColor||COLORS.text).attr('font-family',"'Red Hat Display',sans-serif").attr('font-size',opts.fontSize||11).attr('font-weight',opts.bold?700:400).text(line)})}return g}
 
 function drawArrow(svg,x1,y1,x2,y2,color,opts){opts=opts||{};var id='ah-'+Math.random().toString(36).substr(2,6);svg.append('defs').append('marker').attr('id',id).attr('viewBox','0 0 10 8').attr('refX',9).attr('refY',4).attr('markerWidth',7).attr('markerHeight',5).attr('orient','auto').append('path').attr('d','M0,0 L10,4 L0,8 Z').attr('fill',color);var line=svg.append('line').attr('x1',x1).attr('y1',y1).attr('x2',x2).attr('y2',y2).attr('stroke',color).attr('stroke-width',opts.width||1.5).attr('marker-end','url(#'+id+')').style('opacity',0);line.transition().delay(opts.delay||400).duration(350).style('opacity',0.8);if(opts.dashed)line.attr('stroke-dasharray','5,3');return line}
 
-function drawLabel(svg,x,y,text,opts){opts=opts||{};var lines=String(text).split('\\n');var fs=opts.fontSize||10;var lh=fs*1.25;if(lines.length===1){var el=svg.append('text').attr('x',x).attr('y',y).attr('text-anchor',opts.anchor||'middle').attr('dominant-baseline',opts.baseline||'middle').attr('fill',opts.color||COLORS.textMuted).attr('font-family',"'Red Hat Display',sans-serif").attr('font-size',fs).attr('font-weight',opts.bold?700:400).text(text).style('opacity',0);el.transition().delay(opts.delay||400).duration(350).style('opacity',1);if(opts.transform)el.attr('transform',opts.transform);return el}var g=svg.append('g').style('opacity',0);g.transition().delay(opts.delay||400).duration(350).style('opacity',1);if(opts.transform)g.attr('transform',opts.transform);lines.forEach(function(line,i){g.append('text').attr('x',x).attr('y',y+i*lh).attr('text-anchor',opts.anchor||'middle').attr('dominant-baseline',opts.baseline||'middle').attr('fill',opts.color||COLORS.textMuted).attr('font-family',"'Red Hat Display',sans-serif").attr('font-size',fs).attr('font-weight',opts.bold?700:400).text(line)});return g}
+function drawLabel(svg,x,y,text,opts){opts=opts||{};var lines=String(text).split('\n');var fs=opts.fontSize||10;var lh=fs*1.25;if(lines.length===1){var el=svg.append('text').attr('x',x).attr('y',y).attr('text-anchor',opts.anchor||'middle').attr('dominant-baseline',opts.baseline||'middle').attr('fill',opts.color||COLORS.textMuted).attr('font-family',"'Red Hat Display',sans-serif").attr('font-size',fs).attr('font-weight',opts.bold?700:400).text(text).style('opacity',0);el.transition().delay(opts.delay||400).duration(350).style('opacity',1);if(opts.transform)el.attr('transform',opts.transform);return el}var g=svg.append('g').style('opacity',0);g.transition().delay(opts.delay||400).duration(350).style('opacity',1);if(opts.transform)g.attr('transform',opts.transform);lines.forEach(function(line,i){g.append('text').attr('x',x).attr('y',y+i*lh).attr('text-anchor',opts.anchor||'middle').attr('dominant-baseline',opts.baseline||'middle').attr('fill',opts.color||COLORS.textMuted).attr('font-family',"'Red Hat Display',sans-serif").attr('font-size',fs).attr('font-weight',opts.bold?700:400).text(line)});return g}
 
 /* ── 7 ORIGINAL DIAGRAM FUNCTIONS ── */
 
@@ -1515,13 +1515,13 @@ drawLabel(svg,570,fy+34,'OpenShell Gateway \u00b7 Kernel-enforced isolation \u00
 
 /* ── NEW DIAGRAM FUNCTIONS (Tier 1 + Tier 2 upgrades) ── */
 
-function renderAttackWalkthrough(){var svg=createSvg('#d-attack-walkthrough',900,310);if(!svg)return;
+function renderAttackWalkthrough(){var svg=createSvg('#d-attack-walkthrough',960,310);if(!svg)return;
 var steps=[
-{x:10,w:130,label:'Malicious\nDocument',sub:'prompt injection\nembedded in data',color:COLORS.red,icon:'M8,2 H16 L20,6 V22 H4 V2 Z M14,2 V6 H18'},
-{x:170,w:130,label:'Model',sub:'compromised —\nbelieves it should\ncall /exfil',color:COLORS.red,icon:'M12,2 A10,10 0 1,0 12,22 A10,10 0 1,0 12,2 M8,10 H10 M14,10 H16 M9,16 Q12,14 15,16'},
-{x:330,w:130,label:'Harness',sub:'issues tool call\nto /exfil — trusts\nmodel output',color:COLORS.orange,icon:'M4,4 H20 V20 H4 Z M4,8 H20 M8,8 V20'},
-{x:520,w:150,label:'MCP Gateway',sub:'checks JWT claims\nnot prompt — /exfil\nNOT in allowed set',color:COLORS.green,icon:'M12,2 L22,7 V17 L12,22 L2,17 V7 Z M12,8 L8,12 L12,16 L16,12 Z'},
-{x:720,w:130,label:'Agent\nContinues',sub:'request denied,\nincident logged,\nagent resumes',color:COLORS.blue,icon:'M12,2 A10,10 0 1,0 12,22 A10,10 0 1,0 12,2 M8,12 L11,15 L17,9'}
+{x:6,w:148,label:'Malicious\nDocument',sub:'prompt injection\nembedded in data',color:COLORS.red,icon:'M8,2 H16 L20,6 V22 H4 V2 Z M14,2 V6 H18'},
+{x:186,w:148,label:'Model',sub:'compromised —\nbelieves it should\ncall /exfil',color:COLORS.red,icon:'M12,2 A10,10 0 1,0 12,22 A10,10 0 1,0 12,2 M8,10 H10 M14,10 H16 M9,16 Q12,14 15,16'},
+{x:366,w:148,label:'Harness',sub:'issues tool call\nto /exfil — trusts\nmodel output',color:COLORS.orange,icon:'M4,4 H20 V20 H4 Z M4,8 H20 M8,8 V20'},
+{x:556,w:168,label:'MCP Gateway',sub:'checks JWT claims\nnot prompt — /exfil\nNOT in allowed set',color:COLORS.green,icon:'M12,2 L22,7 V17 L12,22 L2,17 V7 Z M12,8 L8,12 L12,16 L16,12 Z'},
+{x:768,w:148,label:'Agent\nContinues',sub:'request denied,\nincident logged,\nagent resumes',color:COLORS.blue,icon:'M12,2 A10,10 0 1,0 12,22 A10,10 0 1,0 12,2 M8,12 L11,15 L17,9'}
 ];
 var nodeY=20,nodeH=170;
 steps.forEach(function(s,i){
@@ -1539,17 +1539,17 @@ drawLabel(g,s.x+s.w/2,nodeY+110,s.sub,{fontSize:9,color:COLORS.textMuted,delay:0
 });
 var arrowY=nodeY+nodeH/2;
 var arrowColors=[COLORS.red,COLORS.red,COLORS.red,COLORS.green];
-[[140,170],[300,330],[460,520],[670,720]].forEach(function(pair,i){
+[[154,186],[334,366],[514,556],[724,768]].forEach(function(pair,i){
 var aColor=arrowColors[i];
 var opts={delay:600+i*150,dashed:i<3};
 drawArrow(svg,pair[0],arrowY,pair[1],arrowY,aColor,opts);
 });
-drawLabel(svg,155,arrowY-12,'injects',{fontSize:8.5,color:COLORS.red,delay:650});
-drawLabel(svg,315,arrowY-12,'calls /exfil',{fontSize:8.5,color:COLORS.red,delay:800});
-drawLabel(svg,490,arrowY-12,'JWT check',{fontSize:8.5,color:COLORS.red,delay:950});
-drawLabel(svg,695,arrowY-12,'safe',{fontSize:8.5,color:COLORS.green,delay:1100});
+drawLabel(svg,170,arrowY-12,'injects',{fontSize:8.5,color:COLORS.red,delay:650});
+drawLabel(svg,350,arrowY-12,'calls /exfil',{fontSize:8.5,color:COLORS.red,delay:800});
+drawLabel(svg,535,arrowY-12,'JWT check',{fontSize:8.5,color:COLORS.red,delay:950});
+drawLabel(svg,746,arrowY-12,'safe',{fontSize:8.5,color:COLORS.green,delay:1100});
 var fy=nodeY+nodeH+24;
-drawBox(svg,80,fy,740,36,'The model was compromised — and it did not matter. Authorization lives outside the blast radius.',COLORS.green,{fill:COLORS.green+'06',delay:1200,fontSize:10.5,bold:true,rx:6});
+drawBox(svg,80,fy,800,36,'The model was compromised — and it did not matter. Authorization lives outside the blast radius.',COLORS.green,{fill:COLORS.green+'06',delay:1200,fontSize:10.5,bold:true,rx:6});
 }
 
 function renderAIGatewayHub(){var svg=createSvg('#d-ai-gateway-hub',900,340);if(!svg)return;
