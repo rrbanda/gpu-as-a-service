@@ -248,7 +248,7 @@ kbd{background:#e0e0e0;border:1px solid #ccc;border-radius:2px;padding:1px 5px;f
 
 <div class="slide" data-diagram-fn="renderBlueprintArch" data-diagram-id="d-renderBlueprintArch" style="padding:10px 16px 6px;">
 <div class="section-label" style="margin-bottom:2px;">RED HAT OPENSHIFT AI — ARCHITECTURE</div>
-  <h2 style="font-size:20px;margin-bottom:4px;line-height:1.2;">The open blueprint for cloud-native AI agents on Red Hat OpenShift AI</h2>
+  <h2 style="font-size:20px;margin-bottom:4px;line-height:1.2;">Every component is a role — swap implementations without redesign</h2>
   <div id="d-blueprint-arch" class="diagram-container" style="flex:1;width:100%;min-height:0;overflow:hidden;"></div>
 </div>
 
@@ -774,7 +774,7 @@ window.SPEAKER_NOTES=[
 'Agenda\n\nHere is what we will cover, mapped directly to the areas your team asked about.\n\nWe will start with a quick shared-vocabulary check — three components, two deployment patterns, and the full blueprint. That is about three minutes. Then we go straight into deep dives: agent pod anatomy and the supervisor, which addresses your question about the Agent Pod. Then defense rings and dual protection, which covers the Supervisor Ingress/Egress Proxy. Then flows and routing for your Internal and External Flows question. Then the MCP Gateway — tool authorization and an attack walkthrough. Then the AI Gateway and Auth Bridge together, since they share the identity chain. And we will close with maturity and a phased adoption path.\n\nRed Hat calls this operational discipline AgentOps — observability, tracing, evaluation, safety, registry, catalog, lifecycle management, and identity, all as platform-native capabilities.\n\nI have organized these in the order that builds on itself — the pod first because everything else sits inside it, then the controls that govern what leaves the pod, then how requests flow, and finally how you get there incrementally. Let us start with shared vocabulary.',
 'Three components — Model, Harness, Sandbox\n\nSo this is the decomposition that matters: every agent breaks down into three components with separate lifecycles.\n\nThe Model is the reasoning engine — Llama, Nemotron, DeepSeek, Qwen. It is stateless, versioned independently, and sits behind an OpenAI-compatible API. The model does not know it is inside an agent.\n\nThe Harness owns the agentic loop — it holds memory, manages the context window, orchestrates tool calls, and decides when to stop. OpenClaw, LangGraph, Hermes Agent — these are harnesses. Red Hat AI is framework-agnostic — bring your own agent, or BYOA. You pick the harness that fits your development team.\n\nThe Sandbox decides what the agent may touch — which files, which binaries, which network endpoints. OpenShell, Kata Containers, the emerging agent-sandbox API. The sandbox does not trust the harness or the model.\n\nWhy does this decomposition matter? Because agents are not harder microservices — they are a genuinely new workload class. At one moment an agent looks like a request/response service, the next it is dispatching batch jobs, the next it is an inference client, and an hour later it is still running, holding state. No single Kubernetes primitive maps cleanly to that lifecycle. That is why every assumption about scheduling, security, and cost breaks in a different way.\n\nLet me show you the two deployment patterns this enables.',
 'Agent-as-a-Workload vs Agent-as-a-Service\n\nThese are the two fundamental deployment patterns.\n\nOn the left: Agent-as-a-Workload. The agentic loop ships inside the pod alongside the harness. The agent has its own identity, its own blast radius. This is for long-running, autonomous workloads.\n\nOn the right: Agent-as-a-Service. The loop runs in a shared runtime — OGX behind a Responses API. Centralized audit trail. Credential isolation. This is for request-scoped assistants and copilots.\n\nHere is the key insight: the governance layer is identical across both patterns. SPIFFE establishes WHO the agent is — same credential whether it is a standalone pod or a shared-runtime tenant. The MCP Gateway decides WHAT that identity may call — same claims check regardless of where the loop runs. Neither mechanism consults the model. A compromised prompt cannot change permissions.\n\nYou can start securing agents today before settling the Workload-versus-Service debate. And the two patterns compose — a sandboxed pod can delegate to a shared loop while keeping its own identity.\n\nNow let me show you the full picture.',
-'The complete open blueprint\n\nTake a moment to absorb this diagram. This is the full open agentic AI blueprint on Red Hat OpenShift AI.\n\nThree horizontal bands. The top band is the control plane — agent blueprints, GitOps, policy. The middle band is where agents actually run — sandboxed pods, shared runtimes, the MCP Gateway checkpoint between them. The bottom band is the platform — OpenShift, SPIFFE, observability, the inference pool.\n\nEvery component is a ROLE that several implementations can fill. The model role can be Llama, Nemotron, DeepSeek. The sandbox role can be OpenShell, Kata, the agent-sandbox API. The inference routing role can be llm-d, Praxis, or a custom EPP.\n\nWe are about to zoom into five specific layers within this blueprint. These map directly to the components your team asked about. Let us start with the agent pod.',
+'Architecture overview\n\nTake a moment to absorb this diagram. This is the full open agentic AI architecture on Red Hat OpenShift AI. The title says it all: every component is a role that multiple implementations can fill.\n\nThree horizontal bands. The top band is the control plane — agent blueprints, GitOps, policy. The middle band is where agents actually run — sandboxed pods, shared runtimes, the MCP Gateway checkpoint between them. The bottom band is the platform — OpenShift, SPIFFE, observability, the inference pool.\n\nEvery component is a ROLE that several implementations can fill. The model role can be Llama, Nemotron, DeepSeek. The sandbox role can be OpenShell, Kata, the agent-sandbox API. The inference routing role can be llm-d, Praxis, or a custom EPP.\n\nWe are about to zoom into five specific layers within this blueprint. These map directly to the components your team asked about. Let us start with the agent pod.',
 'Five layers\n\nThese are the five layers every organization running agents at scale needs to address. Each one sits behind a neutral interface, which means your choice is reversible.\n\nLayer 1: Isolation — how do you contain the blast radius? Layer 2: Tool Governance — who decides which tools an agent can call? Layer 3: Inference Routing — how do you balance security, cost, and efficiency? Layer 4: Identity — how does the infrastructure know WHO is making a request? Layer 5: Loop Placement — does the agentic loop run inside the pod or in a shared runtime?\n\nWe will go deep on each of these over the next thirty-five minutes. Let us start with isolation — the Agent Pod.',
 'Agent pod anatomy\n\nSo here is Layer 1 — Isolation. This is the internal anatomy of an agent pod, which is one of the six components your team specifically asked about.\n\nThe supervisor process runs as PID 1. It enforces per-binary, per-path, per-endpoint policy using kernel primitives — seccomp profiles, Landlock LSM, network namespaces. The agent process runs as a child of the supervisor, inside the sandbox.\n\nThree nested defense rings. Ring 1: process-level — seccomp, Landlock, namespaces. Ring 2: pod-level — Pod Security Standards, SELinux, NetworkPolicy, optionally Kata for hardware isolation. Ring 3: hardware-level — confidential computing when you need memory encryption.\n\nThe design principle: each ring assumes the ring inside it has ALREADY FAILED. Defense in depth means each layer is independently sufficient to contain one class of attack.\n\nLet me show you why PID 1 matters so much.',
 'Why PID 1 matters\n\nThis slide directly addresses the supervisor — the component your team asked about under Ingress/Egress Proxy.\n\nThe supervisor runs as PID 1 — it starts before the agent does. Boot sequence: fetch policy, install kernel filters, inject SPIFFE credentials, THEN launch the harness as a child process. The agent never runs unsupervised.\n\nThe egress proxy is the critical piece. Every outbound connection routes through it. Default posture is deny-all. You allowlist exactly the endpoints your agent needs. For a coding agent backed by a local inference server, that might be a single entry.\n\nHere is the key for your internal-versus-external flow question: Tier 1 routing lives inside the supervisor. Confidential context never leaves the cluster — the supervisor enforces this at the network level. Anything going external gets PII masking first. Even in-cluster inference enters through the AI Gateway, not directly to model endpoints.\n\nThe failure mode to monitor: PII masking is heuristic, so false-negative leakage is possible. Plan for downstream monitoring.\n\nNow let me show you the component options — what you choose, what stays open.',
@@ -816,7 +816,7 @@ window.SLIDE_TITLES=[
 'What we will cover today',
 'Three components with separate lifecycles: Model, Harness, Sandbox',
 'Two deployment patterns: Agent-as-a-Workload vs Agent-as-a-Service',
-'The open blueprint for cloud-native AI agents on Red Hat OpenShift AI',
+'Every component is a role — swap implementations without redesign',
 'Five layers — each behind a neutral interface',
 'Layer 1: Agent pod anatomy — supervisor, sandbox, defense rings',
 'Why PID 1 matters: the supervisor boot sequence',
@@ -1234,16 +1234,16 @@ var cy=4;
 drawBox(svg,M,cy,720,66,'',COLORS.blue,{fill:COLORS.blue+'05',delay:d,rx:8});
 drawLabel(svg,M+10,cy+13,'CONTROL / SECURITY PLANE',{anchor:'start',bold:true,fontSize:10,color:COLORS.blue,delay:d+=10});
 
-var cpW=165,cpH=38,cpX=M+12;
+var cpW=160,cpH=38,cpX=M+12,cpGap=176;
 var cps=[
 {l:'Agent Blueprint / GitOps',sub:'Helm \u00b7 NemoClaw'},
 {l:'Sandbox Control Plane',sub:'OpenShell Gateway'},
 {l:'Sandbox CRD + Controller',sub:'agent-sandbox SIG'},
 {l:'Workload Identity',sub:'SPIFFE/SPIRE \u00b7 JWT-SVID'}];
-cps.forEach(function(c,i){var cx=cpX+i*178;
-drawBox(svg,cx,cy+20,cpW,cpH,c.l,COLORS.blue,{fill:COLORS.blue+'0a',delay:d+=20,fontSize:10,bold:true,rx:5});
+cps.forEach(function(c,i){var cx=cpX+i*cpGap;
+drawBox(svg,cx,cy+20,cpW,cpH,c.l,COLORS.blue,{fill:COLORS.blue+'0a',delay:d+=20,fontSize:9.5,bold:true,rx:5});
 drawLabel(svg,cx+cpW/2,cy+52,c.sub,{fontSize:8,color:COLORS.textMuted,delay:d+10})});
-for(var ai=0;ai<3;ai++){var ax1=cpX+(ai+1)*178-13,ax2=cpX+(ai+1)*178;
+for(var ai=0;ai<3;ai++){var ax1=cpX+(ai+1)*cpGap-16,ax2=cpX+(ai+1)*cpGap;
 drawArrow(svg,ax1,cy+39,ax2,cy+39,COLORS.blue,{delay:d+=8,dashed:true})}
 
 // External LLM (top right)
@@ -1288,7 +1288,7 @@ skills.forEach(function(sk,i){
 var col=i%3,row=Math.floor(i/3);
 var sx=apx+8+col*118,sy=apy+106+row*38;
 drawBox(svg,sx,sy,112,30,sk,COLORS.amber,{fill:COLORS.amber+'0c',delay:d+=8,fontSize:9.5,bold:true,rx:4})});
-drawLabel(svg,apx+apW/2,apy+192,'pattern 1: in-pod with explicit GPU request',{fontSize:7.5,color:COLORS.textMuted,delay:d+10});
+drawLabel(svg,apx+apW/2,apy+192,'pattern 1: in-pod with explicit GPU request',{fontSize:8,color:COLORS.textMuted,delay:d+10});
 
 // Arrow: pod ← skill backends
 var arY=apy+60;
@@ -1300,31 +1300,31 @@ var ipx=apx+apW+12,ipy=ey,ipW=360;
 
 // Arrow: pod → external LLM
 drawArrow(svg,apx+apW,apy+16,740,cy+32,COLORS.orange,{delay:d+=10,dashed:true});
-drawLabel(svg,610,cy+20,'PII masked',{fontSize:8,color:COLORS.orange,delay:d});
+drawLabel(svg,640,cy+50,'PII masked',{fontSize:9,color:COLORS.orange,delay:d,bold:true});
 
 // Arrow: pod → inference
 drawArrow(svg,apx+apW,apy+60,ipx,ipy+30,COLORS.green,{delay:d+=10});
-drawLabel(svg,(apx+apW+ipx)/2,apy+72,'in-cluster',{fontSize:8,color:COLORS.green,delay:d});
+drawLabel(svg,(apx+apW+ipx)/2+10,apy+50,'in-cluster',{fontSize:9,color:COLORS.green,delay:d});
 
 // AI Gateway
 drawBox(svg,ipx,ipy,174,56,'AI Gateway (MaaS)',COLORS.green,{fill:COLORS.green+'0a',delay:d+=15,fontSize:11,bold:true,rx:6});
 drawLabel(svg,ipx+87,ipy+36,'OpenResponses / OGX',{fontSize:8,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,ipx+87,ipy+47,'auth \u00b7 quota \u00b7 guardrails',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+drawLabel(svg,ipx+87,ipy+47,'auth \u00b7 quota \u00b7 guardrails',{fontSize:8,color:COLORS.textMuted,delay:d+8});
 
 // Semantic routing
 drawBox(svg,ipx+182,ipy,174,56,'Semantic Routing',COLORS.purple,{fill:COLORS.purple+'06',delay:d+=15,fontSize:11,bold:true,rx:6});
-drawLabel(svg,ipx+269,ipy+36,'Tier 2: which model?',{fontSize:8,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,ipx+269,ipy+47,'Red Hat AI gateway',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+drawLabel(svg,ipx+269,ipy+36,'Tier 2: which model?',{fontSize:8.5,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+269,ipy+47,'Red Hat AI gateway',{fontSize:8,color:COLORS.textMuted,delay:d+8});
 
 // Model Workers
 drawBox(svg,ipx,ipy+66,174,56,'Model Workers',COLORS.blue,{fill:COLORS.blue+'08',delay:d+=15,fontSize:11,bold:true,rx:6});
-drawLabel(svg,ipx+87,ipy+98,'vLLM \u00b7 any accelerator',{fontSize:8,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,ipx+87,ipy+110,'Nemotron \u00b7 Llama \u00b7 DeepSeek',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+drawLabel(svg,ipx+87,ipy+98,'vLLM \u00b7 any accelerator',{fontSize:8.5,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+87,ipy+110,'Nemotron \u00b7 Llama \u00b7 DeepSeek',{fontSize:8,color:COLORS.textMuted,delay:d+8});
 
 // Inference Scheduler
 drawBox(svg,ipx+182,ipy+66,174,56,'Inference Scheduler',COLORS.teal,{fill:COLORS.teal+'06',delay:d+=15,fontSize:11,bold:true,rx:6});
-drawLabel(svg,ipx+269,ipy+98,'Tier 3: which replica?',{fontSize:8,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,ipx+269,ipy+110,'llm-d EPP \u00b7 Gateway API',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+drawLabel(svg,ipx+269,ipy+98,'Tier 3: which replica?',{fontSize:8.5,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+269,ipy+110,'llm-d EPP \u00b7 Gateway API',{fontSize:8,color:COLORS.textMuted,delay:d+8});
 
 // Inference arrows
 drawArrow(svg,ipx+174,ipy+28,ipx+182,ipy+28,COLORS.textMuted,{delay:d+=5});
