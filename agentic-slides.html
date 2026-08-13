@@ -1433,41 +1433,37 @@ drawLabel(svg,rx+colW/2,266,'Shared blast radius',{fontSize:8.5,color:COLORS.tex
 drawLabel(svg,450,310,'Duration and ownership pick the pattern \u2014 same governance across both',{fontSize:11,bold:true,color:COLORS.text,delay:400});
 }
 
-function renderRoutingTiers(){var svg=createSvg('#d-routing-tiers',900,370);if(!svg)return;
-// Main horizontal flow
+function renderRoutingTiers(){var svg=createSvg('#d-routing-tiers',900,380);if(!svg)return;
 var nodes=[
-{x:20,y:100,w:100,h:55,label:'Agent',sub:'sandbox pod\nsends LLM call',color:COLORS.blue},
-{x:160,y:80,w:170,h:95,label:'Tier 1: Egress Router',sub:'WHERE may it go?\npolicy \u00b7 PII mask\nruns in supervisor',color:COLORS.red},
-{x:380,y:80,w:170,h:95,label:'Tier 2: Semantic Routing',sub:'WHICH model?\nintent \u00b7 complexity \u00b7 cost\nAI gateway \u00b7 vLLM SR',color:COLORS.purple},
-{x:600,y:80,w:170,h:95,label:'Tier 3: llm-d EPP',sub:'WHICH replica?\nKV cache \u00b7 load\nprefill/decode split',color:COLORS.teal},
-{x:810,y:100,w:80,h:55,label:'vLLM\nworkers',sub:'',color:COLORS.green}
+{x:16,y:110,w:104,h:56,label:'Agent',sub:'sandbox pod',color:COLORS.blue},
+{x:158,y:74,w:176,h:108,label:'Tier 1: Egress Router',sub:'WHERE may it go?\npolicy · PII mask\nruns in supervisor',color:COLORS.red},
+{x:376,y:74,w:176,h:108,label:'Tier 2: Semantic Routing',sub:'WHICH model?\nintent · complexity · cost\nAI gateway · vLLM SR',color:COLORS.purple},
+{x:594,y:74,w:176,h:108,label:'Tier 3: llm-d EPP',sub:'WHICH replica?\nKV cache · load balance\nprefill / decode split',color:COLORS.teal},
+{x:810,y:110,w:80,h:56,label:'vLLM\nworkers',sub:'',color:COLORS.green}
 ];
 nodes.forEach(function(n,i){
-drawBox(svg,n.x,n.y,n.w,n.h,n.label,n.color,{fill:n.color+'0a',delay:i*80,fontSize:n.w>100?11:10,bold:true,rx:6});
-if(n.sub)drawLabel(svg,n.x+n.w/2,n.y+n.h-20,n.sub,{fontSize:7.5,color:COLORS.textMuted,delay:i*80+30});
+drawBox(svg,n.x,n.y,n.w,n.h,n.label,n.color,{fill:n.color+'0a',delay:i*80,fontSize:n.w>110?11:10,bold:true,rx:6});
+if(n.sub)drawLabel(svg,n.x+n.w/2,n.y+n.h-28,n.sub,{fontSize:9,color:COLORS.textMuted,delay:i*80+30});
 });
-// Arrows between nodes
-drawArrow(svg,120,128,160,128,COLORS.textMuted,{delay:100});
-drawArrow(svg,330,128,380,128,COLORS.textMuted,{delay:200});
-drawArrow(svg,550,128,600,128,COLORS.textMuted,{delay:300});
-drawArrow(svg,770,128,810,128,COLORS.textMuted,{delay:400});
+var ay=138;
+drawArrow(svg,120,ay,158,ay,COLORS.textMuted,{delay:100});
+drawArrow(svg,334,ay,376,ay,COLORS.textMuted,{delay:200});
+drawArrow(svg,552,ay,594,ay,COLORS.textMuted,{delay:300});
+drawArrow(svg,770,ay,810,ay,COLORS.textMuted,{delay:400});
 
-// Branch to External LLM
-drawBox(svg,330,10,180,36,'External LLM (optional)',COLORS.orange,{fill:COLORS.orange+'08',delay:150,fontSize:10,rx:6});
-drawLabel(svg,420,36,'allow-listed \u00b7 PII-disguised',{fontSize:7,color:COLORS.textMuted,delay:180});
-drawArrow(svg,245,80,340,46,COLORS.orange,{delay:200,dashed:true});
-drawLabel(svg,270,62,'if external\nallowed',{fontSize:7,color:COLORS.orange,delay:220,anchor:'start'});
+drawBox(svg,330,10,190,40,'External LLM (optional)',COLORS.orange,{fill:COLORS.orange+'08',delay:150,fontSize:10.5,rx:6});
+drawLabel(svg,425,38,'allow-listed · PII-disguised',{fontSize:8.5,color:COLORS.textMuted,delay:180});
+drawArrow(svg,246,74,340,50,COLORS.orange,{delay:200,dashed:true});
+drawLabel(svg,268,60,'if external\nallowed',{fontSize:8.5,color:COLORS.orange,delay:220,anchor:'start'});
 
-// Labels on arrows
-drawLabel(svg,140,118,'prompt',{fontSize:7,color:COLORS.textMuted,delay:120});
-drawLabel(svg,355,118,'in-\ncluster',{fontSize:7,color:COLORS.textMuted,delay:220});
-drawLabel(svg,575,118,'model\npool',{fontSize:7,color:COLORS.textMuted,delay:320});
-drawLabel(svg,790,118,'replica\npods',{fontSize:7,color:COLORS.textMuted,delay:420});
+drawLabel(svg,139,ay-12,'prompt',{fontSize:8.5,color:COLORS.textMuted,delay:120});
+drawLabel(svg,355,ay-12,'in-cluster',{fontSize:8.5,color:COLORS.textMuted,delay:220});
+drawLabel(svg,573,ay-12,'model pool',{fontSize:8.5,color:COLORS.textMuted,delay:320});
+drawLabel(svg,790,ay-12,'replica',{fontSize:8.5,color:COLORS.textMuted,delay:420});
 
-// Footer
-var fy=210;
-drawBox(svg,20,fy,860,40,'Traceable end to end: OpenTelemetry spans across all three tiers \u00b7 MLflow records tool calls, latencies, and costs',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:500,fontSize:9,rx:6});
-drawBox(svg,20,fy+48,860,34,'Decoupled at every hop: every hop speaks OpenAI-compatible / Open Responses APIs \u2014 swap the model and the agent never notices',COLORS.textMuted,{fill:COLORS.textMuted+'04',delay:550,fontSize:8,rx:6});
+var fy=218;
+drawBox(svg,20,fy,860,40,'Traceable end to end: OpenTelemetry spans across all three tiers · MLflow records tool calls, latencies, and costs',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:500,fontSize:9.5,rx:6});
+drawBox(svg,20,fy+48,860,36,'Decoupled at every hop: every hop speaks OpenAI-compatible / Open Responses APIs — swap the model and the agent never notices',COLORS.textMuted,{fill:COLORS.textMuted+'04',delay:550,fontSize:9,rx:6});
 }
 
 function renderDefenseRings(){var svg=createSvg('#d-defense-rings',900,380);if(!svg)return;
