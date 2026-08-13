@@ -1118,7 +1118,7 @@ drawLabel(svg,podX+podW/2,podY+16,'AGENT POD',{bold:true,fontSize:12,color:COLOR
 var supX=podX+16,supY=podY+28,supW=podW-32,supH=68;
 drawBox(svg,supX,supY,supW,supH,'',COLORS.teal,{fill:COLORS.teal+'08',delay:80,rx:6});
 drawLabel(svg,supX+supW/2,supY+14,'Supervisor (PID 1)',{bold:true,fontSize:11,color:COLORS.teal,delay:100});
-['seccomp','Landlock','Network NS','Binary allowlist','Egress proxy'].forEach(function(s,i){var bx=supX+8+i*(supW/5);drawBox(svg,bx,supY+26,supW/5-6,34,s,COLORS.teal,{fill:COLORS.teal+'10',delay:150+i*30,fontSize:8.5,rx:5})});
+['seccomp','Landlock','Network NS','Bin allowlist','Egress proxy'].forEach(function(s,i){var bx=supX+8+i*(supW/5);drawBox(svg,bx,supY+26,supW/5-6,34,s,COLORS.teal,{fill:COLORS.teal+'10',delay:150+i*30,fontSize:8.5,rx:5})});
 var agentX=podX+50,agentY=supY+supH+10,agentW=220,agentH=72;
 drawBox(svg,agentX,agentY,agentW,agentH,'',COLORS.purple,{fill:COLORS.purple+'08',delay:300,rx:6});
 drawLabel(svg,agentX+agentW/2,agentY+16,'Agent Harness',{bold:true,fontSize:11,color:COLORS.purple,delay:320});
@@ -1130,7 +1130,7 @@ drawLabel(svg,authX+authW/2,authY+16,'Auth Sidecar',{bold:true,fontSize:11,color
 drawLabel(svg,authX+authW/2,authY+34,'SPIFFE SVID \u2192 Token',{fontSize:9,color:COLORS.textMuted,delay:340});
 drawLabel(svg,authX+authW/2,authY+50,'5-min short-lived claims',{fontSize:9,color:COLORS.red,delay:350});
 var ringY=podY+podH+16;
-var rings=[{label:'Ring 1: Process',detail:'seccomp, Landlock, binary allowlist',color:COLORS.teal},{label:'Ring 2: Pod',detail:'PSS, SELinux, NetworkPolicy, Kata',color:COLORS.blue},{label:'Ring 3: Hardware/VM',detail:'Confidential Containers',color:COLORS.purple}];
+var rings=[{label:'Ring 1: Process',detail:'seccomp \u00b7 Landlock \u00b7 allowlist',color:COLORS.teal},{label:'Ring 2: Pod',detail:'PSS \u00b7 SELinux \u00b7 NetworkPolicy',color:COLORS.blue},{label:'Ring 3: Hardware/VM',detail:'Confidential Containers',color:COLORS.purple}];
 rings.forEach(function(r,i){var rx=podX+i*195;
 drawBox(svg,rx,ringY,185,55,r.label,r.color,{fill:r.color+'08',delay:420+i*60,fontSize:10,bold:true,rx:6});
 drawLabel(svg,rx+92,ringY+38,r.detail,{fontSize:8,color:COLORS.textMuted,delay:450+i*60});
@@ -1182,7 +1182,7 @@ drawBox(svg,18,compY,420,44,'BEFORE: Static API keys, rotated quarterly,\none ke
 drawBox(svg,452,compY,430,44,'AFTER: Per-agent crypto identity, auto-rotated,\nper-tool entitlements, nothing durable to steal',COLORS.green,{fill:COLORS.green+'06',delay:580,fontSize:9.5,rx:6});
 drawLabel(svg,450,compY+58,'Containment economics: revoke one identity = one targeted operation',{fontSize:10,bold:true,color:COLORS.text,delay:700})}
 
-function renderAgentBenchmark(){var svg=createSvg('#d-agent-benchmark',900,340);if(!svg)return;
+function renderAgentBenchmark(){var svg=createSvg('#d-agent-benchmark',900,350);if(!svg)return;
 drawLabel(svg,450,8,'SAME IMAGE \u00b7 SAME AGENT \u00b7 SAME MODEL \u00b7 THREE PROTECTION LAYERS',{bold:true,fontSize:11,color:COLORS.text,delay:0});
 var pods=[{label:'Pod 1: Kata Only',tech:'Kata micro-VM, no OpenShell',color:COLORS.purple},{label:'Pod 2: OpenShell Only',tech:'OpenShell + egress proxy, runc',color:COLORS.teal},{label:'Pod 3: Both (Dual)',tech:'OpenShell inside Kata',color:COLORS.green}];
 var podW=270,podH=40,startY=24;
@@ -1456,7 +1456,7 @@ drawLabel(svg,253,320,'A breach of one ring is contained by the next',{fontSize:
 drawLabel(svg,690,320,'Applied across all rings \u2014 every action traced',{fontSize:10,color:COLORS.textMuted,delay:520});
 }
 
-function renderSupervisorPattern(){var svg=createSvg('#d-supervisor-pattern',900,380);if(!svg)return;
+function renderSupervisorPattern(){var svg=createSvg('#d-supervisor-pattern',900,400);if(!svg)return;
 // Left: The WHAT (cloud orchestration)
 drawBox(svg,20,10,200,100,'',COLORS.red,{fill:COLORS.red+'06',delay:0,rx:8,strokeWidth:1});
 drawLabel(svg,120,24,'The WHAT',{bold:true,fontSize:11,color:COLORS.red,delay:20});
@@ -1464,7 +1464,7 @@ drawBox(svg,35,38,170,34,'Claude Managed Agent',COLORS.red,{fill:COLORS.red+'0a'
 drawLabel(svg,120,82,'Decomposes, routes, synthesizes\nNever sees raw data',{fontSize:8,color:COLORS.textMuted,delay:60});
 
 // Right: The HOW (your cluster)
-drawBox(svg,260,10,620,400,'',COLORS.blue,{fill:COLORS.blue+'03',delay:40,rx:8,strokeWidth:1});
+drawBox(svg,260,10,620,380,'',COLORS.blue,{fill:COLORS.blue+'03',delay:40,rx:8,strokeWidth:1});
 drawLabel(svg,570,24,'The HOW \u2014 Your OpenShift Cluster',{bold:true,fontSize:11,color:COLORS.blue,delay:60});
 
 // Worker pod
@@ -1478,27 +1478,26 @@ drawLabel(svg,320,44,'task descriptions',{fontSize:7,color:COLORS.red,delay:140}
 // Three sandboxed agents
 var agents=[
 {name:'Metrics Agent',color:COLORS.blue,detail:'Prometheus queries\nLatency, errors, CPU\nReasons via vLLM',policy:'vLLM + Prometheus'},
-{name:'Log Agent',color:COLORS.teal,detail:'Application log search\nNPE 3400 since 14:31\nReasons via vLLM',policy:'vLLM + Loki'},
+{name:'Log Agent',color:COLORS.teal,detail:'Log search\nNPE 3400 since 14:31\nReasons via vLLM',policy:'vLLM + Loki'},
 {name:'Runbook Agent',color:COLORS.purple,detail:'Past incident search\nINC-2847 matches\nReasons via vLLM',policy:'vLLM + read-only FS'}
 ];
-var agW=180,agH=150,agGap=18,agStartX=290,agY=90;
+var agW=180,agH=140,agGap=18,agStartX=290,agY=86;
 agents.forEach(function(a,i){var ax=agStartX+i*(agW+agGap);
 drawBox(svg,ax,agY,agW,agH,'',a.color,{fill:a.color+'06',delay:160+i*60,rx:6});
 drawLabel(svg,ax+2,agY-4,'SANDBOX '+(i+1),{anchor:'start',fontSize:7,color:a.color,bold:true,delay:170+i*60});
 drawLabel(svg,ax+agW/2,agY+16,a.name,{bold:true,fontSize:10,color:a.color,delay:180+i*60});
-drawLabel(svg,ax+agW/2,agY+52,a.detail,{fontSize:7.5,color:COLORS.textMuted,delay:200+i*60});
-drawBox(svg,ax+6,agY+agH-30,agW-12,22,'Policy: '+a.policy,a.color,{fill:a.color+'0c',delay:240+i*60,fontSize:7.5,bold:true,rx:4});
+drawLabel(svg,ax+agW/2,agY+48,a.detail,{fontSize:7.5,color:COLORS.textMuted,delay:200+i*60});
+drawBox(svg,ax+6,agY+agH-28,agW-12,22,'Policy: '+a.policy,a.color,{fill:a.color+'0c',delay:240+i*60,fontSize:7.5,bold:true,rx:4});
 });
 
 // vLLM Pod
-var vy=agY+agH+18;
-drawBox(svg,380,vy,360,36,'vLLM Pod (cluster-internal) \u2014 Qwen3-8B \u00b7 Llama 3.2',COLORS.green,{fill:COLORS.green+'08',delay:400,fontSize:10,bold:true,rx:6});
-// Arrows from agents to vLLM
+var vy=agY+agH+14;
+drawBox(svg,380,vy,360,34,'vLLM Pod \u2014 Qwen3-8B \u00b7 Llama 3.2',COLORS.green,{fill:COLORS.green+'08',delay:400,fontSize:10,bold:true,rx:6});
 agents.forEach(function(a,i){var ax=agStartX+i*(agW+agGap)+agW/2;
 drawArrow(svg,ax,agY+agH,ax,vy,COLORS.textMuted,{delay:420+i*30})});
 
 // Footer principles
-var fy=vy+48;
+var fy=vy+44;
 var principles=[
 {t:'Task-level data partitioning',d:'Each agent reads only its data'},
 {t:'Independent local reasoning',d:'Each agent reasons with vLLM'},
@@ -1508,8 +1507,7 @@ principles.forEach(function(p,i){var px=290+i*200;
 drawLabel(svg,px+85,fy,p.t,{bold:true,fontSize:8,color:COLORS.text,delay:480+i*40});
 drawLabel(svg,px+85,fy+14,p.d,{fontSize:7,color:COLORS.textMuted,delay:500+i*40})});
 
-// Security boundary label
-drawLabel(svg,570,fy+34,'OpenShell Gateway \u00b7 Kernel-enforced isolation \u00b7 Deny-all by default',{fontSize:8,color:COLORS.teal,delay:560,bold:true});
+drawLabel(svg,570,fy+32,'OpenShell Gateway \u00b7 Kernel-enforced isolation \u00b7 Deny-all by default',{fontSize:8,color:COLORS.teal,delay:560,bold:true});
 }
 
 /* ── NEW DIAGRAM FUNCTIONS (Tier 1 + Tier 2 upgrades) ── */
@@ -1639,7 +1637,7 @@ var phases=[
 {label:'Phase 3: Governance',weeks:'Weeks 5\u20138',color:COLORS.purple,x1:0.33,x2:0.67,items:['MCP Gateway','OTel + MLflow']},
 {label:'Phase 4: Optimization',weeks:'Weeks 8\u201312',color:COLORS.red,x1:0.58,x2:1.0,items:['Semantic Routing','OGX','EvalHub']}
 ];
-var barX=80,barW=780,barStartY=30,barH=52,barGap=10;
+var barX=80,barW=780,barStartY=30,barH=58,barGap=8;
 drawLabel(svg,40,barStartY+10,'Week',{fontSize:9,color:COLORS.textMuted,delay:0,anchor:'start',bold:true});
 for(var w=0;w<=12;w++){
 var wx=barX+w*(barW/12);
@@ -1653,17 +1651,16 @@ var g=svg.append('g').style('opacity',0);
 g.transition().delay(150+i*120).duration(500).ease(d3.easeCubicOut).style('opacity',1);
 g.append('rect').attr('x',px1).attr('y',y).attr('width',px2-px1).attr('height',barH).attr('rx',6).attr('fill',p.color+'12').attr('stroke',p.color).attr('stroke-width',1.5);
 g.append('rect').attr('x',px1).attr('y',y).attr('width',4).attr('height',barH).attr('rx',2).attr('fill',p.color);
-drawLabel(g,px1+12,y+14,p.label,{anchor:'start',bold:true,fontSize:11,color:p.color,delay:0});
-drawLabel(g,px1+12,y+30,p.weeks,{anchor:'start',fontSize:9,color:COLORS.textMuted,delay:0});
-var pillX=px1+180;
+drawLabel(g,px1+12,y+14,p.label+' \u2014 '+p.weeks,{anchor:'start',bold:true,fontSize:10,color:p.color,delay:0});
+var pillX=px1+12;
 p.items.forEach(function(item,j){
-var tw=item.length*6.5+16;
-g.append('rect').attr('x',pillX).attr('y',y+10).attr('width',tw).attr('height',22).attr('rx',11).attr('fill',p.color+'10').attr('stroke',p.color).attr('stroke-width',0.5);
-g.append('text').attr('x',pillX+tw/2).attr('y',y+22).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('font-size',9).attr('fill',p.color).attr('font-family',"'Red Hat Display',sans-serif").text(item);
-pillX+=tw+8;
+var tw=item.length*6+14;
+g.append('rect').attr('x',pillX).attr('y',y+28).attr('width',tw).attr('height',20).attr('rx',10).attr('fill',p.color+'10').attr('stroke',p.color).attr('stroke-width',0.5);
+g.append('text').attr('x',pillX+tw/2).attr('y',y+39).attr('text-anchor','middle').attr('dominant-baseline','middle').attr('font-size',8.5).attr('fill',p.color).attr('font-family',"'Red Hat Display',sans-serif").text(item);
+pillX+=tw+6;
 });
 });
-drawBox(svg,80,barStartY+4*(barH+barGap)+24,780,34,'Phases overlap \u2014 each step is independently deployable and provides incremental security value',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:700,fontSize:10,bold:true,rx:6});
+drawBox(svg,80,barStartY+4*(barH+barGap)+20,780,34,'Phases overlap \u2014 each step is independently deployable and provides incremental security value',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:700,fontSize:10,bold:true,rx:6});
 }
 
 function renderEndToEndTrace(){var svg=createSvg('#d-end-to-end-trace',900,340);if(!svg)return;
@@ -1681,20 +1678,20 @@ nodes.forEach(function(n,i){
 drawBox(svg,n.x,ny,n.w,nh,n.label,n.color,{fill:n.color+'0a',delay:i*50,fontSize:9.5,bold:true,rx:5});
 });
 
-var laneY=70,laneH=60,laneGap=12;
+var laneY=70,laneH=66,laneGap=10;
 var lanes=[
-{label:'Tool Call',color:COLORS.teal,desc:'Harness \u2192 MCP Gateway (JWT check) \u2192 cuOpt / OR-Tools backend',path:[[60,140],[250,280]],stops:[1,2]},
-{label:'Confidential',color:COLORS.red,desc:'Customer data \u2192 Tier 1 keeps in-cluster \u2192 no PII exits \u2192 local model',path:[[60,420],[530,560],[680,710],[800,830]],stops:[3,4,5,6]},
-{label:'Low-Risk',color:COLORS.green,desc:'Summary \u2192 Tier 2 picks small model \u2192 Tier 3 picks warm replica',path:[[60,560],[680,710],[800,830]],stops:[4,5,6]}
+{label:'Tool Call',color:COLORS.teal,desc:'Harness \u2192 MCP Gateway (JWT check) \u2192 cuOpt / OR-Tools',path:[[60,140],[250,280]],stops:[1,2]},
+{label:'Confidential',color:COLORS.red,desc:'Customer data \u2192 Tier 1 in-cluster \u2192 no PII exits \u2192 local model',path:[[60,420],[530,560],[680,710],[800,830]],stops:[3,4,5,6]},
+{label:'Low-Risk',color:COLORS.green,desc:'Summary \u2192 Tier 2 picks small model \u2192 Tier 3 warm replica',path:[[60,560],[680,710],[800,830]],stops:[4,5,6]}
 ];
 lanes.forEach(function(lane,li){
 var ly=laneY+li*(laneH+laneGap);
 svg.append('rect').attr('x',0).attr('y',ly).attr('width',900).attr('height',laneH).attr('rx',4).attr('fill',lane.color+'05').style('opacity',0).transition().delay(300+li*100).duration(300).style('opacity',1);
-drawLabel(svg,35,ly+16,lane.label,{bold:true,fontSize:11,color:lane.color,delay:320+li*100});
-drawLabel(svg,35,ly+32,lane.desc,{fontSize:8,color:COLORS.textMuted,delay:340+li*100,anchor:'start'});
+drawLabel(svg,35,ly+14,lane.label,{bold:true,fontSize:11,color:lane.color,delay:320+li*100});
+drawLabel(svg,35,ly+28,lane.desc,{fontSize:8,color:COLORS.textMuted,delay:340+li*100,anchor:'start'});
 
 lane.path.forEach(function(seg,si){
-var lineY=ly+laneH/2+6;
+var lineY=ly+laneH/2+10;
 drawArrow(svg,seg[0],lineY,seg[1],lineY,lane.color,{delay:400+li*100+si*80,width:2});
 });
 });
