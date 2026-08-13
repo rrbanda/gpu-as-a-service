@@ -1226,136 +1226,115 @@ drawLabel(svg,450,r2y+44,'Dual protection stops both attack classes',{fontSize:1
 
 /* ── 5 NEW DIAGRAM FUNCTIONS (replacing article PNGs) ── */
 
-function renderBlueprintArch(){var svg=createSvg('#d-blueprint-arch',1100,420);if(!svg)return;
+function renderBlueprintArch(){var svg=createSvg('#d-blueprint-arch',1100,440);if(!svg)return;
 var W=1090,M=5,d=0;
 
-// ── CONTROL PLANE ROW ──
-var cy=4;
-drawBox(svg,M,cy,720,66,'',COLORS.blue,{fill:COLORS.blue+'05',delay:d,rx:8});
-drawLabel(svg,M+10,cy+13,'CONTROL / SECURITY PLANE',{anchor:'start',bold:true,fontSize:10,color:COLORS.blue,delay:d+=10});
-
-var cpW=160,cpH=38,cpX=M+12,cpGap=176;
+// ── CONTROL PLANE ──
+var cy=2;
+drawBox(svg,M,cy,700,62,'',COLORS.blue,{fill:COLORS.blue+'05',delay:d,rx:8});
+drawLabel(svg,M+10,cy+12,'CONTROL / SECURITY PLANE',{anchor:'start',bold:true,fontSize:10,color:COLORS.blue,delay:d+=10});
+var cpW=155,cpH=34,cpX=M+14,cpGap=172;
 var cps=[
 {l:'Agent Blueprint / GitOps',sub:'Helm \u00b7 NemoClaw'},
 {l:'Sandbox Control Plane',sub:'OpenShell Gateway'},
 {l:'Sandbox CRD + Controller',sub:'agent-sandbox SIG'},
 {l:'Workload Identity',sub:'SPIFFE/SPIRE \u00b7 JWT-SVID'}];
 cps.forEach(function(c,i){var cx=cpX+i*cpGap;
-drawBox(svg,cx,cy+20,cpW,cpH,c.l,COLORS.blue,{fill:COLORS.blue+'0a',delay:d+=20,fontSize:9.5,bold:true,rx:5});
-drawLabel(svg,cx+cpW/2,cy+52,c.sub,{fontSize:8,color:COLORS.textMuted,delay:d+10})});
-for(var ai=0;ai<3;ai++){var ax1=cpX+(ai+1)*cpGap-16,ax2=cpX+(ai+1)*cpGap;
-drawArrow(svg,ax1,cy+39,ax2,cy+39,COLORS.blue,{delay:d+=8,dashed:true})}
+drawBox(svg,cx,cy+18,cpW,cpH,c.l,COLORS.blue,{fill:COLORS.blue+'0a',delay:d+=20,fontSize:9,bold:true,rx:5});
+drawLabel(svg,cx+cpW/2,cy+46,c.sub,{fontSize:7.5,color:COLORS.textMuted,delay:d+10})});
+for(var ai=0;ai<3;ai++){drawArrow(svg,cpX+(ai+1)*cpGap-17,cy+35,cpX+(ai+1)*cpGap,cy+35,COLORS.blue,{delay:d+=8,dashed:true})}
 
-// External LLM (top right)
-drawBox(svg,740,cy,200,50,'External LLM (optional)',COLORS.orange,{fill:COLORS.orange+'08',delay:40,fontSize:11,bold:true,rx:6});
-drawLabel(svg,840,cy+38,'disguised queries only',{fontSize:8,color:COLORS.orange,delay:55});
+// External LLM (top right, separate)
+drawBox(svg,730,cy,210,48,'External LLM (optional)',COLORS.orange,{fill:COLORS.orange+'08',delay:40,fontSize:11,bold:true,rx:6});
+drawLabel(svg,835,cy+36,'PII-masked queries only',{fontSize:8,color:COLORS.orange,delay:55});
 
 // ── EXECUTION ZONE ──
-var ey=78;
+var ey=82;
 
-// -- Skill backends (left column) --
-var sbW=165,sbH=230;
+// Skill backends (left)
+var sbW=150,sbH=210;
 drawBox(svg,M,ey,sbW,sbH,'',COLORS.textMuted,{fill:COLORS.textMuted+'03',delay:d+=15,rx:7,strokeWidth:0.5});
-drawLabel(svg,M+sbW/2,ey+14,'Skill Backends',{bold:true,fontSize:10,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,M+sbW/2,ey+13,'Skill Backends',{bold:true,fontSize:10,color:COLORS.textMuted,delay:d+5});
+var sbs=[{l:'Optimization',sub:'cuOpt \u00b7 OR-Tools'},{l:'Domain AI',sub:'NIM \u00b7 RAG service'},{l:'Batch compute',sub:'PhysicsNeMo \u00b7 JAX'}];
+sbs.forEach(function(s,i){var sy=ey+26+i*54;
+drawBox(svg,M+8,sy,sbW-16,44,s.l,COLORS.amber,{fill:COLORS.amber+'08',delay:d+=25,fontSize:10,bold:true,rx:4});
+drawLabel(svg,M+sbW/2,sy+33,s.sub,{fontSize:8,color:COLORS.textMuted,delay:d+10})});
+drawLabel(svg,M+sbW/2,ey+198,'via MCP Gateway',{fontSize:8,color:COLORS.teal,bold:true,delay:d+20});
 
-var sbs=[
-{l:'Optimization',sub:'cuOpt \u00b7 OR-Tools',c:COLORS.amber},
-{l:'Domain AI',sub:'NIM \u00b7 RAG service',c:COLORS.amber},
-{l:'Batch compute',sub:'PhysicsNeMo \u00b7 JAX',c:COLORS.amber}];
-sbs.forEach(function(s,i){var sy=ey+28+i*58;
-drawBox(svg,M+8,sy,sbW-16,48,s.l,s.c,{fill:s.c+'08',delay:d+=25,fontSize:10,bold:true,rx:4});
-drawLabel(svg,M+sbW/2,sy+36,s.sub,{fontSize:8,color:COLORS.textMuted,delay:d+10})});
-drawLabel(svg,M+sbW/2,ey+216,'via MCP Gateway',{fontSize:8,color:COLORS.teal,bold:true,delay:d+20});
-
-// -- Agent Pod (center) --
-var apx=M+sbW+12,apy=ey,apW=360,apH=230;
+// Agent Pod (center)
+var apx=M+sbW+20,apy=ey,apW=340,apH=210;
 drawBox(svg,apx,apy,apW,apH,'',COLORS.blue,{fill:COLORS.blue+'04',delay:d+=10,rx:8,strokeWidth:1.5});
-drawLabel(svg,apx+apW/2,apy+15,'Agent Pod: one per Sandbox CR',{bold:true,fontSize:11,color:COLORS.blue,delay:d+=10});
-drawLabel(svg,apx+apW/2,apy+28,'kata (optional) \u00b7 SELinux \u00b7 netns isolated',{fontSize:8,color:COLORS.textMuted,delay:d+5});
-
-// Harness + Supervisor
-var hbW=170;
-drawBox(svg,apx+8,apy+38,hbW,44,'Agent Harness',COLORS.purple,{fill:COLORS.purple+'0a',delay:d+=20,fontSize:11,bold:true,rx:5});
-drawLabel(svg,apx+8+hbW/2,apy+68,'OpenClaw \u00b7 LangGraph',{fontSize:8,color:COLORS.textMuted,delay:d+10});
-
-drawBox(svg,apx+182,apy+38,hbW,44,'Sandbox Supervisor',COLORS.teal,{fill:COLORS.teal+'0a',delay:d+=20,fontSize:11,bold:true,rx:5});
-drawLabel(svg,apx+182+hbW/2,apy+68,'OpenShell \u00b7 PII guard',{fontSize:8,color:COLORS.textMuted,delay:d+10});
-
-// Skills grid
-drawLabel(svg,apx+apW/2,apy+96,'Agent skills: thin clients, no GPU in pod',{fontSize:8,color:COLORS.textMuted,delay:d+=15});
+drawLabel(svg,apx+apW/2,apy+14,'Agent Pod: one per Sandbox CR',{bold:true,fontSize:11,color:COLORS.blue,delay:d+=10});
+drawLabel(svg,apx+apW/2,apy+27,'kata (optional) \u00b7 SELinux \u00b7 netns isolated',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+var hbW=160;
+drawBox(svg,apx+8,apy+38,hbW,40,'Agent Harness',COLORS.purple,{fill:COLORS.purple+'0a',delay:d+=20,fontSize:11,bold:true,rx:5});
+drawLabel(svg,apx+8+hbW/2,apy+65,'OpenClaw \u00b7 LangGraph',{fontSize:8,color:COLORS.textMuted,delay:d+10});
+drawBox(svg,apx+172,apy+38,hbW,40,'Sandbox Supervisor',COLORS.teal,{fill:COLORS.teal+'0a',delay:d+=20,fontSize:11,bold:true,rx:5});
+drawLabel(svg,apx+172+hbW/2,apy+65,'OpenShell \u00b7 PII guard',{fontSize:8,color:COLORS.textMuted,delay:d+10});
+drawLabel(svg,apx+apW/2,apy+90,'Agent skills: thin clients, no GPU in pod',{fontSize:8,color:COLORS.textMuted,delay:d+=15});
 var skills=['DataFrames','Research/RAG','Physics sim','Optimization','Model ops','Quantum'];
-skills.forEach(function(sk,i){
-var col=i%3,row=Math.floor(i/3);
-var sx=apx+8+col*118,sy=apy+106+row*38;
-drawBox(svg,sx,sy,112,30,sk,COLORS.amber,{fill:COLORS.amber+'0c',delay:d+=8,fontSize:9.5,bold:true,rx:4})});
-drawLabel(svg,apx+apW/2,apy+192,'pattern 1: in-pod with explicit GPU request',{fontSize:8,color:COLORS.textMuted,delay:d+10});
+skills.forEach(function(sk,i){var col=i%3,row=Math.floor(i/3);
+drawBox(svg,apx+8+col*112,apy+100+row*34,106,28,sk,COLORS.amber,{fill:COLORS.amber+'0c',delay:d+=8,fontSize:9,bold:true,rx:4})});
+drawLabel(svg,apx+apW/2,apy+178,'pattern 1: in-pod with explicit GPU request',{fontSize:8,color:COLORS.textMuted,delay:d+10});
 
-// Arrow: pod ← skill backends
-var arY=apy+60;
-drawArrow(svg,M+sbW,arY,apx,arY,COLORS.teal,{delay:d+=15,dashed:true});
-drawLabel(svg,(M+sbW+apx)/2,arY-9,'tool calls',{fontSize:8,color:COLORS.teal,delay:d});
+// Arrow: skill backends → pod
+drawArrow(svg,M+sbW,apy+58,apx,apy+58,COLORS.teal,{delay:d+=15,dashed:true});
 
-// -- Inference plane (right) --
-var ipx=apx+apW+12,ipy=ey,ipW=360;
+// Inference plane (right)
+var ipx=apx+apW+24,ipy=ey,ipW=350;
 
-// Arrow: pod → external LLM
-drawArrow(svg,apx+apW,apy+16,740,cy+32,COLORS.orange,{delay:d+=10,dashed:true});
-drawLabel(svg,640,cy+50,'PII masked',{fontSize:9,color:COLORS.orange,delay:d,bold:true});
+// Arrow: pod → external LLM (diagonal, no label on line)
+drawArrow(svg,apx+apW,apy+14,730,cy+30,COLORS.orange,{delay:d+=10,dashed:true});
 
-// Arrow: pod → inference
-drawArrow(svg,apx+apW,apy+60,ipx,ipy+30,COLORS.green,{delay:d+=10});
-drawLabel(svg,(apx+apW+ipx)/2+10,apy+50,'in-cluster',{fontSize:9,color:COLORS.green,delay:d});
+// Arrow: pod → inference (horizontal)
+drawArrow(svg,apx+apW,apy+58,ipx,ipy+28,COLORS.green,{delay:d+=10});
 
 // AI Gateway
-drawBox(svg,ipx,ipy,174,56,'AI Gateway (MaaS)',COLORS.green,{fill:COLORS.green+'0a',delay:d+=15,fontSize:11,bold:true,rx:6});
-drawLabel(svg,ipx+87,ipy+36,'OpenResponses / OGX',{fontSize:8,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,ipx+87,ipy+47,'auth \u00b7 quota \u00b7 guardrails',{fontSize:8,color:COLORS.textMuted,delay:d+8});
-
+drawBox(svg,ipx,ipy,170,52,'AI Gateway (MaaS)',COLORS.green,{fill:COLORS.green+'0a',delay:d+=15,fontSize:11,bold:true,rx:6});
+drawLabel(svg,ipx+85,ipy+34,'OpenResponses / OGX',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+85,ipy+44,'auth \u00b7 quota \u00b7 guardrails',{fontSize:8,color:COLORS.textMuted,delay:d+8});
 // Semantic routing
-drawBox(svg,ipx+182,ipy,174,56,'Semantic Routing',COLORS.purple,{fill:COLORS.purple+'06',delay:d+=15,fontSize:11,bold:true,rx:6});
-drawLabel(svg,ipx+269,ipy+36,'Tier 2: which model?',{fontSize:8.5,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,ipx+269,ipy+47,'Red Hat AI gateway',{fontSize:8,color:COLORS.textMuted,delay:d+8});
+drawBox(svg,ipx+178,ipy,170,52,'Semantic Routing',COLORS.purple,{fill:COLORS.purple+'06',delay:d+=15,fontSize:11,bold:true,rx:6});
+drawLabel(svg,ipx+263,ipy+34,'Tier 2: which model?',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+263,ipy+44,'Red Hat AI gateway',{fontSize:8,color:COLORS.textMuted,delay:d+8});
+// Arrows between gateway boxes
+drawArrow(svg,ipx+170,ipy+26,ipx+178,ipy+26,COLORS.textMuted,{delay:d+=5});
 
 // Model Workers
-drawBox(svg,ipx,ipy+66,174,56,'Model Workers',COLORS.blue,{fill:COLORS.blue+'08',delay:d+=15,fontSize:11,bold:true,rx:6});
-drawLabel(svg,ipx+87,ipy+98,'vLLM \u00b7 any accelerator',{fontSize:8.5,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,ipx+87,ipy+110,'Nemotron \u00b7 Llama \u00b7 DeepSeek',{fontSize:8,color:COLORS.textMuted,delay:d+8});
-
+drawBox(svg,ipx,ipy+62,170,52,'Model Workers',COLORS.blue,{fill:COLORS.blue+'08',delay:d+=15,fontSize:11,bold:true,rx:6});
+drawLabel(svg,ipx+85,ipy+94,'Nemotron \u00b7 Llama \u00b7 DeepSeek',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+85,ipy+105,'vLLM \u00b7 any accelerator',{fontSize:8,color:COLORS.textMuted,delay:d+8});
 // Inference Scheduler
-drawBox(svg,ipx+182,ipy+66,174,56,'Inference Scheduler',COLORS.teal,{fill:COLORS.teal+'06',delay:d+=15,fontSize:11,bold:true,rx:6});
-drawLabel(svg,ipx+269,ipy+98,'Tier 3: which replica?',{fontSize:8.5,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,ipx+269,ipy+110,'llm-d EPP \u00b7 Gateway API',{fontSize:8,color:COLORS.textMuted,delay:d+8});
-
-// Inference arrows
-drawArrow(svg,ipx+174,ipy+28,ipx+182,ipy+28,COLORS.textMuted,{delay:d+=5});
-drawArrow(svg,ipx+87,ipy+56,ipx+87,ipy+66,COLORS.textMuted,{delay:d+=5});
-drawArrow(svg,ipx+269,ipy+56,ipx+269,ipy+66,COLORS.textMuted,{delay:d+=5});
+drawBox(svg,ipx+178,ipy+62,170,52,'Inference Scheduler',COLORS.teal,{fill:COLORS.teal+'06',delay:d+=15,fontSize:11,bold:true,rx:6});
+drawLabel(svg,ipx+263,ipy+94,'llm-d EPP \u00b7 Gateway API',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,ipx+263,ipy+105,'Tier 3: which replica?',{fontSize:8,color:COLORS.textMuted,delay:d+8});
+// Vertical arrows
+drawArrow(svg,ipx+85,ipy+52,ipx+85,ipy+62,COLORS.textMuted,{delay:d+=5});
+drawArrow(svg,ipx+263,ipy+52,ipx+263,ipy+62,COLORS.textMuted,{delay:d+=5});
 
 // Audit & Tracing
-drawBox(svg,ipx,ipy+132,ipW,32,'Audit & Tracing',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:d+=15,fontSize:10,bold:true,rx:4});
-drawLabel(svg,ipx+ipW/2,ipy+154,'MLflow \u00b7 OpenTelemetry \u00b7 end-to-end traces',{fontSize:8,color:COLORS.textMuted,delay:d+5});
+drawBox(svg,ipx,ipy+124,ipW,30,'Audit & Tracing',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:d+=15,fontSize:10,bold:true,rx:4});
+drawLabel(svg,ipx+ipW/2,ipy+146,'MLflow \u00b7 OpenTelemetry \u00b7 end-to-end traces',{fontSize:8,color:COLORS.textMuted,delay:d+5});
 
 // ── MCP GATEWAY BAR ──
-var mgY=ey+apH+8;
-drawBox(svg,M,mgY,W,32,'',COLORS.teal,{fill:COLORS.teal+'0c',delay:d+=20,rx:5,strokeWidth:1.2});
-drawLabel(svg,W/2+M,mgY+12,'MCP Gateway: tool authorization',{bold:true,fontSize:11,color:COLORS.teal,delay:d+5});
-drawLabel(svg,W/2+M,mgY+25,'Envoy \u00b7 Kuadrant / Authorino \u00b7 SVID token claims',{fontSize:8,color:COLORS.textMuted,delay:d+10});
+var mgY=ey+apH+12;
+drawBox(svg,M,mgY,W,30,'',COLORS.teal,{fill:COLORS.teal+'0c',delay:d+=20,rx:5,strokeWidth:1.2});
+drawLabel(svg,W/2+M,mgY+11,'MCP Gateway: tool authorization',{bold:true,fontSize:11,color:COLORS.teal,delay:d+5});
+drawLabel(svg,W/2+M,mgY+23,'Envoy \u00b7 Kuadrant / Authorino \u00b7 SVID token claims',{fontSize:8,color:COLORS.textMuted,delay:d+10});
 
-// ── PLATFORM BARS (3 tiers) ──
-var p1y=mgY+38;
-drawBox(svg,M,p1y,W,28,'',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:d+=15,rx:4});
+// ── PLATFORM BARS ──
+var p1y=mgY+36;
+drawBox(svg,M,p1y,W,26,'',COLORS.textMuted,{fill:COLORS.textMuted+'06',delay:d+=15,rx:4});
 drawLabel(svg,W/2+M,p1y+10,'Kubernetes / OpenShift',{bold:true,fontSize:10,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,W/2+M,p1y+22,'agent-sandbox \u00b7 kata \u00b7 confidential containers \u00b7 Gateway API \u00b7 NetworkPolicy',{fontSize:7,color:COLORS.textMuted,delay:d+8});
-
-var p2y=p1y+30;
-drawBox(svg,M,p2y,W,24,'',COLORS.textMuted,{fill:COLORS.textMuted+'04',delay:d+=15,rx:4});
-drawLabel(svg,W/2+M,p2y+9,'Linux kernel',{bold:true,fontSize:9,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,W/2+M,p2y+20,'SELinux \u00b7 seccomp \u00b7 Landlock \u00b7 netns',{fontSize:7,color:COLORS.textMuted,delay:d+8});
-
-var p3y=p2y+26;
-drawBox(svg,M,p3y,W,24,'',COLORS.textMuted,{fill:COLORS.textMuted+'04',delay:d+=15,rx:4});
-drawLabel(svg,W/2+M,p3y+9,'Accelerated infrastructure: silicon of choice',{bold:true,fontSize:9,color:COLORS.textMuted,delay:d+5});
-drawLabel(svg,W/2+M,p3y+20,'NVIDIA CUDA \u00b7 AMD ROCm \u00b7 Intel Gaudi \u00b7 Google TPU',{fontSize:7,color:COLORS.textMuted,delay:d+8});
+drawLabel(svg,W/2+M,p1y+21,'agent-sandbox \u00b7 kata \u00b7 confidential containers \u00b7 Gateway API \u00b7 NetworkPolicy',{fontSize:7.5,color:COLORS.textMuted,delay:d+8});
+var p2y=p1y+28;
+drawBox(svg,M,p2y,W,22,'',COLORS.textMuted,{fill:COLORS.textMuted+'04',delay:d+=15,rx:4});
+drawLabel(svg,W/2+M,p2y+8,'Linux kernel',{bold:true,fontSize:9,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,W/2+M,p2y+18,'SELinux \u00b7 seccomp \u00b7 Landlock \u00b7 netns',{fontSize:7.5,color:COLORS.textMuted,delay:d+8});
+var p3y=p2y+24;
+drawBox(svg,M,p3y,W,22,'',COLORS.textMuted,{fill:COLORS.textMuted+'04',delay:d+=15,rx:4});
+drawLabel(svg,W/2+M,p3y+8,'Accelerated infrastructure: silicon of choice',{bold:true,fontSize:9,color:COLORS.textMuted,delay:d+5});
+drawLabel(svg,W/2+M,p3y+18,'NVIDIA CUDA \u00b7 AMD ROCm \u00b7 Intel Gaudi \u00b7 Google TPU',{fontSize:7.5,color:COLORS.textMuted,delay:d+8});
 }
 
 function renderWorkloadVsService(){var svg=createSvg('#d-workload-vs-service',900,350);if(!svg)return;
