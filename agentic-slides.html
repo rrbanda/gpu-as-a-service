@@ -1233,16 +1233,15 @@ var W=1090,M=5,d=0;
 var cy=2;
 drawBox(svg,M,cy,700,62,'',COLORS.blue,{fill:COLORS.blue+'05',delay:d,rx:8});
 drawLabel(svg,M+10,cy+12,'CONTROL / SECURITY PLANE',{anchor:'start',bold:true,fontSize:10,color:COLORS.blue,delay:d+=10});
-var cpW=162,cpH=34,cpX=M+12,cpGap=170;
+var cpW=162,cpH=42,cpX=M+12,cpGap=170;
 var cps=[
-{l:'Agent Blueprint / GitOps',sub:'Helm \u00b7 NemoClaw'},
-{l:'Sandbox Control Plane',sub:'OpenShell Gateway'},
-{l:'Sandbox CRD + Controller',sub:'agent-sandbox SIG'},
-{l:'Workload Identity',sub:'SPIFFE \u00b7 JWT-SVID'}];
+{l:'Agent Blueprint / GitOps\nHelm \u00b7 NemoClaw'},
+{l:'Sandbox Control Plane\nOpenShell Gateway'},
+{l:'Sandbox CRD + Controller\nagent-sandbox SIG'},
+{l:'Workload Identity\nSPIFFE \u00b7 JWT-SVID'}];
 cps.forEach(function(c,i){var cx=cpX+i*cpGap;
-drawBox(svg,cx,cy+18,cpW,cpH,c.l,COLORS.blue,{fill:COLORS.blue+'0a',delay:d+=20,fontSize:9,bold:true,rx:5});
-drawLabel(svg,cx+cpW/2,cy+47,c.sub,{fontSize:7.5,color:COLORS.textMuted,delay:d+10})});
-for(var ai=0;ai<3;ai++){drawArrow(svg,cpX+(ai+1)*cpGap-8,cy+35,cpX+(ai+1)*cpGap,cy+35,COLORS.blue,{delay:d+=8,dashed:true})}
+drawBox(svg,cx,cy+16,cpW,cpH,c.l,COLORS.blue,{fill:COLORS.blue+'0a',delay:d+=20,fontSize:9,bold:true,rx:5})});
+for(var ai=0;ai<3;ai++){drawArrow(svg,cpX+(ai+1)*cpGap-8,cy+37,cpX+(ai+1)*cpGap,cy+37,COLORS.blue,{delay:d+=8,dashed:true})}
 
 // External LLM (top right, separate)
 drawBox(svg,730,cy,210,48,'External LLM (optional)',COLORS.orange,{fill:COLORS.orange+'08',delay:40,fontSize:11,bold:true,rx:6});
